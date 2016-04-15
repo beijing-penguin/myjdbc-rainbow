@@ -1,0 +1,1 @@
+要使用$符号匹配原生sql的话，记得得事先初始化添加需要执行的sql到SQLStorage的sqlMap对象中。key规范一般为$keyName   value值就是自己定义的sql(可以带#或者?匹配符)语句，调用案例请参考test包下面的测试用例
