@@ -5,7 +5,6 @@ public class Configure {
     /**
      * sql包目录，定义多个目录用逗号分割 
      */
-    public static String sqlXmlDir = "com.dc.module.system.sql";
     public static DruidDataSource testSource = new DruidDataSource();
 	public static DruidDataSource accSource = new DruidDataSource();
 	static{
