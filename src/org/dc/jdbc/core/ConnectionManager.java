@@ -30,9 +30,10 @@ public class ConnectionManager {
 			if(connMap.containsKey(dataSource)){
 				conn = connMap.get(dataSource);
 				return conn;
+			}else{
+				conn = dataSource.getConnection();
+				connMap.put(dataSource, conn);
 			}
-			conn = dataSource.getConnection();
-			connMap.put(dataSource, conn);
 		}else{
 			Map<DataSource,Connection> map = new HashMap<DataSource, Connection>();
 			conn = dataSource.getConnection();
@@ -53,6 +54,7 @@ public class ConnectionManager {
 			for (Connection conn : connMap.values()) {
 				try{
 					conn.close();
+					conn = null;
 				}catch (Exception e) {
 					log.error("",e);
 				}

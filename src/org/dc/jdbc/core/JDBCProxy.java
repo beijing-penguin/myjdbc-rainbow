@@ -24,7 +24,7 @@ public final class JDBCProxy implements MethodInterceptor {
 		Object invokeObj = null;
 		try{
 			Transactional t  = method.getAnnotation(Transactional.class);
-	        ConnectionManager.isTransaction.set(t==null?true:false); 
+	        ConnectionManager.isTransaction.set(t==null); 
 		    //执行目标方法
 			invokeObj = proxy.invokeSuper(obj, objects);
 			

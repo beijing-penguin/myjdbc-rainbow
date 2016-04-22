@@ -1,7 +1,5 @@
 package test;
 
-import java.io.File;
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,8 +10,6 @@ import org.dc.jdbc.helper.DBHelper;
 import org.dc.jdbc.init.LoadSqlUtil;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.alibaba.druid.util.JdbcUtils;
 
 public class JDBCTest {
 	private static DBHelper accDBHelper = new DBHelper(Configure.accSource);
@@ -49,6 +45,7 @@ public class JDBCTest {
 			mapParams.put("name", "dc");
 			mapParams.put("age", 12);
 			Map<String,Object> map_WithParam1_2 = testDBHelper.selectOne("select * from user where name=#{name} and age=#{age} limit 1",mapParams);
+			//这里通过$符号引用了xml中的sql语句，引用规则为          $文件名.SQL_ID
 			Map<String,Object> map_WithParam1_2_1 = testDBHelper.selectOne("$user.getOneUser",mapParams);
 			
 			//传入对象，也可以对象和Map一起作为参数传入方法

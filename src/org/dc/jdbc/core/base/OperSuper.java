@@ -11,7 +11,6 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.dc.utils.ClassesUtils;
 /**
  * 元操作父类，所有操作继承此类
  * @author DC
@@ -117,7 +116,9 @@ public abstract class OperSuper {
 					Field fd = fields[j];
 					if(fd.getName().equals(cols_name)){
 						fd.setAccessible(true);
-						fd.set(obj_newInsten,ClassesUtils.convert(fd.getType(),cols_value));
+						//fd.set(obj_newInsten,ClassesUtils.convert(fd.getType(),cols_value));
+						fd.set(obj_newInsten,cols_value);
+						
 						break;
 					}
 				}
@@ -138,7 +139,8 @@ public abstract class OperSuper {
 				Field fd = fields[j];
 				if(fd.getName().equals(cols_name)){
 					fd.setAccessible(true);
-					fd.set(obj_newInsten,ClassesUtils.convert(fd.getType(),cols_value));
+					//fd.set(obj_newInsten,ClassesUtils.convert(fd.getType(),cols_value));
+					fd.set(obj_newInsten,cols_value);
 					break;
 				}
 			}

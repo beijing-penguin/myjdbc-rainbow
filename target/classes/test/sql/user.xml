@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mysql>
+	<sql id="getOneUser" author="dc">
+		select * from user where name=#{name} and age=#{age} limit 1
+	</sql>
+	<sql id="getAllUser" author="dc" desc="获取用户表所有字段信息">
+        select * from user
+    </sql>
+</mysql>

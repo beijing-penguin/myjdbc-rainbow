@@ -40,6 +40,9 @@ public class DBHelper {
 		
 		return selectOper.selectOne(conn,sql,returnClass,params_obj);
 	}
+	public <T> T selectOne(String sqlOrID,Class<T> returnClass) throws Exception{
+		return this.selectOne(sqlOrID, returnClass,new Object[]{});
+	}
 	public <T> T selectOne(String sqlOrID,Object...params) throws Exception{
 		return this.selectOne(sqlOrID, null,params);
 	}
@@ -54,6 +57,9 @@ public class DBHelper {
 	}
 	public <T> List<T> selectList(String sqlOrID,Object...params) throws Exception{
 		return this.selectList(sqlOrID, null, params);
+	}
+	public <T> List<T> selectList(String sqlOrID,Class<T> returnClass) throws Exception{
+		return this.selectList(sqlOrID, returnClass, new Object[]{});
 	}
 	/**
 	 * 返回受影响的行数
