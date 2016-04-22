@@ -16,42 +16,26 @@ import org.apache.commons.logging.LogFactory;
  * @author DC
  */
 public abstract class OperSuper {
-	private static Log jdbclog = LogFactory.getLog(OperSuper.class);
+	private static final Log jdbclog = LogFactory.getLog(OperSuper.class);
 	public void close(PreparedStatement ps,ResultSet rs){
-		if(rs!=null){
+		close(rs);
+		close(ps);
+	}
+	public void close(AutoCloseable ac){
+		if(ac!=null){
 			try{
-				rs.close();
-				rs = null;
-			}catch (Exception e) {
-				jdbclog.error("",e);
-			}
-		}
-		if(ps!=null){
-			try{
-				ps.close();
-				ps = null;
+				if(ac!=null){
+					ac.close();
+				}
 			}catch (Exception e) {
 				jdbclog.error("",e);
 			}
 		}
 	}
-	public void close(PreparedStatement ps){
-		if(ps!=null){
-			try{
-				ps.close();
-				ps = null;
-			}catch (Exception e) {
-				jdbclog.error("",e);
-			}
-		}
-	}
-	public void close(ResultSet rs){
-		if(rs!=null){
-			try{
-				rs.close();
-				rs = null;
-			}catch (Exception e) {
-				jdbclog.error("",e);
+	protected void setParams(PreparedStatement ps, Object[] params) throws Exception {
+		if (params != null && params.length > 0) {
+			for (int i = 0; i < params.length; i++) {
+				ps.setObject(i+1, params[i]);
 			}
 		}
 	}
@@ -59,11 +43,7 @@ public abstract class OperSuper {
 		PreparedStatement ps = null;
 		try {
 			ps = conn.prepareStatement(sql);
-			if(params!=null && params.length>0){
-				for (int i = 0; i < params.length; i++) {
-					ps.setObject(i+1, params[i]);
-				}
-			}
+			this.setParams(ps, params);
 			return ps.executeUpdate();
 		} catch (Exception e) {
 			throw e;
@@ -72,11 +52,7 @@ public abstract class OperSuper {
 		}
 	}
 	public ResultSet preparedSQLReturnRS(PreparedStatement ps,String sql,Object[] params) throws Exception{
-		if(params!=null && params.length>0){
-			for (int i = 0; i < params.length; i++) {
-				ps.setObject(i+1, params[i]);
-			}
-		}
+		this.setParams(ps, params);
 		return ps.executeQuery();
 	}
 	public void parseSqlResultToMap(ResultSet rs,List<Object> list) throws Exception{
@@ -118,7 +94,7 @@ public abstract class OperSuper {
 						fd.setAccessible(true);
 						//fd.set(obj_newInsten,ClassesUtils.convert(fd.getType(),cols_value));
 						fd.set(obj_newInsten,cols_value);
-						
+
 						break;
 					}
 				}
@@ -129,7 +105,7 @@ public abstract class OperSuper {
 	public Object parseSqlResultToObject(ResultSet rs,Class<?> cls) throws Exception{
 		ResultSetMetaData metaData  = rs.getMetaData();
 		int cols_len = metaData.getColumnCount();
-		
+
 		Object obj_newInsten = cls.newInstance();
 		Field[] fields = cls.getDeclaredFields();
 		for(int i = 0; i<cols_len; i++){

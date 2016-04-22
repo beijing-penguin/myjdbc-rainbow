@@ -15,13 +15,13 @@ import org.apache.commons.logging.LogFactory;
  * @time 2015-8-17
  */
 public class ConnectionManager {
-	private static Log log = LogFactory.getLog(ConnectionManager.class);
+	private static final Log log = LogFactory.getLog(ConnectionManager.class);
 
 	//当前线程连接对象的参与元素
-	private static ThreadLocal<Map<DataSource,Connection>> connLocal = new ThreadLocal<Map<DataSource,Connection>>();
+	private static final ThreadLocal<Map<DataSource,Connection>> connLocal = new ThreadLocal<Map<DataSource,Connection>>();
 
 	//当前线程事务控制元素
-	public static ThreadLocal<Boolean> isTransaction = new ThreadLocal<Boolean>();
+	public static final ThreadLocal<Boolean> isTransaction = new ThreadLocal<Boolean>();
 
 	public static Connection getConnection(DataSource dataSource) throws Exception{
 		Map<DataSource,Connection> connMap = connLocal.get();
@@ -41,7 +41,7 @@ public class ConnectionManager {
 			connLocal.set(map);
 		}
 		//设置事务，如果事务为空，则默认为开启状态
-		conn.setAutoCommit(isTransaction.get()==null?true:!isTransaction.get());
+		conn.setAutoCommit(isTransaction.get()==null);
 		return conn;
 	}
 

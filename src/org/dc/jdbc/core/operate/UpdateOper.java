@@ -9,7 +9,7 @@ import org.dc.jdbc.core.base.OperSuper;
  * @time 2015-8-17
  */
 public class UpdateOper extends OperSuper{
-    private static UpdateOper oper = new UpdateOper();
+    private static final UpdateOper oper = new UpdateOper();
     public static UpdateOper getInstance(){
         return oper;
     }

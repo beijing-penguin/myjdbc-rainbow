@@ -14,7 +14,7 @@ import org.dc.jdbc.core.base.OperSuper;
  * @updateTime 2015-8-17
  */
 public class SelectOper extends OperSuper{
-	private static SelectOper oper = new SelectOper();
+	private static final SelectOper oper = new SelectOper();
 	public static SelectOper getInstance(){
 		return oper;
 	}

@@ -52,11 +52,7 @@ public class InsertOper extends OperSuper{
 		ResultSet rs = null;
 		try {
 			ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-			if(params!=null && params.length>0){
-				for (int i = 0; i < params.length; i++) {
-					ps.setObject(i+1, params[i]);
-				}
-			}
+			super.setParams(ps, params);
 			ps.executeUpdate();
 			rs = ps.getGeneratedKeys();
 			Object key =null;

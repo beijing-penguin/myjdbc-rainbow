@@ -9,7 +9,7 @@ import java.util.Map;
  * @time 2015-8-17
  */
 public class SQLStorage {
-    public static Map<String,String> sqlMap = new HashMap<String, String>();
+    public static final Map<String,String> sqlMap = new HashMap<String, String>();
     public static void put(String key,String sql){
         sqlMap.put(key, sql);
     }

@@ -21,11 +21,11 @@ import org.dc.jdbc.entity.SqlEntity;
  */
 public class DBHelper {
 	private DataSource dataSource;
-	private static SQLHandler sqlHandler = SQLHandler.getInstance();
-	private static SelectOper selectOper = SelectOper.getInstance();
-	private static UpdateOper updateOper = UpdateOper.getInstance();
-	private static InsertOper insertOper = InsertOper.getInstance();
-	private static DeleteOper deleteOper = DeleteOper.getInstance();
+	private static final SQLHandler sqlHandler = SQLHandler.getInstance();
+	private static final SelectOper selectOper = SelectOper.getInstance();
+	private static final UpdateOper updateOper = UpdateOper.getInstance();
+	private static final InsertOper insertOper = InsertOper.getInstance();
+	private static final DeleteOper deleteOper = DeleteOper.getInstance();
 	
 	public DBHelper(DataSource dataSource){
 		this.dataSource = dataSource;

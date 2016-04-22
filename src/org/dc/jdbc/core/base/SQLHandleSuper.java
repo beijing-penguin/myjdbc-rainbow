@@ -12,7 +12,7 @@ import org.apache.commons.logging.LogFactory;
  * @time 2016-04-14
  */
 public abstract class SQLHandleSuper {
-	private static Log log = LogFactory.getLog(SQLHandleSuper.class);
+	private static final Log log = LogFactory.getLog(SQLHandleSuper.class);
 	public void parseMapSql(Object param,StringBuilder sql,List<Object> sqlparam){
 		Map<?,?> p = (Map<?,?>)param;
 		for (int i = 0,len=sql.length(); i <len; i++) {

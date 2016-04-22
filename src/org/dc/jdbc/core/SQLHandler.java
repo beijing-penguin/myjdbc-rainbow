@@ -2,6 +2,7 @@ package org.dc.jdbc.core;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -31,8 +32,7 @@ public class SQLHandler extends SQLHandleSuper{
 		SqlEntity sqlEntity = new SqlEntity();
 		if(params!=null && params.length>0){
 			List<Object> sqlparam = new ArrayList<Object>();
-			for (int k = 0; k < params.length; k++) {
-				Object param = params[k];
+			for (Object param : params) {
 				if(param!=null){
 					if(Map.class.isAssignableFrom(param.getClass())){
 						super.parseMapSql(param, sql, sqlparam);
@@ -40,9 +40,7 @@ public class SQLHandler extends SQLHandleSuper{
 						sqlparam.addAll((Collection<?>) param);
 					}else if(Object[].class.isAssignableFrom(param.getClass())){
 						Object[] ps = (Object[])param;
-						for (int i = 0; i < ps.length; i++) {
-							sqlparam.add(ps[i]);
-						}
+						Collections.addAll(sqlparam, ps);
 					}else if(param.getClass().getClassLoader()==null){//java基本数据类型
 						sqlparam.add(param);
 					}else{//java对象类型

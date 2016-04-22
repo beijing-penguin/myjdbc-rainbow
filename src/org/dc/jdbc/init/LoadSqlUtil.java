@@ -12,7 +12,7 @@ import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
 public class LoadSqlUtil {
-	private static Log log = LogFactory.getLog(LoadSqlUtil.class);
+	private static final Log log = LogFactory.getLog(LoadSqlUtil.class);
 
 	/**
 	 * 加载xml文件中的sql，遍历该目录下，以及子目录下的所有xml文件。
@@ -33,8 +33,8 @@ public class LoadSqlUtil {
 				//获取根节点元素对象  
 				Element root = document.getRootElement();  
 				List<?> sqlNodeList = root.elements("sql");
-				for (int j = 0; j < sqlNodeList.size(); j++) {
-					Element sqlnode = (Element) sqlNodeList.get(j);
+				for (Object aSqlNodeList : sqlNodeList) {
+					Element sqlnode = (Element) aSqlNodeList;
 					String key = f.getName().substring(0, f.getName().length()-4)+"."+sqlnode.attributeValue("id");
 					key = "$"+key;
 					//检查是否有冲突

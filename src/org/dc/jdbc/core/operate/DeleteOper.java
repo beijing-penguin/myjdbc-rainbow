@@ -10,7 +10,7 @@ import org.dc.jdbc.core.base.OperSuper;
  * @time 2015-8-17
  */
 public class DeleteOper extends OperSuper{
-    private static DeleteOper deleteOper = new DeleteOper();
+    private static final DeleteOper deleteOper = new DeleteOper();
     public static DeleteOper getInstance(){
         return deleteOper;
     }
