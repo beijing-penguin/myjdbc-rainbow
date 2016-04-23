@@ -1,13 +1,13 @@
 package org.dc.jdbc.core;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.dc.jdbc.core.transaction.TransactionAttribute;
+
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.sql.DataSource;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * 连接管理
@@ -21,7 +21,7 @@ public class ConnectionManager {
 	private static final ThreadLocal<Map<DataSource,Connection>> connLocal = new ThreadLocal<Map<DataSource,Connection>>();
 
 	//当前线程事务控制元素
-	public static final ThreadLocal<Boolean> isTransaction = new ThreadLocal<Boolean>();
+	public static final ThreadLocal<TransactionAttribute> transactionThreadLocal = new ThreadLocal<TransactionAttribute>();
 
 	public static Connection getConnection(DataSource dataSource) throws Exception{
 		Map<DataSource,Connection> connMap = connLocal.get();
@@ -41,7 +41,14 @@ public class ConnectionManager {
 			connLocal.set(map);
 		}
 		//设置事务，如果事务为空，则默认为开启状态
-		conn.setAutoCommit(isTransaction.get()==null);
+		TransactionAttribute ta;
+		if ((ta = transactionThreadLocal.get()) != null) {
+			conn.setAutoCommit(false);
+			conn.setReadOnly(ta.isReadonly());
+		} else {
+			conn.setAutoCommit(true);
+			conn.setReadOnly(false);
+		}
 		return conn;
 	}
 
@@ -61,7 +68,7 @@ public class ConnectionManager {
 			}
 		}
 		connLocal.remove();
-		isTransaction.remove();
+		transactionThreadLocal.remove();
 	}
 	/**
 	 * 回滚所有数据源的操作，正常的数据库能够回滚，回滚异常也不用管，继续回滚下一个数据库，知道回滚操作结束

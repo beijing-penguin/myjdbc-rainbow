@@ -1,15 +1,16 @@
 package test;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.dc.jdbc.config.JDBCConfig;
 import org.dc.jdbc.core.ConnectionManager;
+import org.dc.jdbc.core.transaction.TransactionAttribute;
 import org.dc.jdbc.helper.DBHelper;
 import org.dc.jdbc.init.LoadSqlUtil;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class JDBCTest {
 	private static DBHelper accDBHelper = new DBHelper(Configure.accSource);
@@ -27,7 +28,7 @@ public class JDBCTest {
 	@Test
 	public void select(){
 		try {
-			ConnectionManager.isTransaction.set(false);
+			ConnectionManager.transactionThreadLocal.set(null);
 			/*start*/
 			Map<String,Object> map = testDBHelper.selectOne("select * from user limit 1");
 			List<Map<String,Object>> mapList = testDBHelper.selectList("select * from user");
@@ -72,7 +73,7 @@ public class JDBCTest {
 	@Test
 	public void insert(){
 		//开启事务
-		ConnectionManager.isTransaction.set(true);
+		ConnectionManager.transactionThreadLocal.set(new TransactionAttribute());
 		try {
 			testDBHelper.insert("insert into user(name,age) values(?,?)", "dc",12);
 			//提交
