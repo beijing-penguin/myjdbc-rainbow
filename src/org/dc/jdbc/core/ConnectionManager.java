@@ -1,13 +1,13 @@
 package org.dc.jdbc.core;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.dc.jdbc.core.transaction.TransactionAttribute;
-
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.sql.DataSource;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * 连接管理
@@ -20,8 +20,8 @@ public class ConnectionManager {
 	//当前线程连接对象的参与元素
 	private static final ThreadLocal<Map<DataSource,Connection>> connLocal = new ThreadLocal<Map<DataSource,Connection>>();
 
-	//当前线程事务控制元素
-	public static final ThreadLocal<TransactionAttribute> transactionThreadLocal = new ThreadLocal<TransactionAttribute>();
+	public static final ThreadLocal<Boolean> isTransaction =new ThreadLocal<Boolean>();
+	public static final ThreadLocal<Boolean> readOnly =new ThreadLocal<Boolean>();
 
 	public static Connection getConnection(DataSource dataSource) throws Exception{
 		Map<DataSource,Connection> connMap = connLocal.get();
@@ -40,15 +40,9 @@ public class ConnectionManager {
 			map.put(dataSource, conn);
 			connLocal.set(map);
 		}
-		//设置事务，如果事务为空，则默认为开启状态
-		TransactionAttribute ta;
-		if ((ta = transactionThreadLocal.get()) != null) {
-			conn.setAutoCommit(false);
-			conn.setReadOnly(ta.isReadonly());
-		} else {
-			conn.setAutoCommit(true);
-			conn.setReadOnly(false);
-		}
+		//设置事务，如果事务为空，则默认为关闭
+		conn.setAutoCommit(isTransaction.get()==null?true:!isTransaction.get());
+		conn.setReadOnly(readOnly.get()==null?false:readOnly.get());
 		return conn;
 	}
 
@@ -68,7 +62,8 @@ public class ConnectionManager {
 			}
 		}
 		connLocal.remove();
-		transactionThreadLocal.remove();
+		isTransaction.remove();
+		readOnly.remove();
 	}
 	/**
 	 * 回滚所有数据源的操作，正常的数据库能够回滚，回滚异常也不用管，继续回滚下一个数据库，知道回滚操作结束

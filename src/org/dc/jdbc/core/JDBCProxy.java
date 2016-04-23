@@ -1,12 +1,12 @@
 package org.dc.jdbc.core;
 
+import java.lang.reflect.Method;
+
+import org.dc.jdbc.anno.Transactional;
+
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
-import org.dc.jdbc.anno.Transactional;
-import org.dc.jdbc.core.transaction.TransactionAttribute;
-
-import java.lang.reflect.Method;
 /**
  * 动态反向代理,主要作用：拦截参数、管理数据库事务
  * @author dc
@@ -22,14 +22,13 @@ public final class JDBCProxy implements MethodInterceptor {
 
     private JDBCProxy(){}
 	public Object intercept(Object obj, Method method, Object[] objects, MethodProxy proxy) throws Throwable {
-		Object invokeObj = null;
 		Transactional transactional  = method.getAnnotation(Transactional.class);
-		TransactionAttribute ta = null;
-		if (transactional != null) {
-			ta = new TransactionAttribute();
-			ta.setReadonly(transactional.readonly());
+		if(transactional!=null){//如果不为空，则默认开启事务
+			ConnectionManager.isTransaction.set(true);
+			ConnectionManager.readOnly.set(transactional.readonly());
 		}
-		ConnectionManager.transactionThreadLocal.set(ta);
+		
+		Object invokeObj = null;
 		try{
 		    //执行目标方法
 			invokeObj = proxy.invokeSuper(obj, objects);
@@ -44,6 +43,7 @@ public final class JDBCProxy implements MethodInterceptor {
 		return invokeObj;
 	}
 
+	@SuppressWarnings("unchecked")
 	public <T> T getTarget(Class<T> target) {
 		Enhancer enhancer = new Enhancer();
 		enhancer.setSuperclass(target);

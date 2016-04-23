@@ -92,9 +92,7 @@ public abstract class OperSuper {
 					Field fd = fields[j];
 					if(fd.getName().equals(cols_name)){
 						fd.setAccessible(true);
-						//fd.set(obj_newInsten,ClassesUtils.convert(fd.getType(),cols_value));
 						fd.set(obj_newInsten,cols_value);
-
 						break;
 					}
 				}
@@ -115,7 +113,6 @@ public abstract class OperSuper {
 				Field fd = fields[j];
 				if(fd.getName().equals(cols_name)){
 					fd.setAccessible(true);
-					//fd.set(obj_newInsten,ClassesUtils.convert(fd.getType(),cols_value));
 					fd.set(obj_newInsten,cols_value);
 					break;
 				}
