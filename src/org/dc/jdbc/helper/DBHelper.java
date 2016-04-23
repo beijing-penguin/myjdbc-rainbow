@@ -6,11 +6,13 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import org.dc.jdbc.core.ConnectionManager;
-import org.dc.jdbc.core.SQLHandler;
 import org.dc.jdbc.core.operate.DeleteOper;
 import org.dc.jdbc.core.operate.InsertOper;
 import org.dc.jdbc.core.operate.SelectOper;
 import org.dc.jdbc.core.operate.UpdateOper;
+import org.dc.jdbc.core.sqlhandler.PrintSqlLogHandler;
+import org.dc.jdbc.core.sqlhandler.SQLHandler;
+import org.dc.jdbc.core.sqlhandler.XmlSqlHandler;
 import org.dc.jdbc.entity.SqlEntity;
 
 /**
@@ -21,7 +23,7 @@ import org.dc.jdbc.entity.SqlEntity;
  */
 public class DBHelper {
 	private DataSource dataSource;
-	private static final SQLHandler sqlHandler = SQLHandler.getInstance();
+	private static final SQLHandler sqlHandler = PrintSqlLogHandler.getInstance().setSuccessor(XmlSqlHandler.getInstance());
 	private static final SelectOper selectOper = SelectOper.getInstance();
 	private static final UpdateOper updateOper = UpdateOper.getInstance();
 	private static final InsertOper insertOper = InsertOper.getInstance();
@@ -34,7 +36,7 @@ public class DBHelper {
 	public <T> T selectOne(String sqlOrID,Class<T> returnClass,Object...params) throws Exception{
 		Connection conn = ConnectionManager.getConnection(dataSource);
 
-		SqlEntity sqlEntity = sqlHandler.sqlHandler(sqlOrID,params);
+		SqlEntity sqlEntity = sqlHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
 		
@@ -49,7 +51,7 @@ public class DBHelper {
 	public <T> List<T> selectList(String sqlOrID,Class<T> returnClass,Object...params) throws Exception{
 		Connection conn = ConnectionManager.getConnection(dataSource);
 
-		SqlEntity sqlEntity = sqlHandler.sqlHandler(sqlOrID,params);
+		SqlEntity sqlEntity = sqlHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
 
@@ -71,7 +73,7 @@ public class DBHelper {
 	public int insert(String sqlOrID,Object...params) throws Exception{
 		Connection conn = ConnectionManager.getConnection(dataSource);
 
-		SqlEntity sqlEntity = sqlHandler.sqlHandler(sqlOrID,params);
+		SqlEntity sqlEntity = sqlHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
 
@@ -87,7 +89,7 @@ public class DBHelper {
 	public Object insertReturnKey(String sqlOrID,Object...params) throws Exception{
 		Connection conn = ConnectionManager.getConnection(dataSource);
 
-		SqlEntity sqlEntity = sqlHandler.sqlHandler(sqlOrID,params);
+		SqlEntity sqlEntity = sqlHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
 
@@ -97,7 +99,7 @@ public class DBHelper {
 	public int update(String sqlOrID,Object...params) throws Exception{
 		Connection conn = ConnectionManager.getConnection(dataSource);
 
-		SqlEntity sqlEntity = sqlHandler.sqlHandler(sqlOrID,params);
+		SqlEntity sqlEntity = sqlHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
 
@@ -108,7 +110,7 @@ public class DBHelper {
 	public int delete(String sqlOrID,Object...params) throws Exception{
 		Connection conn = ConnectionManager.getConnection(dataSource);
 
-		SqlEntity sqlEntity = sqlHandler.sqlHandler(sqlOrID,params);
+		SqlEntity sqlEntity = sqlHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
 

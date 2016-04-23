@@ -11,6 +11,7 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.dc.jdbc.core.GlobalCache;
 /**
  * 元操作父类，所有操作继承此类
  * @author DC
@@ -82,19 +83,14 @@ public abstract class OperSuper {
 	public void parseSqlResultToObject(ResultSet rs,Class<?> cls,List<Object> list) throws Exception{
 		ResultSetMetaData metaData  = rs.getMetaData();
 		int cols_len = metaData.getColumnCount();
+		Map<String,Field> fieldsMap = GlobalCache.getCacheFields(cls);
 		while(rs.next()){
 			Object obj_newInsten = cls.newInstance();
-			Field[] fields = cls.getDeclaredFields();
 			for(int i = 0; i<cols_len; i++){
 				String cols_name = metaData.getColumnLabel(i+1);  
-				Object cols_value = rs.getObject(cols_name);
-				for (int j = 0,j_len=fields.length; j < j_len; j++) {
-					Field fd = fields[j];
-					if(fd.getName().equals(cols_name)){
-						fd.setAccessible(true);
-						fd.set(obj_newInsten,cols_value);
-						break;
-					}
+				if(fieldsMap.containsKey(cols_name)){
+					Object cols_value = rs.getObject(cols_name);
+					fieldsMap.get(cols_name).set(obj_newInsten, cols_value);
 				}
 			}
 			list.add(obj_newInsten);
@@ -105,17 +101,12 @@ public abstract class OperSuper {
 		int cols_len = metaData.getColumnCount();
 
 		Object obj_newInsten = cls.newInstance();
-		Field[] fields = cls.getDeclaredFields();
+		Map<String,Field> fieldsMap = GlobalCache.getCacheFields(cls);
 		for(int i = 0; i<cols_len; i++){
 			String cols_name = metaData.getColumnLabel(i+1);  
-			Object cols_value = rs.getObject(cols_name);
-			for (int j = 0,j_len=fields.length; j < j_len; j++) {
-				Field fd = fields[j];
-				if(fd.getName().equals(cols_name)){
-					fd.setAccessible(true);
-					fd.set(obj_newInsten,cols_value);
-					break;
-				}
+			if(fieldsMap.containsKey(cols_name)){
+				Object cols_value = rs.getObject(cols_name);
+				fieldsMap.get(cols_name).set(obj_newInsten, cols_value);
 			}
 		}
 		return obj_newInsten;
@@ -124,7 +115,7 @@ public abstract class OperSuper {
 		ResultSetMetaData metaData  = rs.getMetaData();
 		int cols_len = metaData.getColumnCount();
 		if(cols_len>1){
-			throw new Exception("列太多");
+			throw new Exception("The number of returned data columns is too many");
 		}
 		while(rs.next()){
 			for(int i=0; i<cols_len; i++){  
@@ -137,7 +128,7 @@ public abstract class OperSuper {
 		ResultSetMetaData metaData  = rs.getMetaData();
 		int cols_len = metaData.getColumnCount();//列数
 		if(cols_len>1){
-			throw new Exception("列太多");
+			throw new Exception("The number of returned data columns is too many");
 		}
 		Object cols_value = rs.getObject(1);
 		return cols_value;

@@ -74,6 +74,7 @@ public class JDBCTest {
 	public void insert(){
 		//开启事务
 		ConnectionManager.isTransaction.set(true);
+		JDBCConfig.isPrintSqlLog=true;
 		try {
 			testDBHelper.insert("insert into user(name,age) values(?,?)", "dc",12);
 			//提交
