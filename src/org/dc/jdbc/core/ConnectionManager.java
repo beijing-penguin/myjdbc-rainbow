@@ -27,8 +27,8 @@ public class ConnectionManager {
 		Map<DataSource,Connection> connMap = connLocal.get();
 		Connection conn = null;
 		if(connMap!=null){
-			if(connMap.containsKey(dataSource)){
-				conn = connMap.get(dataSource);
+			conn = connMap.get(dataSource);
+			if(conn!=null){
 				return conn;
 			}else{
 				conn = dataSource.getConnection();

@@ -19,38 +19,34 @@ public class XmlSqlHandler extends SQLHandler{
 	 */
 	@Override
 	public SqlEntity handleRequest(String sqlOrID,Object[] params) throws Exception{
-		/**
-		 * 判断是否有后继的责任对象
-		 * 如果有，就转发请求给后继的责任对象
-		 * 如果没有，则处理请求
-		 */
+
+		/*		
 		if(super.getSuccessor() != null){            
-			return super.getSuccessor().handleRequest(sqlOrID,params);
-		}else{            
-			StringBuilder sql =new StringBuilder(sqlOrID.startsWith("$")?SQLStorage.getSql(sqlOrID):sqlOrID);
-			SqlEntity sqlEntity = new SqlEntity();
-			if(params!=null && params.length>0){
-				List<Object> sqlparam = new ArrayList<Object>();
-				for (Object param : params) {
-					if(param!=null){
-						if(Map.class.isAssignableFrom(param.getClass())){
-							super.parseMapSql(param, sql, sqlparam);
-						}else if(Collection.class.isAssignableFrom(param.getClass())){
-							sqlparam.addAll((Collection<?>) param);
-						}else if(Object[].class.isAssignableFrom(param.getClass())){
-							Object[] ps = (Object[])param;
-							Collections.addAll(sqlparam, ps);
-						}else if(param.getClass().getClassLoader()==null){//java基本数据类型
-							sqlparam.add(param);
-						}else{//java对象类型
-							super.parseObjectSql(param, sql, sqlparam);
-						}
+			super.getSuccessor().handleRequest(sqlOrID,params);
+		}else{     */       
+		StringBuilder sql =new StringBuilder(sqlOrID.startsWith("$")?SQLStorage.getSql(sqlOrID):sqlOrID);
+		SqlEntity sqlEntity = new SqlEntity();
+		if(params!=null && params.length>0){
+			List<Object> sqlparam = new ArrayList<Object>();
+			for (Object param : params) {
+				if(param!=null){
+					if(Map.class.isAssignableFrom(param.getClass())){
+						super.parseMapSql(param, sql, sqlparam);
+					}else if(Collection.class.isAssignableFrom(param.getClass())){
+						sqlparam.addAll((Collection<?>) param);
+					}else if(Object[].class.isAssignableFrom(param.getClass())){
+						Object[] ps = (Object[])param;
+						Collections.addAll(sqlparam, ps);
+					}else if(param.getClass().getClassLoader()==null){//java基本数据类型
+						sqlparam.add(param);
+					}else{//java对象类型
+						super.parseObjectSql(param, sql, sqlparam);
 					}
 				}
-				sqlEntity.setParams(sqlparam.toArray());
 			}
-			sqlEntity.setSql(sql.toString());
-			return sqlEntity;
+			sqlEntity.setParams(sqlparam.toArray());
 		}
+		sqlEntity.setSql(sql.toString());
+		return sqlEntity;
 	}
 }

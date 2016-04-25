@@ -3,7 +3,9 @@ package test.transaction;
 import org.dc.jdbc.anno.Transactional;
 import org.dc.jdbc.helper.DBHelper;
 import test.Configure;
+import test.User;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -14,7 +16,12 @@ public class UserService {
 
     @Transactional(readonly = true)
     public Map<String, Object> login() throws Exception {
-        return userDBHelper.selectOne("select * from user limit 1");
+        return userDBHelper.selectOne("$user.getOneUser");
+    }
+    @Transactional(readonly = true)
+    public User login2() throws Exception {
+    	List<User> list =  userDBHelper.selectOne("select * from user limit 1",User.class);
+    	return null;
     }
 
     @Transactional(readonly = true)

@@ -29,4 +29,5 @@ public class TestTransactionAnnotation {
     public void testInsertWithReadonlyTransaction() throws Exception {
         userService.register();
     }
+    //...
 }

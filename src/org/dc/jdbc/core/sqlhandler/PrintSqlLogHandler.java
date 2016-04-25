@@ -13,6 +13,7 @@ public class PrintSqlLogHandler extends SQLHandler{
 	 */
 	@Override
 	public SqlEntity handleRequest(String sqlOrID,Object[] params) throws Exception{
+		//通过责任链得到之前的责任人处理好的SqlEntity
 		SqlEntity sqlEntity = super.getSuccessor().handleRequest(sqlOrID,params);
 		if(JDBCConfig.isPrintSqlLog){
 			super.printSqlLog(sqlEntity.getSql(), sqlEntity.getParams());
