@@ -8,25 +8,26 @@ import org.junit.Test;
 import java.util.Map;
 
 /**
- * 测试事务是否有效
- * Created by wyx on 2016/4/23.
+ * 测试类上的事务注解
+ * Created by wyx on 2016/4/25.
  */
-public class TestTransactionAnnotation {
-    private static UserService userService;
+public class TestTransactionAnnoationOnClass {
+    private static UserServiceWithClassAnnotation userServiceWithClassAnnotation;
 
     @BeforeClass
     public static void init() {
-        userService = JDBCProxy.getInstance().getTarget(UserService.class);
+        userServiceWithClassAnnotation=JDBCProxy.getInstance().getTarget(UserServiceWithClassAnnotation.class);
     }
 
     @Test
     public void testSelectWithReadonlyTransaction() throws Exception {
-        Map<String, Object> userMap = userService.login();
+        Map<String, Object> userMap = userServiceWithClassAnnotation.login();
         Assert.assertNotNull(userMap);
     }
 
+
     @Test(expected = Exception.class)
     public void testInsertWithReadonlyTransaction() throws Exception {
-        userService.register();
+        userServiceWithClassAnnotation.register();
     }
 }
