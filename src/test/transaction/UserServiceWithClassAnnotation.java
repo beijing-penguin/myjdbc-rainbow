@@ -8,21 +8,20 @@ import test.User;
 import java.util.Map;
 
 /**
- * Created by wyx on 2016/4/23.
+ * Created by wyx on 2016/4/25.
  */
-public class UserService {
+@Transactional(readonly = true)
+public class UserServiceWithClassAnnotation {
     private DBHelper userDBHelper = new DBHelper(Configure.testSource);
 
     @Transactional(readonly = true)
     public Map<String, Object> login() throws Exception {
         return userDBHelper.selectOne("$user.getOneUser");
     }
-    @Transactional(readonly = true)
     public User login2() throws Exception {
-    	return userDBHelper.selectOne("select * from user limit 1",User.class);
+        return userDBHelper.selectOne("select * from user limit 1",User.class);
     }
 
-    @Transactional(readonly = true)
     public boolean register() throws Exception {
         int ret = userDBHelper.insert("insert into user(name,age) values(?,?)", "dc", 12);
         return ret > 0;
