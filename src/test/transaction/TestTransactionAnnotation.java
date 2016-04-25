@@ -29,5 +29,9 @@ public class TestTransactionAnnotation {
     public void testInsertWithReadonlyTransaction() throws Exception {
         userService.register();
     }
+    public static void main(String[] args) {
+    	UserService userService = JDBCProxy.getInstance().getTarget(UserService.class);
+    	System.out.println(userService);
+	}
     //...
 }

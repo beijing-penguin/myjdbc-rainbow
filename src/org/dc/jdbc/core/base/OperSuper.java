@@ -88,9 +88,11 @@ public abstract class OperSuper {
 			Object obj_newInsten = cls.newInstance();
 			for(int i = 0; i<cols_len; i++){
 				String cols_name = metaData.getColumnLabel(i+1);  
-				if(fieldsMap.containsKey(cols_name)){
+				Field field = fieldsMap.get(cols_name);
+				if(field!=null){
 					Object cols_value = rs.getObject(cols_name);
-					fieldsMap.get(cols_name).set(obj_newInsten, cols_value);
+					field.setAccessible(true);
+					field.set(obj_newInsten, cols_value);
 				}
 			}
 			list.add(obj_newInsten);
@@ -104,9 +106,11 @@ public abstract class OperSuper {
 		Map<String,Field> fieldsMap = GlobalCache.getCacheFields(cls);
 		for(int i = 0; i<cols_len; i++){
 			String cols_name = metaData.getColumnLabel(i+1);  
-			if(fieldsMap.containsKey(cols_name)){
+			Field field = fieldsMap.get(cols_name);
+			if(field!=null){
 				Object cols_value = rs.getObject(cols_name);
-				fieldsMap.get(cols_name).set(obj_newInsten, cols_value);
+				field.setAccessible(true);
+				field.set(obj_newInsten, cols_value);
 			}
 		}
 		return obj_newInsten;
