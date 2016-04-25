@@ -117,7 +117,9 @@ public class DBHelper {
 		return deleteOper.delete(conn, sql, params_obj);
 	}
 
-
+	public void rollback() throws Exception{
+		ConnectionManager.rollback(dataSource);
+	}
 
 	public DataSource getDataSource() {
 		return dataSource;

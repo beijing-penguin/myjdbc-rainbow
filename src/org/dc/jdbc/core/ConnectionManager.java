@@ -81,6 +81,18 @@ public class ConnectionManager {
 		}
 	}
 	/**
+	 * 回滚当前连接
+	 * @param dataSource
+	 * @throws Exception 
+	 */
+	public static void rollback(DataSource dataSource) throws Exception {
+		Map<DataSource,Connection> connMap = connLocal.get();
+		if(connMap!=null){
+			Connection conn = connMap.get(dataSource);
+			conn.rollback();
+		}
+	}
+	/**
 	 * 保证正常的数据的数据能提交成功，否则直接回滚，并继续执行下一个数据源的提交操作。
 	 * @throws Exception 
 	 */

@@ -53,10 +53,10 @@ public abstract class SQLHandleSuper {
 			int i = 0;
 			while((i = sbsql.indexOf("?"))!=-1){
 				Object value = params[index];
-				if(value.getClass().isAssignableFrom(String.class)){
+				if(value!=null && value.getClass().isAssignableFrom(String.class)){
 					sbsql.replace(i, i+1, "\""+params[index]+"\"");
 				}else{
-					sbsql.replace(i, i+1, params[index].toString());
+					sbsql.replace(i, i+1, String.valueOf(params[index]));
 				}
 				index++;
 			}
