@@ -1,11 +1,11 @@
 package org.dc.jdbc.core;
 
+import java.lang.reflect.Method;
+
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 import org.dc.jdbc.anno.Transactional;
-
-import java.lang.reflect.Method;
 /**
  * 动态反向代理,主要作用：拦截参数、管理数据库事务
  * @author dc
@@ -17,17 +17,14 @@ public final class JDBCProxy implements MethodInterceptor {
         return jdbcProxy;
     }
 
-	private Transactional typeAnnotation;
-
-    private Class<?> target;
-
     private JDBCProxy(){}
 	public Object intercept(Object obj, Method method, Object[] objects, MethodProxy proxy) throws Throwable {
 		Transactional transactional  = method.getAnnotation(Transactional.class);
 
-        if (transactional == null && method.getDeclaringClass().equals(target)) {
+        if (transactional == null) {
             //方法无注解，查找类上注解，并判断当前调用方法是否为当前类定义的（防止父类方法触发事务边界）
-            transactional = typeAnnotation;
+            //修复类上注解获取bug
+            transactional = method.getDeclaringClass().getAnnotation(Transactional.class);
         }
 
 		if(transactional!=null){//如果不为空，则默认开启事务
@@ -52,14 +49,10 @@ public final class JDBCProxy implements MethodInterceptor {
 
 	@SuppressWarnings("unchecked")
 	public <T> T getTarget(Class<T> target) {
-        this.target = target;
         Enhancer enhancer = new Enhancer();
 		enhancer.setSuperclass(target);
 		// 回调方法
 		enhancer.setCallback(this);
-
-        //设置类上事务注解
-        typeAnnotation = target.getAnnotation(Transactional.class);
 
         // 创建代理对象
 		return (T) enhancer.create();
