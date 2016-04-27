@@ -2,6 +2,7 @@ package org.dc.jdbc.helper;
 
 import java.sql.Connection;
 import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -42,10 +43,7 @@ public class DBHelper {
 		
 		return selectOper.selectOne(conn,sql,returnClass,params_obj);
 	}
-	public <T> T selectOne(String sqlOrID,Class<T> returnClass) throws Exception{
-		return this.selectOne(sqlOrID, returnClass,new Object[]{});
-	}
-	public <T> T selectOne(String sqlOrID,Object...params) throws Exception{
+	public Map<String,Object> selectOne(String sqlOrID,Object...params) throws Exception{
 		return this.selectOne(sqlOrID, null,params);
 	}
 	public <T> List<T> selectList(String sqlOrID,Class<T> returnClass,Object...params) throws Exception{
@@ -57,11 +55,8 @@ public class DBHelper {
 
 		return selectOper.selectList(conn,sql,returnClass,params_obj);
 	}
-	public <T> List<T> selectList(String sqlOrID,Object...params) throws Exception{
+	public List<Map<String,Object>> selectList(String sqlOrID,Object...params) throws Exception{
 		return this.selectList(sqlOrID, null, params);
-	}
-	public <T> List<T> selectList(String sqlOrID,Class<T> returnClass) throws Exception{
-		return this.selectList(sqlOrID, returnClass, new Object[]{});
 	}
 	/**
 	 * 返回受影响的行数

@@ -66,8 +66,12 @@ public class JDBCTest {
 	}
 	@Test
 	public void selectOne() throws Exception{
-		User user = testDBHelper.selectOne("select * from user limit 1",User.class);
-		System.out.println(user.getAge());
+		Map<String,Object> user = testDBHelper.selectOne("select * from user  limit 1");
+		String name = testDBHelper.selectOne("select name from user  limit 1",String.class);
+		System.out.println(name);
+	/*	Object o = testDBHelper.selectOne("select * from user where name = ? limit 1","dc");
+		Map<String,Object> oo = testDBHelper.selectOne("select * from user where name = ? limit 1",HashMap.class,"dc");
+		System.out.println(o.getClass());*/
 		ConnectionManager.closeConnection();//最好把关闭连接写在finally里面，我这里为了快速测试，简单写一下。
 	}
 	@Test
