@@ -19,7 +19,7 @@ public class SelectOper extends OperSuper{
 		return oper;
 	}
 	@SuppressWarnings("unchecked")
-	public  <T> T selectOne(Connection conn,String sql,Class<?> cls,Object[] params) throws Exception{
+	public  <T> T selectOne(Connection conn,String sql,Class<? extends T> cls,Object[] params) throws Exception{
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		try {
@@ -50,7 +50,7 @@ public class SelectOper extends OperSuper{
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> List<T> selectList(Connection conn,String sql,Class<?> cls,Object[] params) throws Exception{
+	public <T> List<T> selectList(Connection conn,String sql,Class<? extends T> cls,Object[] params) throws Exception{
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		try {
