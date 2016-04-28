@@ -6,13 +6,14 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import org.dc.jdbc.config.JDBCConfig;
 import org.dc.jdbc.core.ConnectionManager;
+import org.dc.jdbc.core.ContextHandle;
 import org.dc.jdbc.core.operate.DeleteOper;
 import org.dc.jdbc.core.operate.InsertOper;
 import org.dc.jdbc.core.operate.SelectOper;
 import org.dc.jdbc.core.operate.UpdateOper;
 import org.dc.jdbc.core.sqlhandler.PrintSqlLogHandler;
-import org.dc.jdbc.core.sqlhandler.SQLHandler;
 import org.dc.jdbc.core.sqlhandler.XmlSqlHandler;
 import org.dc.jdbc.entity.SqlEntity;
 
@@ -24,23 +25,45 @@ import org.dc.jdbc.entity.SqlEntity;
  */
 public class DBHelper {
 	private DataSource dataSource;
-	private static final SQLHandler sqlHandler = PrintSqlLogHandler.getInstance().setSuccessor(XmlSqlHandler.getInstance());
+	private static ContextHandle contextHandler = new  ContextHandle();
+
+	public DBHelper(DataSource dataSource){
+		this.dataSource = dataSource;
+		//初始化程序
+		//contextHandle.registerInit(new SQLInitAnalysis(),new SQLInitAnalysis());
+
+		//责任链执行sql处理
+		//以后需要加入的功能
+		//1，解析用户定义的分库分表xml规则，处理一部分逻辑。
+		//2，分库分表后，验证参数的合法性
+		//3，根据参数动态改变sql语句的功能，如根据用户传入的userId，hash算法动态改变原sql中的表。。完成hash分表的功能
+		contextHandler.registerSQLHandle(XmlSqlHandler.getInstance());
+		if(JDBCConfig.isPrintSqlLog){
+			contextHandler.registerSQLHandle(PrintSqlLogHandler.getInstance());
+		}
+				
+		/*TypeFactory typeFactory = new TypeFactory() {
+			@Override
+			public void typeChange(Object databaseValue,String dbTypeStr) throws Exception {
+
+			}
+		};
+		contextHandler.setTypeChange(typeFactory);*/
+	}
+
+	
 	private static final SelectOper selectOper = SelectOper.getInstance();
 	private static final UpdateOper updateOper = UpdateOper.getInstance();
 	private static final InsertOper insertOper = InsertOper.getInstance();
 	private static final DeleteOper deleteOper = DeleteOper.getInstance();
-	
-	public DBHelper(DataSource dataSource){
-		this.dataSource = dataSource;
-	}
-	
+
 	public <T> T selectOne(String sqlOrID,Class<? extends T> returnClass,Object...params) throws Exception{
 		Connection conn = ConnectionManager.getConnection(dataSource);
 
-		SqlEntity sqlEntity = sqlHandler.handleRequest(sqlOrID,params);
+		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
-		
+
 		return selectOper.selectOne(conn,sql,returnClass,params_obj);
 	}
 	public Map<String,Object> selectOne(String sqlOrID,Object...params) throws Exception{
@@ -49,7 +72,7 @@ public class DBHelper {
 	public <T> List<T> selectList(String sqlOrID,Class<? extends T> returnClass,Object...params) throws Exception{
 		Connection conn = ConnectionManager.getConnection(dataSource);
 
-		SqlEntity sqlEntity = sqlHandler.handleRequest(sqlOrID,params);
+		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
 
@@ -68,7 +91,7 @@ public class DBHelper {
 	public int insert(String sqlOrID,Object...params) throws Exception{
 		Connection conn = ConnectionManager.getConnection(dataSource);
 
-		SqlEntity sqlEntity = sqlHandler.handleRequest(sqlOrID,params);
+		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
 
@@ -84,7 +107,7 @@ public class DBHelper {
 	public Object insertReturnKey(String sqlOrID,Object...params) throws Exception{
 		Connection conn = ConnectionManager.getConnection(dataSource);
 
-		SqlEntity sqlEntity = sqlHandler.handleRequest(sqlOrID,params);
+		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
 
@@ -94,7 +117,7 @@ public class DBHelper {
 	public int update(String sqlOrID,Object...params) throws Exception{
 		Connection conn = ConnectionManager.getConnection(dataSource);
 
-		SqlEntity sqlEntity = sqlHandler.handleRequest(sqlOrID,params);
+		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
 
@@ -105,7 +128,7 @@ public class DBHelper {
 	public int delete(String sqlOrID,Object...params) throws Exception{
 		Connection conn = ConnectionManager.getConnection(dataSource);
 
-		SqlEntity sqlEntity = sqlHandler.handleRequest(sqlOrID,params);
+		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
 

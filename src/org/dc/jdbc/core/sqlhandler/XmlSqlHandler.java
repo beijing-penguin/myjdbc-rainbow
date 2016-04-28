@@ -10,9 +10,9 @@ import org.dc.jdbc.core.SQLStorage;
 import org.dc.jdbc.entity.SqlEntity;
 
 public class XmlSqlHandler extends SQLHandler{
-	private static XmlSqlHandler sqlHandler = new XmlSqlHandler();
+	private static final XmlSqlHandler oper = new XmlSqlHandler();
 	public static XmlSqlHandler getInstance(){
-		return sqlHandler;
+		return oper;
 	}
 	/**
 	 * 处理方法，调用此方法处理请求
