@@ -7,7 +7,7 @@ import org.dc.jdbc.core.sqlhandler.SQLHandler;
 import org.dc.jdbc.entity.SqlEntity;
 
 public class ContextHandle {
-	private SQLHandler firsthandle = null;
+	private volatile SQLHandler firsthandle = null;
 	public  void registerSQLHandle(SQLHandler handle){
 			handle.setSuccessor(firsthandle);
 			firsthandle = handle;

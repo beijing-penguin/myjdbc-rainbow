@@ -7,7 +7,7 @@ import java.sql.ResultSetMetaData;
 import org.dc.jdbc.core.inter.TypeFactory;
 
 public class JdbcSuper {
-	public static TypeFactory typeFactory = null;
+	public static volatile TypeFactory typeFactory = null;
 	protected void setParams(PreparedStatement ps, Object[] params) throws Exception {
 		if (params != null && params.length > 0) {
 			for (int i = 0; i < params.length; i++) {

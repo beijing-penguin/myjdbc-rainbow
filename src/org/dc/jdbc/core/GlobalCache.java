@@ -15,9 +15,9 @@ import org.apache.commons.logging.LogFactory;
  */
 public class GlobalCache {
 	private static final Log jdbclog = LogFactory.getLog(GlobalCache.class);
-	private static Lock lock = new ReentrantLock();
+	private static final Lock lock = new ReentrantLock();
 	//对象的字段缓存
-	private static Map<Class<?>,Map<String,Field>> cacheFields = new HashMap<Class<?>, Map<String,Field>>();
+	private static final Map<Class<?>,Map<String,Field>> cacheFields = new HashMap<Class<?>, Map<String,Field>>();
 
 	public static Map<String,Field> getCacheFields(Class<?> cls){
 		Map<String,Field> returnCache = cacheFields.get(cls);
