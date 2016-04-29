@@ -1,5 +1,6 @@
 package org.dc.jdbc.core;
 
+import org.dc.jdbc.core.base.JdbcSuper;
 import org.dc.jdbc.core.inter.InitHandler;
 import org.dc.jdbc.core.inter.TypeFactory;
 import org.dc.jdbc.core.sqlhandler.SQLHandler;
@@ -35,7 +36,7 @@ public class ContextHandle {
 	public SqlEntity handleRequest(String sqlOrID, Object[] params) throws Exception {
 		return firsthandle.handleRequest(sqlOrID, params);
 	}
-	public void setTypeChange(TypeFactory typeFactory) {
-		
+	public void registerTypeChange(TypeFactory typeFactory) {
+		JdbcSuper.typeFactory = typeFactory;
 	}
 }

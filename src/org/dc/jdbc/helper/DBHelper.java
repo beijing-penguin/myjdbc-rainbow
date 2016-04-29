@@ -9,6 +9,7 @@ import javax.sql.DataSource;
 import org.dc.jdbc.config.JDBCConfig;
 import org.dc.jdbc.core.ConnectionManager;
 import org.dc.jdbc.core.ContextHandle;
+import org.dc.jdbc.core.inter.TypeFactory;
 import org.dc.jdbc.core.operate.DeleteOper;
 import org.dc.jdbc.core.operate.InsertOper;
 import org.dc.jdbc.core.operate.SelectOper;
@@ -38,17 +39,18 @@ public class DBHelper {
 		//2，分库分表后，验证参数的合法性
 		//3，根据参数动态改变sql语句的功能，如根据用户传入的userId，hash算法动态改变原sql中的表。。完成hash分表的功能
 		contextHandler.registerSQLHandle(XmlSqlHandler.getInstance());
-		if(JDBCConfig.isPrintSqlLog){
+		if(JDBCConfig.isPrintSqlLog  || true){ //测试打印出日志
 			contextHandler.registerSQLHandle(PrintSqlLogHandler.getInstance());
 		}
 				
-		/*TypeFactory typeFactory = new TypeFactory() {
+		TypeFactory typeFactory = new TypeFactory() {
 			@Override
-			public void typeChange(Object databaseValue,String dbTypeStr) throws Exception {
-
+			public Object typeChange(Object databaseValue,String dbTypeStr) throws Exception {
+				System.out.println(dbTypeStr);
+				return databaseValue;
 			}
 		};
-		contextHandler.setTypeChange(typeFactory);*/
+		contextHandler.registerTypeChange(typeFactory);
 	}
 
 	

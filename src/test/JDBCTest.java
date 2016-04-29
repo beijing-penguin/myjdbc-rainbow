@@ -66,9 +66,19 @@ public class JDBCTest {
 	}
 	@Test
 	public void selectOne() throws Exception{
-		Map<String,Object> user = testDBHelper.selectOne("select * from user  limit 1");
-		String name = testDBHelper.selectOne("select name from user  limit 1",String.class);
+		//Map<String,Object> user = testDBHelper.selectOne("select * from user  limit 1");
+		String name = testDBHelper.selectOne("select name from user limit 1",String.class);
 		System.out.println(name);
+		//String name = testDBHelper.selectOne("select name from user  limit 1",String.class);
+		List<Integer> list = testDBHelper.selectList("select id from user ",Integer.class);
+		for (int i = 0; i < list.size(); i++) {
+			System.out.println(list.get(i));
+		}
+		List<User> list2 = testDBHelper.selectList("select name,id from user ",User.class);
+		for (int i = 0; i < list2.size(); i++) {
+			System.out.println(list2.get(i).getName() +"-"+list2.get(i).getId());
+		}
+		
 	/*	Object o = testDBHelper.selectOne("select * from user where name = ? limit 1","dc");
 		Map<String,Object> oo = testDBHelper.selectOne("select * from user where name = ? limit 1",HashMap.class,"dc");
 		System.out.println(o.getClass());*/

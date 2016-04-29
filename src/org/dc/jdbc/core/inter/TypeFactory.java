@@ -7,5 +7,5 @@ public interface TypeFactory {
 	 * @param typeStr 数据对应的原数据库类型名
 	 * @throws Exception
 	 */
-	public void typeChange(Object databaseValue,String dbTypeStr) throws Exception;
+	public Object typeChange(Object databaseValue,String dbTypeStr) throws Exception;
 }

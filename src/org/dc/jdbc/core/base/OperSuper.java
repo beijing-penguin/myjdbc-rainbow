@@ -48,7 +48,7 @@ public abstract class OperSuper extends JdbcSuper{
 	}
 	public ResultSet preparedSQLReturnRS(PreparedStatement ps,String sql,Object[] params) throws Exception{
 		this.setParams(ps, params);
-		return ps.executeQuery();
+		return ps.executeQuery();//这里执行完了之后，ps对象还不能关闭？
 	}
 	public void parseSqlResultToMap(ResultSet rs,List<Object> list) throws Exception{
 		ResultSetMetaData metaData  = rs.getMetaData();
@@ -57,7 +57,7 @@ public abstract class OperSuper extends JdbcSuper{
 			Map<String, Object> map = new HashMap<String, Object>(cols_len,1);
 			for(int i=0; i<cols_len; i++){  
 				String cols_name = metaData.getColumnLabel(i+1);
-				Object cols_value = super.getValueByObjectType(metaData, rs, cols_name, i);
+				Object cols_value = super.getValueByObjectType(metaData, rs, i);
 				map.put(cols_name, cols_value);
 			}
 			list.add(map);
@@ -69,7 +69,7 @@ public abstract class OperSuper extends JdbcSuper{
 		Map<String, Object> map = new HashMap<String, Object>(cols_len,1);
 		for(int i=0; i<cols_len; i++){  
 			String cols_name = metaData.getColumnLabel(i+1);  
-			Object cols_value = super.getValueByObjectType(metaData, rs, cols_name, i);
+			Object cols_value = super.getValueByObjectType(metaData, rs, i);
 			map.put(cols_name, cols_value);
 		}
 		return map;
@@ -84,7 +84,7 @@ public abstract class OperSuper extends JdbcSuper{
 				String cols_name = metaData.getColumnLabel(i+1);  
 				Field field = fieldsMap.get(cols_name);
 				if(field!=null){
-					Object cols_value =  super.getValueByObjectType(metaData, rs, cols_name, i);
+					Object cols_value =  super.getValueByObjectType(metaData, rs, i);
 					
 					field.setAccessible(true);
 					field.set(obj_newInsten, cols_value);
@@ -103,7 +103,8 @@ public abstract class OperSuper extends JdbcSuper{
 			String cols_name = metaData.getColumnLabel(i+1);
 			Field field = fieldsMap.get(cols_name);
 			if(field!=null){
-				Object cols_value = super.getValueByObjectType(metaData, rs, cols_name, i);
+				//Object cols_value = super.getValueByObjectType(metaData, rs, cols_name, i);
+				Object cols_value = super.getValueByObjectType(metaData, rs, i);
 				field.setAccessible(true);
 				field.set(obj_newInsten, cols_value);
 			}
@@ -116,10 +117,11 @@ public abstract class OperSuper extends JdbcSuper{
 		if(cols_len>1){
 			throw new Exception("The number of returned data columns is too many");
 		}
-		String cols_name = metaData.getColumnLabel(1);
+		//String cols_name = metaData.getColumnLabel(1);
 		while(rs.next()){
 			for(int i=0; i<cols_len; i++){  
-				Object cols_value = super.getValueByObjectType(metaData, rs,cols_name, i);
+				Object cols_value = super.getValueByObjectType(metaData, rs, i);
+				//Object cols_value = rs.getObject(i+1);
 				list.add(cols_value);
 			}
 		}
@@ -130,9 +132,10 @@ public abstract class OperSuper extends JdbcSuper{
 		if(cols_len>1){
 			throw new Exception("The number of returned data columns is too many");
 		}
-		String cols_name = metaData.getColumnLabel(1);
+		//String cols_name = metaData.getColumnLabel(1);
 		//Object cols_value = rs.getObject(cols_name);
-		Object cols_value = super.getValueByObjectType(metaData, rs,cols_name, 0);
+		Object cols_value = super.getValueByObjectType(metaData, rs, 0);
+		
 		return cols_value;
 	}
 }
