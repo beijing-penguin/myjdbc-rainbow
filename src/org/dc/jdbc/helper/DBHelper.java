@@ -25,8 +25,8 @@ import org.dc.jdbc.entity.SqlEntity;
  * @time 2015-8-17
  */
 public class DBHelper {
-	private DataSource dataSource;
-	private ContextHandle contextHandler = new ContextHandle();
+	private volatile DataSource dataSource;
+	private final ContextHandle contextHandler = new ContextHandle();
 
 	public DBHelper(DataSource dataSource){
 		this.dataSource = dataSource;
