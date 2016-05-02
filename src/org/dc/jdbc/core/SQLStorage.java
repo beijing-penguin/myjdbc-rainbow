@@ -9,11 +9,15 @@ import java.util.Map;
  * @time 2015-8-17
  */
 public class SQLStorage {
-    public static final Map<String,String> sqlMap = new HashMap<String, String>();
+	/**
+	 * 保存了xml中定义的ID和对应的sql字符串。
+	 */
+    public static final Map<String,String> sqlSourceMap = new HashMap<String, String>();
+    
     public static void put(String key,String sql){
-        sqlMap.put(key, sql);
+    	sqlSourceMap.put(key, sql);
     }
     public static String getSql(String key){
-        return sqlMap.get(key);
+        return sqlSourceMap.get(key);
     }
 }

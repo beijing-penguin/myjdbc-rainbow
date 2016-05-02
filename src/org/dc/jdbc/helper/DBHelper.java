@@ -26,12 +26,19 @@ import org.dc.jdbc.entity.SqlEntity;
  */
 public class DBHelper {
 	private volatile DataSource dataSource;
-	private final ContextHandle contextHandler = new ContextHandle();
+	private ContextHandle contextHandler;
 
+	/*public DBHelper(){
+		this.dataSource = dataSource;
+	}*/
 	public DBHelper(DataSource dataSource){
 		this.dataSource = dataSource;
+		this.contextHandler = this.setContextHandle();
+	}
+	private ContextHandle setContextHandle(){
+		contextHandler = new ContextHandle();
 		//初始化程序
-		//contextHandle.registerInit(new SQLInitAnalysis(),new SQLInitAnalysis());
+		//contextHandler.registerInit(new SQLInitAnalysis());
 
 		//责任链执行sql处理
 		//以后需要加入的功能
@@ -42,18 +49,23 @@ public class DBHelper {
 		if(JDBCConfig.isPrintSqlLog  || true){ //测试打印出日志
 			contextHandler.registerSQLHandle(PrintSqlLogHandler.getInstance());
 		}
-				
+
 		TypeFactory typeFactory = new TypeFactory() {
 			@Override
 			public Object typeChange(Object databaseValue,String dbTypeStr) throws Exception {
-				System.out.println(dbTypeStr);
+				if(databaseValue!=null){
+					if(dbTypeStr.equals("TINYINT")){//原生jdbc将此类型转化成boolean。
+						databaseValue = Integer.valueOf(databaseValue.toString());
+					}
+				}
 				return databaseValue;
 			}
 		};
 		contextHandler.registerTypeChange(typeFactory);
+		
+		return contextHandler;
 	}
 
-	
 	private static final SelectOper selectOper = SelectOper.getInstance();
 	private static final UpdateOper updateOper = UpdateOper.getInstance();
 	private static final InsertOper insertOper = InsertOper.getInstance();

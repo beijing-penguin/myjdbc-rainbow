@@ -1,5 +1,7 @@
 package org.dc.jdbc.core;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.dc.jdbc.core.base.JdbcSuper;
 import org.dc.jdbc.core.inter.InitHandler;
 import org.dc.jdbc.core.inter.TypeFactory;
@@ -7,6 +9,7 @@ import org.dc.jdbc.core.sqlhandler.SQLHandler;
 import org.dc.jdbc.entity.SqlEntity;
 
 public class ContextHandle {
+	private static final Log jdbclog = LogFactory.getLog(ContextHandle.class);
 	private volatile SQLHandler firsthandle = null;
 	public  void registerSQLHandle(SQLHandler handle){
 			handle.setSuccessor(firsthandle);
@@ -17,7 +20,7 @@ public class ContextHandle {
 			try {
 				initHandlers[i].init();
 			} catch (Exception e) {
-				e.printStackTrace();
+				jdbclog.error("SQL initialization exception",e);
 			}
 		}
 	}

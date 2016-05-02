@@ -1,9 +1,9 @@
 package org.dc.jdbc.entity;
 
-
 public class SqlEntity {
-    private  String sql;
-    private  Object[] params;
+    private String sql;
+    private Object[] params;
+    
     public String getSql() {
         return sql;
     }

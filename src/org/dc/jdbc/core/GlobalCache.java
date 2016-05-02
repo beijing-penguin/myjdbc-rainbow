@@ -17,6 +17,10 @@ public class GlobalCache {
 	private static final Log jdbclog = LogFactory.getLog(GlobalCache.class);
 	private static final Lock lock = new ReentrantLock();
 	//对象的字段缓存
+	/**
+	 * key 属性名 <br>
+	 * value 属性实例
+	 */
 	private static final Map<Class<?>,Map<String,Field>> cacheFields = new HashMap<Class<?>, Map<String,Field>>();
 
 	public static Map<String,Field> getCacheFields(Class<?> cls){

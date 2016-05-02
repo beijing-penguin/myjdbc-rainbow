@@ -38,7 +38,7 @@ public class LoadSqlUtil {
 					String key = f.getName().substring(0, f.getName().length()-4)+"."+sqlnode.attributeValue("id");
 					key = "$"+key;
 					//检查是否有冲突
-					if(SQLStorage.sqlMap.containsKey(key)){
+					if(SQLStorage.sqlSourceMap.containsKey(key)){
 						throw new Exception("sql的id有重复，id="+key);
 					}
 					log.info("加载key="+key);

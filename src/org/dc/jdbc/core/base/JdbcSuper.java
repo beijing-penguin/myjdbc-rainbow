@@ -18,15 +18,7 @@ public class JdbcSuper {
 	protected Object getValueByObjectType(ResultSetMetaData metaData,ResultSet rs,int index) throws Exception{
 		int columnIndex = index+1;
 		String typeName = metaData.getColumnTypeName(columnIndex);
-		Object value = null;
-		if(typeName.equals("TINYINT")){
-			value = rs.getInt(columnIndex);
-		}else{
-			value = rs.getObject(columnIndex);
-		}
-		if(typeFactory!=null){
-			value = typeFactory.typeChange(value, typeName);
-		}
-		return value;
+		Object dbvalue = rs.getObject(columnIndex);
+		return typeFactory.typeChange(dbvalue, typeName);
 	}
 }

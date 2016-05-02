@@ -1,9 +1,8 @@
 package org.dc.jdbc.core.sqlhandler;
 
-import org.dc.jdbc.core.base.SQLHandleSuper;
 import org.dc.jdbc.entity.SqlEntity;
 
-public abstract class SQLHandler extends SQLHandleSuper{
+public abstract class SQLHandler{
     /**
      * 持有后继的责任对象
      */
