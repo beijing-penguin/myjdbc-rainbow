@@ -1,6 +1,7 @@
 package org.dc.jdbc.helper;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.util.List;
 import java.util.Map;
 
@@ -52,17 +53,15 @@ public class DBHelper {
 
 		TypeFactory typeFactory = new TypeFactory() {
 			@Override
-			public Object typeChange(Object databaseValue,String dbTypeStr) throws Exception {
-				if(databaseValue!=null){
-					if(dbTypeStr.equals("TINYINT")){//原生jdbc将此类型转化成boolean。
-						databaseValue = Integer.valueOf(databaseValue.toString());
-					}
+			public Object typeChange(ResultSet rs,int index,String dbTypeStr) throws Exception {
+				if(dbTypeStr.equals("TINYINT")){//原生jdbc将此类型转化成boolean。
+					return rs.getInt(index);
 				}
-				return databaseValue;
+				return rs.getObject(index);
 			}
 		};
 		contextHandler.registerTypeChange(typeFactory);
-		
+
 		return contextHandler;
 	}
 

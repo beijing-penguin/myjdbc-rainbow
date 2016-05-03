@@ -20,15 +20,16 @@ public class PrintSqlLogHandler extends SQLHandler{
 		SqlEntity sqlEntity = super.getSuccessor().handleRequest(sqlOrID,params);
 
 		StringBuilder sbsql = new StringBuilder(sqlEntity.getSql());
-		if(params!=null && params.length>0){
+		Object[] my_params = sqlEntity.getParams();
+		if(my_params!=null && my_params.length>0){
 			int index = 0;
 			int i = 0;
 			while((i = sbsql.indexOf("?"))!=-1){
-				Object value = params[index];
+				Object value = my_params[index];
 				if(value!=null && value.getClass().isAssignableFrom(String.class)){
-					sbsql.replace(i, i+1, "\""+params[index]+"\"");
+					sbsql.replace(i, i+1, "\""+value+"\"");
 				}else{
-					sbsql.replace(i, i+1, String.valueOf(params[index]));
+					sbsql.replace(i, i+1, String.valueOf(value));
 				}
 				index++;
 			}
