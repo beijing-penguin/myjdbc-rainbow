@@ -24,12 +24,16 @@ public class PrintSqlLogHandler extends SQLHandler{
 		if(my_params!=null && my_params.length>0){
 			int index = 0;
 			int i = 0;
-			while((i = sbsql.indexOf("?"))!=-1){
+			// 修复params中出现"?"字符时数组越界的错误
+			while((i = sbsql.indexOf("?", i))!=-1){
 				Object value = my_params[index];
-				if(value!=null && value.getClass().isAssignableFrom(String.class)){
+				// String不可继承
+				if(value!=null && value instanceof String){
 					sbsql.replace(i, i+1, "\""+value+"\"");
+					i += value.toString().length() + 2;
 				}else{
 					sbsql.replace(i, i+1, String.valueOf(value));
+					i += String.valueOf(value).length();
 				}
 				index++;
 			}

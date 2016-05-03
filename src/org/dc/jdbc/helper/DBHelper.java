@@ -27,17 +27,18 @@ import org.dc.jdbc.entity.SqlEntity;
  */
 public class DBHelper {
 	private volatile DataSource dataSource;
-	private ContextHandle contextHandler;
+	private final ContextHandle contextHandler;
 
 	/*public DBHelper(){
 		this.dataSource = dataSource;
 	}*/
 	public DBHelper(DataSource dataSource){
 		this.dataSource = dataSource;
-		this.contextHandler = this.setContextHandle();
+		this.contextHandler = this.createContextHandle();
 	}
-	private ContextHandle setContextHandle(){
-		contextHandler = new ContextHandle();
+	private ContextHandle createContextHandle(){
+		final ContextHandle ch = new ContextHandle();
+
 		//初始化程序
 		//contextHandler.registerInit(new SQLInitAnalysis());
 
@@ -46,9 +47,9 @@ public class DBHelper {
 		//1，解析用户定义的分库分表xml规则，处理一部分逻辑。
 		//2，分库分表后，验证参数的合法性
 		//3，根据参数动态改变sql语句的功能，如根据用户传入的userId，hash算法动态改变原sql中的表。。完成hash分表的功能
-		contextHandler.registerSQLHandle(XmlSqlHandler.getInstance());
+		ch.registerSQLHandle(XmlSqlHandler.getInstance());
 		if(JDBCConfig.isPrintSqlLog  || true){ //测试打印出日志
-			contextHandler.registerSQLHandle(PrintSqlLogHandler.getInstance());
+			ch.registerSQLHandle(PrintSqlLogHandler.getInstance());
 		}
 
 		TypeFactory typeFactory = new TypeFactory() {
@@ -60,9 +61,9 @@ public class DBHelper {
 				return rs.getObject(index);
 			}
 		};
-		contextHandler.registerTypeChange(typeFactory);
+		ch.registerTypeChange(typeFactory);
 
-		return contextHandler;
+		return ch;
 	}
 
 	private static final SelectOper selectOper = SelectOper.getInstance();
@@ -96,7 +97,7 @@ public class DBHelper {
 	}
 	/**
 	 * 返回受影响的行数
-	 * @param sql
+	 * @param sqlOrID
 	 * @param params
 	 * @return
 	 * @throws Exception
@@ -112,7 +113,7 @@ public class DBHelper {
 	}
 	/**
 	 * 单条语句插入，返回一个主键
-	 * @param sql
+	 * @param sqlOrID
 	 * @param params
 	 * @return
 	 * @throws Exception
