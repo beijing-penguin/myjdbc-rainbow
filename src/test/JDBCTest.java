@@ -100,4 +100,9 @@ public class JDBCTest {
 			ConnectionManager.closeConnection();
 		}
 	}
+	@Test
+	public void myNowtest() throws Exception{
+		DBHelper db =new DBHelper(Configure.accSource);
+		db.selectList("", null,null);
+	}
 }
