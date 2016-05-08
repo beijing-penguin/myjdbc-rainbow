@@ -90,7 +90,8 @@ public class JDBCTest {
 		ConnectionManager.isTransaction.set(true);
 		JDBCConfig.isPrintSqlLog=true;
 		try {
-			testDBHelper.insert("insert into user(name,age) values(?,?)", "dc",12);
+			int num = testDBHelper.insert("insert into user(name,age) values(?,?)", "dc",12);
+			System.out.println(num);
 			//提交
 			ConnectionManager.commit();
 		} catch (Exception e) {
@@ -99,10 +100,5 @@ public class JDBCTest {
 		}finally{
 			ConnectionManager.closeConnection();
 		}
-	}
-	@Test
-	public void myNowtest() throws Exception{
-		DBHelper db =new DBHelper(Configure.accSource);
-		db.selectList("", null,null);
 	}
 }

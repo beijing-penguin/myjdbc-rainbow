@@ -11,6 +11,9 @@ import java.util.Map;
 import org.dc.jdbc.core.SQLStorage;
 import org.dc.jdbc.entity.SqlEntity;
 
+import com.alibaba.druid.sql.parser.Lexer;
+import com.alibaba.druid.sql.parser.Token;
+
 public class XmlSqlHandler extends SQLHandler{
 	private static final XmlSqlHandler oper = new XmlSqlHandler();
 	public static XmlSqlHandler getInstance(){
@@ -21,62 +24,75 @@ public class XmlSqlHandler extends SQLHandler{
 	 */
 	@Override
 	public SqlEntity handleRequest(String sqlOrID,Object[] params) throws Exception{
-
 		/*		
 		if(super.getSuccessor() != null){            
 			super.getSuccessor().handleRequest(sqlOrID,params);
 		}else{     */       
-		StringBuilder sqlSource = new StringBuilder(sqlOrID.startsWith("$")?SQLStorage.getSql(sqlOrID):sqlOrID);
-		List<Object> sqlparam = null;
-		if(params!=null && params.length>0){
-			if(sqlSource.indexOf("?") != -1){//问号匹配符
-				sqlparam = new ArrayList<Object>();
-				for (Object param : params) {
-					if(Object[].class.isAssignableFrom(param.getClass())){
-						Collections.addAll(sqlparam, (Object[])param);
-					}else if(Collection.class.isAssignableFrom(param.getClass())){
-						sqlparam.addAll((Collection<?>) param);
-					}else if(param.getClass().getClassLoader()==null){//java基本数据类型
-						sqlparam.add(param);
-					}
+
+		Map<Object,Object> allparamMap = new HashMap<Object,Object>();
+		List<Object>  allParamList = new ArrayList<Object>();
+		for (Object param : params) {
+			if(Map.class.isAssignableFrom(param.getClass())){
+				Map<?,?> paramMap = (Map<?, ?>) param;
+				allparamMap.putAll(paramMap);
+			}else if(Object[].class.isAssignableFrom(param.getClass())){
+				Collections.addAll(allParamList, (Object[])param);
+			}else if(Collection.class.isAssignableFrom(param.getClass())){
+				allParamList.addAll((Collection<?>) param);
+			}else if(param.getClass().getClassLoader()==null){
+				allParamList.add(param);
+			}else { // java对象
+				Field[] fields = param.getClass().getDeclaredFields();
+				for (Field field : fields) {
+					field.setAccessible(true);
+					Object value = field.get(param);
+					allparamMap.put(field.getName(), value);
 				}
-			}else if(sqlSource.indexOf("#") != -1){
-				sqlparam = new ArrayList<Object>();
-				Map<Object,Object> allMap = new HashMap<Object,Object>();
-				for (Object param : params) {
-					if(Map.class.isAssignableFrom(param.getClass())){
-						Map<?,?> paramMap = (Map<?, ?>) param;
-						allMap.putAll(paramMap);
-					}else { // java对象
-						Field[] fields = param.getClass().getDeclaredFields();
-						for (Field field : fields) {
-							field.setAccessible(true);
-							Object value = field.get(param);
-							allMap.put(field.getName(), value);
-						}
+			}
+		}
+
+		List<Object> returnList = new ArrayList<Object>();
+		StringBuffer sql = new StringBuffer(sqlOrID.startsWith("$")?SQLStorage.getSql(sqlOrID):sqlOrID);
+		Lexer lexer = new Lexer(sql.toString());
+		int lastCharLen = 0;
+		boolean have_jinhao = false;
+		boolean have_ques = false;
+		while(true){
+			lexer.nextToken();
+			Token tok = lexer.token();
+			if (tok == Token.EOF) {
+				break;
+			}
+			int curpos = lexer.pos();
+			if(tok.name == null){
+				if(tok == Token.VARIANT){//异类匹配，这里的异类只有#号，sql编写规范的情况下，不需要判断str.contains("#")
+					String str = lexer.stringVal();
+					if(have_ques){
+						throw new Exception("sqlhandle analysis error! parameters do not match to!");
 					}
-				}
-				int quote_Seq_index = 0;
-				while((quote_Seq_index = sqlSource.indexOf("#",quote_Seq_index))!=-1){
-					int indexEnd = sqlSource.indexOf("}",quote_Seq_index);
-					String key = sqlSource.substring(quote_Seq_index+2,indexEnd);
-					if(allMap.containsKey(key)){
-						sqlparam.add(allMap.get(key));
+					//设置改sql有#号通配符的方式
+					have_jinhao = true;
+					String key = str.substring(2, str.length()-1);
+					if(allparamMap.containsKey(key)){
+						returnList.add(allparamMap.get(key));
 					}else{
-						throw new Exception("parameters do not match to!");
+						throw new Exception("sqlhandle analysis error! parameters do not match to!");
 					}
-					sqlSource.replace(quote_Seq_index,indexEnd+1, "?");
+					sql.replace(curpos-str.length()-lastCharLen, curpos-lastCharLen, "?");
+					lastCharLen = str.length()-1;
 				}
-			}else{
-				throw new Exception("parameters do not match to!");
+			}else if(tok == Token.QUES){
+				if(have_jinhao){
+					throw new Exception("sqlhandle analysis error! parameters do not match to!");
+				}
+				//设置改sql有?号通配符的方式
+				have_ques = true;
+				returnList = allParamList;
 			}
 		}
 		SqlEntity sqlEntity = new SqlEntity();
-
-		sqlEntity.setSql(sqlSource.toString());
-		if(sqlparam!=null){
-			sqlEntity.setParams(sqlparam.toArray());
-		}
+		sqlEntity.setSql(sql.toString());
+		sqlEntity.setParams(returnList.toArray());
 		return sqlEntity;
 	}
 }
