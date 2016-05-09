@@ -28,29 +28,31 @@ public class XmlSqlHandler extends SQLHandler{
 		if(super.getSuccessor() != null){            
 			super.getSuccessor().handleRequest(sqlOrID,params);
 		}else{     */       
-
-		Map<Object,Object> allparamMap = new HashMap<Object,Object>();
-		List<Object>  allParamList = new ArrayList<Object>();
-		for (Object param : params) {
-			if(Map.class.isAssignableFrom(param.getClass())){
-				Map<?,?> paramMap = (Map<?, ?>) param;
-				allparamMap.putAll(paramMap);
-			}else if(Object[].class.isAssignableFrom(param.getClass())){
-				Collections.addAll(allParamList, (Object[])param);
-			}else if(Collection.class.isAssignableFrom(param.getClass())){
-				allParamList.addAll((Collection<?>) param);
-			}else if(param.getClass().getClassLoader()==null){
-				allParamList.add(param);
-			}else { // java对象
-				Field[] fields = param.getClass().getDeclaredFields();
-				for (Field field : fields) {
-					field.setAccessible(true);
-					Object value = field.get(param);
-					allparamMap.put(field.getName(), value);
+		Map<Object,Object> allparamMap = null;
+		List<Object>  allParamList = null;
+		if(params!=null && params.length>0){
+			allparamMap = new HashMap<Object,Object>();
+			allParamList = new ArrayList<Object>();
+			for (Object param : params) {
+				if(Map.class.isAssignableFrom(param.getClass())){
+					Map<?,?> paramMap = (Map<?, ?>) param;
+					allparamMap.putAll(paramMap);
+				}else if(Object[].class.isAssignableFrom(param.getClass())){
+					Collections.addAll(allParamList, (Object[])param);
+				}else if(Collection.class.isAssignableFrom(param.getClass())){
+					allParamList.addAll((Collection<?>) param);
+				}else if(param.getClass().getClassLoader()==null){
+					allParamList.add(param);
+				}else { // java对象
+					Field[] fields = param.getClass().getDeclaredFields();
+					for (Field field : fields) {
+						field.setAccessible(true);
+						Object value = field.get(param);
+						allparamMap.put(field.getName(), value);
+					}
 				}
 			}
 		}
-
 		List<Object> returnList = new ArrayList<Object>();
 		StringBuffer sql = new StringBuffer(sqlOrID.startsWith("$")?SQLStorage.getSql(sqlOrID):sqlOrID);
 		Lexer lexer = new Lexer(sql.toString());
@@ -79,7 +81,7 @@ public class XmlSqlHandler extends SQLHandler{
 						throw new Exception("sqlhandle analysis error! parameters do not match to!");
 					}
 					sql.replace(curpos-str.length()-lastCharLen, curpos-lastCharLen, "?");
-					lastCharLen = str.length()-1;
+					lastCharLen = lastCharLen+str.length()-1;
 				}
 			}else if(tok == Token.QUES){
 				if(have_jinhao){
