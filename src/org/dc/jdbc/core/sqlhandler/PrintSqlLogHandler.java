@@ -37,33 +37,16 @@ public class PrintSqlLogHandler extends SQLHandler{
 			if(tok == Token.QUES){
 				Object value = my_params[index];
 				if(value!=null && value instanceof String){
-					sbsql.replace(curpos+lastCharLen-1, curpos+lastCharLen, "\""+value+"\"");
+					value = "\""+value+"\"";
+					sbsql.replace(curpos+lastCharLen-1, curpos+lastCharLen, String.valueOf(value));
 				}else{
 					sbsql.replace(curpos+lastCharLen-1, curpos+lastCharLen, String.valueOf(value));
 				}
-				lastCharLen = lastCharLen+value.toString().length()+1;
+				lastCharLen = lastCharLen+value.toString().length()-1;
 				index++;
 			}
 		}
 		jdbclog.info(sbsql.toString());
-		/*if(my_params!=null && my_params.length>0){
-			int index = 0;
-			int i = 0;
-			// 修复params中出现"?"字符时数组越界的错误
-			while((i = sbsql.indexOf("?", i))!=-1){
-				Object value = my_params[index];
-				// String不可继承
-				if(value!=null && value instanceof String){
-					sbsql.replace(i, i+1, "\""+value+"\"");
-					i += value.toString().length() + 2;
-				}else{
-					sbsql.replace(i, i+1, String.valueOf(value));
-					i += String.valueOf(value).length();
-				}
-				index++;
-			}
-		}
-		jdbclog.info(sbsql.toString());*/
 		return sqlEntity;
 	}
 }
