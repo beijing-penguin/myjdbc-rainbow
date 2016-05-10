@@ -1,8 +1,24 @@
-target
-.idea
-*.iml
-.classpath
+
+# eclipse ignore
+.settings/
 .project
-.settings
-/target/
+.classpath
 bin
+
+# idea ignore
+.idea/
+*.ipr
+*.iml
+*.iws
+
+# maven ignore
+target/
+*.jar
+*.war
+*.zip
+*.tar
+*.tar.gz
+
+# system ignore
+.DS_Store
+Thumbs.db
