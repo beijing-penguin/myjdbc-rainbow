@@ -78,7 +78,7 @@ public class XmlSqlHandler extends SQLHandler{
 					if(allparamMap.containsKey(key)){
 						returnList.add(allparamMap.get(key));
 					}else{
-						throw new Exception("sqlhandle analysis error! parameters do not match to!");
+						throw new Exception("sqlhandle analysis error! parameters '"+key+"' do not match to!");
 					}
 					sql.replace(curpos-str.length()-lastCharLen, curpos-lastCharLen, "?");
 					lastCharLen = lastCharLen+str.length()-1;

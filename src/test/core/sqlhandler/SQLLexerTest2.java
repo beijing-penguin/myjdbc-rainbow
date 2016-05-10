@@ -23,7 +23,7 @@ import junit.framework.TestCase;
 public class SQLLexerTest2 extends TestCase {
 
     public void test_lexer() throws Exception {
-        String sql = "select *,if(sva=1,'男','女') as ssva from user name=#{name} and filed1 = '#{name}' and age=#{age} ";
+        String sql = "select *,if(sva=1,'男','女') as ssva # from user name=#{name} and filed1 = '#{name}' and age=#{age} ";
         Lexer lexer = new Lexer(sql);
         for (;;) {
             lexer.nextToken();
