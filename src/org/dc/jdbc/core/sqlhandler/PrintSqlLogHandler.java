@@ -24,26 +24,30 @@ public class PrintSqlLogHandler extends SQLHandler{
 
 		StringBuilder sbsql = new StringBuilder(sqlEntity.getSql());
 		Object[] my_params = sqlEntity.getParams();
-		Lexer lexer = new Lexer(sbsql.toString());
-		int index = 0;
-		int lastCharLen = 0;
-		while(true){
-			lexer.nextToken();
-			Token tok = lexer.token();
-			if (tok == Token.EOF) {
-				break;
-			}
-			int curpos = lexer.pos();
-			if(tok == Token.QUES){
-				Object value = my_params[index];
-				if(value!=null && value instanceof String){
-					value = "\""+value+"\"";
-					sbsql.replace(curpos+lastCharLen-1, curpos+lastCharLen, String.valueOf(value));
-				}else{
-					sbsql.replace(curpos+lastCharLen-1, curpos+lastCharLen, String.valueOf(value));
+		if(my_params.length>0){
+			Lexer lexer = new Lexer(sbsql.toString());
+			int index = 0;
+			int lastCharLen = 0;
+			while(true){
+				lexer.nextToken();
+				Token tok = lexer.token();
+				if (tok == Token.EOF) {
+					break;
 				}
-				lastCharLen = lastCharLen+value.toString().length()-1;
-				index++;
+				int curpos = lexer.pos();
+				if(tok == Token.QUES){
+
+					Object value = my_params[index];
+					if(value!=null && value instanceof String){
+						value = "\""+value+"\"";
+						sbsql.replace(curpos+lastCharLen-1, curpos+lastCharLen, String.valueOf(value));
+					}else{
+						sbsql.replace(curpos+lastCharLen-1, curpos+lastCharLen, String.valueOf(value));
+					}
+					lastCharLen = lastCharLen+String.valueOf(value).length()-1;
+					index++;
+
+				}
 			}
 		}
 		jdbclog.info(sbsql.toString());

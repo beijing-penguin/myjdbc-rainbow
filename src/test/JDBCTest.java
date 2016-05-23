@@ -67,12 +67,14 @@ public class JDBCTest {
 		}
 	}
 	@Test
-	public void selectOne() throws Exception{
-		//Map<String,Object> user = testDBHelper.selectOne("select * from user  limit 1");
-		Byte name = testDBHelper.selectOne("select age from user limit 1",Byte.class);
-		System.out.println(name);
-		//String name = testDBHelper.selectOne("select name from user  limit 1",String.class);
-		/*List<Integer> list = testDBHelper.selectList("select id from user ",Integer.class);
+	public void selectOne(){
+		try{
+			Map<String,Object> user = new HashMap<String,Object>();
+			user.put("id", 4);
+			Byte name = testDBHelper.selectOne("select age from user where id =#{id} limit 1",Byte.class,user);
+			System.out.println(name);
+			//String name = testDBHelper.selectOne("select name from user  limit 1",String.class);
+			/*List<Integer> list = testDBHelper.selectList("select id from user ",Integer.class);
 		for (int i = 0; i < list.size(); i++) {
 			System.out.println(list.get(i));
 		}
@@ -81,9 +83,13 @@ public class JDBCTest {
 			System.out.println(list2.get(i).getName() +"-"+list2.get(i).getId());
 		}*/
 
-		/*	Object o = testDBHelper.selectOne("select * from user where name = ? limit 1","dc");
+			/*	Object o = testDBHelper.selectOne("select * from user where name = ? limit 1","dc");
 		Map<String,Object> oo = testDBHelper.selectOne("select * from user where name = ? limit 1",HashMap.class,"dc");
 		System.out.println(o.getClass());*/
+
+		}catch(Exception e){
+			e.printStackTrace();
+		}
 		ConnectionManager.closeConnection();
 	}
 	@Test
