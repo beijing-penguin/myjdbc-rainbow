@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.dc.jdbc.core.ConnectionManager;
 import org.dc.jdbc.core.SQLStorage;
 import org.dc.jdbc.entity.SqlEntity;
 
@@ -92,7 +93,7 @@ public class XmlSqlHandler extends SQLHandler{
 				returnList = allParamList;
 			}
 		}
-		SqlEntity sqlEntity = new SqlEntity();
+		SqlEntity sqlEntity = ConnectionManager.entityLocal.get();
 		sqlEntity.setSql(sql.toString());
 		sqlEntity.setParams(returnList.toArray());
 		return sqlEntity;

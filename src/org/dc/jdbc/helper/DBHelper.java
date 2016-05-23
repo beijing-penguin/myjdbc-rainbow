@@ -1,7 +1,6 @@
 package org.dc.jdbc.helper;
 
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.util.List;
 import java.util.Map;
 
@@ -10,7 +9,6 @@ import javax.sql.DataSource;
 import org.dc.jdbc.config.JDBCConfig;
 import org.dc.jdbc.core.ConnectionManager;
 import org.dc.jdbc.core.ContextHandle;
-import org.dc.jdbc.core.inter.TypeFactory;
 import org.dc.jdbc.core.operate.DeleteOper;
 import org.dc.jdbc.core.operate.InsertOper;
 import org.dc.jdbc.core.operate.SelectOper;
@@ -19,15 +17,9 @@ import org.dc.jdbc.core.sqlhandler.PrintSqlLogHandler;
 import org.dc.jdbc.core.sqlhandler.XmlSqlHandler;
 import org.dc.jdbc.entity.SqlEntity;
 
-import com.alibaba.druid.sql.ast.SQLStatement;
-import com.alibaba.druid.sql.dialect.mysql.parser.MySqlStatementParser;
-import com.alibaba.druid.sql.parser.SQLStatementParser;
-
-import test.Configure;
-
 /**
  * 数据持久化操作类
- * sql执行三部曲：2，sql解析，2，获得数据库连接，3，执行核心jdbc操作。
+ * sql执行三部曲：1，sql解析，2，获得数据库连接，3，执行核心jdbc操作。
  * @author dc
  * @time 2015-8-17
  */
@@ -54,21 +46,9 @@ public class DBHelper {
 		//2，分库分表后，验证参数的合法性
 		//3，根据参数动态改变sql语句的功能，如根据用户传入的userId，hash算法动态改变原sql中的表。。完成hash分表的功能
 		ch.registerSQLHandle(XmlSqlHandler.getInstance());
-		if(JDBCConfig.isPrintSqlLog){ //测试打印出日志
+		if(JDBCConfig.isPrintSqlLog){
 			ch.registerSQLHandle(PrintSqlLogHandler.getInstance());
 		}
-
-		TypeFactory typeFactory = new TypeFactory() {
-			@Override
-			public Object typeChange(ResultSet rs,int index,String dbTypeStr) throws Exception {
-				if(dbTypeStr.equals("TINYINT")){//原生jdbc将此类型转化成boolean。
-					return rs.getInt(index);
-				}
-				return rs.getObject(index);
-			}
-		};
-		ch.registerTypeChange(typeFactory);
-
 		return ch;
 	}
 
@@ -78,22 +58,24 @@ public class DBHelper {
 	private static final DeleteOper deleteOper = DeleteOper.getInstance();
 
 	public <T> T selectOne(String sqlOrID,Class<? extends T> returnClass,Object...params) throws Exception{
+		Connection conn = ConnectionManager.getConnection(dataSource);
+		
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
 		
-		Connection conn = ConnectionManager.getConnection(dataSource);
 		return selectOper.selectOne(conn,sql,returnClass,params_obj);
 	}
 	public Map<String,Object> selectOne(String sqlOrID,Object...params) throws Exception{
 		return this.selectOne(sqlOrID, null,params);
 	}
 	public <T> List<T> selectList(String sqlOrID,Class<? extends T> returnClass,Object...params) throws Exception{
+		Connection conn = ConnectionManager.getConnection(dataSource);
+		
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
 		
-		Connection conn = ConnectionManager.getConnection(dataSource);
 		return selectOper.selectList(conn,sql,returnClass,params_obj);
 	}
 	public List<Map<String,Object>> selectList(String sqlOrID,Object...params) throws Exception{
@@ -107,11 +89,11 @@ public class DBHelper {
 	 * @throws Exception
 	 */
 	public int insert(String sqlOrID,Object...params) throws Exception{
+		Connection conn = ConnectionManager.getConnection(dataSource);
+		
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
-		
-		Connection conn = ConnectionManager.getConnection(dataSource);
 		return insertOper.insert(conn, sql, params_obj);
 	}
 	/**
@@ -122,30 +104,33 @@ public class DBHelper {
 	 * @throws Exception
 	 */
 	public Object insertReturnKey(String sqlOrID,Object...params) throws Exception{
+		Connection conn = ConnectionManager.getConnection(dataSource);
+		
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
 		
-		Connection conn = ConnectionManager.getConnection(dataSource);
 		return insertOper.insertRtnPKKey(conn, sql, params_obj);
 	}
 
 	public int update(String sqlOrID,Object...params) throws Exception{
+		Connection conn = ConnectionManager.getConnection(dataSource);
+		
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
 		
-		Connection conn = ConnectionManager.getConnection(dataSource);
 		return updateOper.update(conn, sql, params_obj);
 	}
 
 
 	public int delete(String sqlOrID,Object...params) throws Exception{
+		Connection conn = ConnectionManager.getConnection(dataSource);
+		
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
 
-		Connection conn = ConnectionManager.getConnection(dataSource);
 		return deleteOper.delete(conn, sql, params_obj);
 	}
 
@@ -158,15 +143,5 @@ public class DBHelper {
 	}
 	public void setDataSource(DataSource dataSource) {
 		this.dataSource = dataSource;
-	}
-	public static void main(String[] args) throws Exception {
-		DBHelper db = new DBHelper(Configure.testSource);
-		String sql = "select * from1 user limit 1";
-		 SQLStatementParser parser = new MySqlStatementParser(sql);
-		 /*SQLStatement st = parser.parseStatement();
-		 System.out.println(st.toString());*/
-		 List<SQLStatement> select = parser.parseStatementList();
-	     System.out.println(select.toString());
-		db.selectOne(select.toString());
 	}
 }

@@ -25,20 +25,18 @@ public abstract class OperSuper extends JdbcSuper{
 	public void close(AutoCloseable ac){
 		if(ac!=null){
 			try{
-				if(ac!=null){
-					ac.close();
-				}
+				ac.close();
 			}catch (Exception e) {
 				jdbclog.error("",e);
 			}
 		}
 	}
-	
+
 	public int preparedAndExcuteSQL(Connection conn,String sql,Object[] params) throws Exception{
 		PreparedStatement ps = null;
 		try {
 			ps = conn.prepareStatement(sql);
-			this.setParams(ps, params);
+			super.setParams(ps, params);
 			return ps.executeUpdate();
 		} catch (Exception e) {
 			throw e;
@@ -47,7 +45,7 @@ public abstract class OperSuper extends JdbcSuper{
 		}
 	}
 	public ResultSet preparedSQLReturnRS(PreparedStatement ps,String sql,Object[] params) throws Exception{
-		this.setParams(ps, params);
+		super.setParams(ps, params);
 		return ps.executeQuery();
 	}
 	public void parseSqlResultToMap(ResultSet rs,List<Object> list) throws Exception{
@@ -85,7 +83,7 @@ public abstract class OperSuper extends JdbcSuper{
 				Field field = fieldsMap.get(cols_name);
 				if(field!=null){
 					Object cols_value =  super.getValueByObjectType(metaData, rs, i);
-					
+
 					field.setAccessible(true);
 					field.set(obj_newInsten, cols_value);
 				}
@@ -131,7 +129,7 @@ public abstract class OperSuper extends JdbcSuper{
 			throw new Exception("The number of returned data columns is too many");
 		}
 		Object cols_value = super.getValueByObjectType(metaData, rs, 0);
-		
+
 		return cols_value;
 	}
 }

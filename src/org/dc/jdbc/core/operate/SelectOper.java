@@ -28,7 +28,7 @@ public class SelectOper extends OperSuper{
 
 			int row = 0;
 			if(rs.last() && (row = rs.getRow())>1){
-				throw new Exception("查询结果太多");
+				throw new Exception("Query results too much!");
 			}
 			if(row==1){//判断是否有返回结果
 				if(cls==null || Map.class.isAssignableFrom(cls)){

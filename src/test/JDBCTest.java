@@ -7,28 +7,30 @@ import java.util.Map;
 import org.dc.jdbc.config.JDBCConfig;
 import org.dc.jdbc.core.ConnectionManager;
 import org.dc.jdbc.helper.DBHelper;
-import org.dc.jdbc.init.LoadSqlUtil;
 import org.junit.Before;
 import org.junit.Test;
 
 public class JDBCTest {
-	private static DBHelper accDBHelper = new DBHelper(Configure.accSource);
-	private static DBHelper testDBHelper = new DBHelper(Configure.testSource);
+	private static DBHelper accDBHelper;
+	private static DBHelper testDBHelper;
 	@Before
 	public void initJdbc(){
 		try {
 			JDBCConfig.isPrintSqlLog = true;
-			LoadSqlUtil.loadSql("D:\\Git\\MyJdbc\\target\\classes\\test\\sql");
+
+			testDBHelper = new DBHelper(Configure.testSource);
+			accDBHelper= new DBHelper(Configure.accSource);
+			//LoadSqlUtil.loadSql("D:\\Git\\MyJdbc\\target\\classes\\test\\sql");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 	}
 	@Test
 	public void select(){
 		try {
 			//ConnectionManager.transactionThreadLocal.set(null);
-			ConnectionManager.isTransaction.set(true);
+			ConnectionManager.startTransaction();
 			/*start*/
 			Map<String,Object> map = testDBHelper.selectOne("select * from user limit 1");
 			List<Map<String,Object>> mapList = testDBHelper.selectList("select * from user");
@@ -40,7 +42,7 @@ public class JDBCTest {
 			Integer age = testDBHelper.selectOne("select age from user where name=? and age=? limit 1",Integer.class,"dc",20);
 			String name = testDBHelper.selectOne("select name from user where name=? and age=? limit 1",String.class,"dc",20);
 			Map<String,Object> map_WithParam1_1 = testDBHelper.selectOne("select * from user where name=? and age=? limit 1",new Object[]{"dc",20});
-			
+
 			//传入Map
 			Map<String,Object> mapParams = new HashMap<String, Object>();
 			mapParams.put("name", "dc");
@@ -48,7 +50,7 @@ public class JDBCTest {
 			Map<String,Object> map_WithParam1_2 = testDBHelper.selectOne("select * from user where name=#{name} and age=#{age} limit 1",mapParams);
 			//这里通过$符号引用了xml中的sql语句，引用规则为          $文件名.SQL_ID
 			Map<String,Object> map_WithParam1_2_1 = testDBHelper.selectOne("$user.getOneUser",mapParams);
-			
+
 			//传入对象，也可以对象和Map一起作为参数传入方法
 			User userObj = new User();
 			userObj.setName("dc");
@@ -67,30 +69,31 @@ public class JDBCTest {
 	@Test
 	public void selectOne() throws Exception{
 		//Map<String,Object> user = testDBHelper.selectOne("select * from user  limit 1");
-		String name = testDBHelper.selectOne("select name from user limit 1",String.class);
+		Byte name = testDBHelper.selectOne("select age from user limit 1",Byte.class);
 		System.out.println(name);
 		//String name = testDBHelper.selectOne("select name from user  limit 1",String.class);
-		List<Integer> list = testDBHelper.selectList("select id from user ",Integer.class);
+		/*List<Integer> list = testDBHelper.selectList("select id from user ",Integer.class);
 		for (int i = 0; i < list.size(); i++) {
 			System.out.println(list.get(i));
 		}
 		List<User> list2 = testDBHelper.selectList("select name,id from user ",User.class);
 		for (int i = 0; i < list2.size(); i++) {
 			System.out.println(list2.get(i).getName() +"-"+list2.get(i).getId());
-		}
-		
-	/*	Object o = testDBHelper.selectOne("select * from user where name = ? limit 1","dc");
+		}*/
+
+		/*	Object o = testDBHelper.selectOne("select * from user where name = ? limit 1","dc");
 		Map<String,Object> oo = testDBHelper.selectOne("select * from user where name = ? limit 1",HashMap.class,"dc");
 		System.out.println(o.getClass());*/
-		ConnectionManager.closeConnection();//最好把关闭连接写在finally里面，我这里为了快速测试，简单写一下。
+		ConnectionManager.closeConnection();
 	}
 	@Test
 	public void insert(){
 		//开启事务
-		ConnectionManager.isTransaction.set(true);
-		JDBCConfig.isPrintSqlLog=true;
+		ConnectionManager.startTransaction();
 		try {
-			int num = testDBHelper.insert("insert into user(name,age) values(?,?)", "dc",12);
+			int num = testDBHelper.insert("insert into user(name,age) values(?,?)", "ddddddc",12);
+			Integer age = testDBHelper.selectOne("select age from user limit 1",Integer.class);
+			System.out.println(age);
 			System.out.println(num);
 			//提交
 			ConnectionManager.commit();

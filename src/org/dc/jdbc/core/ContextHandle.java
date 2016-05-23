@@ -2,9 +2,7 @@ package org.dc.jdbc.core;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.dc.jdbc.core.base.JdbcSuper;
 import org.dc.jdbc.core.inter.InitHandler;
-import org.dc.jdbc.core.inter.TypeFactory;
 import org.dc.jdbc.core.sqlhandler.SQLHandler;
 import org.dc.jdbc.entity.SqlEntity;
 
@@ -26,8 +24,5 @@ public class ContextHandle {
 	}
 	public SqlEntity handleRequest(String sqlOrID, Object[] params) throws Exception {
 		return firsthandle.handleRequest(sqlOrID, params);
-	}
-	public void registerTypeChange(TypeFactory typeFactory) {
-		JdbcSuper.typeFactory = typeFactory;
 	}
 }
