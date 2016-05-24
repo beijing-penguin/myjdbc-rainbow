@@ -109,5 +109,5 @@ public class JDBCTest {
 		}finally{
 			ConnectionManager.closeConnection();
 		}
-	}
+	} 
 }
