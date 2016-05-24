@@ -79,7 +79,9 @@ public class XmlSqlHandler extends SQLHandler{
 							throw new Exception("sqlhandle analysis error! parameters do not match to!");
 						}
 						//设置改sql有#号通配符的方式
-						have_jinhao = true;
+						if(have_jinhao==false){
+							have_jinhao = true;
+						}
 						String key = str.substring(2, str.length()-1);
 						if(allparamMap.containsKey(key)){
 							returnList.add(allparamMap.get(key));
@@ -94,7 +96,9 @@ public class XmlSqlHandler extends SQLHandler{
 						throw new Exception("sqlhandle analysis error! parameters do not match to!");
 					}
 					//设置改sql有?号通配符的方式
-					have_ques = true;
+					if(have_ques==false){
+						have_ques = true;
+					}
 					returnList = allParamList;
 				}
 			}
