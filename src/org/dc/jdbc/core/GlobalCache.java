@@ -31,9 +31,9 @@ public class GlobalCache {
 
 		try {
 			lock.lock();
-			Map<String,Field> rtCache = cacheFields.get(cls);
-			if(rtCache!=null){
-				return rtCache;
+			returnCache = cacheFields.get(cls);
+			if(returnCache!=null){
+				return returnCache;
 			}
 			Field[] fields = cls.getDeclaredFields();
 			Map<String,Field> dataMap = new HashMap<String,Field>();
