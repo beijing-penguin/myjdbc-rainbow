@@ -56,30 +56,36 @@ public class ConnectionManager {
 	 * 关闭当前操作中的所有连接对象，如果关闭失败，则继续关闭其他conn对象，直到关闭所有连接，改方法属于最后一步的操作，除非线程挂掉或者被kill掉，否则最后一定会被执行。
 	 */
 	public static void closeConnection(){
-		Map<DataSource,Connection> connMap = entityLocal.get().getDataSourceMap();
-		if(connMap!=null){
-			for (Connection conn : connMap.values()) {
-				try{
-					conn.close();
-					conn = null;
-				}catch (Exception e) {
-					log.error("",e);
+		SqlEntity entity = entityLocal.get();
+		if(entity!=null){
+			Map<DataSource,Connection> connMap = entityLocal.get().getDataSourceMap();
+			if(connMap!=null){
+				for (Connection conn : connMap.values()) {
+					try{
+						conn.close();
+						conn = null;
+					}catch (Exception e) {
+						log.error("",e);
+					}
 				}
 			}
+			entityLocal.remove();
 		}
-		entityLocal.remove();
 	}
 	/**
 	 * 回滚所有数据源的操作，正常的数据库能够回滚，回滚异常也不用管，继续回滚下一个数据库，知道回滚操作结束
 	 */
 	public static void rollback() {
-		Map<DataSource,Connection> connMap = entityLocal.get().getDataSourceMap();
-		if(connMap!=null){
-			for (Connection conn : connMap.values()) {
-				try{
-					conn.rollback();
-				}catch (Exception e) {
-					log.error("",e);
+		SqlEntity entity = entityLocal.get();
+		if(entity!=null){
+			Map<DataSource,Connection> connMap = entity.getDataSourceMap();
+			if(connMap!=null){
+				for (Connection conn : connMap.values()) {
+					try{
+						conn.rollback();
+					}catch (Exception e) {
+						log.error("",e);
+					}
 				}
 			}
 		}
@@ -101,15 +107,18 @@ public class ConnectionManager {
 	 * @throws Exception 
 	 */
 	public static void commit() throws Exception{
-		Map<DataSource,Connection> connMap = entityLocal.get().getDataSourceMap();
-		if(connMap!=null){
-			for (Connection conn : connMap.values()) {
-				try{
-					if(conn.getAutoCommit()==false){
-						conn.commit();
+		SqlEntity entity = entityLocal.get();
+		if(entity!=null){
+			Map<DataSource,Connection> connMap = entity.getDataSourceMap();
+			if(connMap!=null){
+				for (Connection conn : connMap.values()) {
+					try{
+						if(conn.getAutoCommit()==false){
+							conn.commit();
+						}
+					}catch (Exception e) {
+						throw e;
 					}
-				}catch (Exception e) {
-					throw e;
 				}
 			}
 		}
