@@ -59,14 +59,12 @@ public class ConnectionManager {
 		SqlEntity entity = entityLocal.get();
 		if(entity!=null){
 			Map<DataSource,Connection> connMap = entityLocal.get().getDataSourceMap();
-			if(connMap!=null){
-				for (Connection conn : connMap.values()) {
-					try{
-						conn.close();
-						conn = null;
-					}catch (Exception e) {
-						log.error("",e);
-					}
+			for (Connection conn : connMap.values()) {
+				try{
+					conn.close();
+					conn = null;
+				}catch (Exception e) {
+					log.error("",e);
 				}
 			}
 			entityLocal.remove();
@@ -79,13 +77,11 @@ public class ConnectionManager {
 		SqlEntity entity = entityLocal.get();
 		if(entity!=null){
 			Map<DataSource,Connection> connMap = entity.getDataSourceMap();
-			if(connMap!=null){
-				for (Connection conn : connMap.values()) {
-					try{
-						conn.rollback();
-					}catch (Exception e) {
-						log.error("",e);
-					}
+			for (Connection conn : connMap.values()) {
+				try{
+					conn.rollback();
+				}catch (Exception e) {
+					log.error("",e);
 				}
 			}
 		}
@@ -97,10 +93,8 @@ public class ConnectionManager {
 	 */
 	public static void rollback(DataSource dataSource) throws Exception {
 		Map<DataSource,Connection> connMap = entityLocal.get().getDataSourceMap();
-		if(connMap!=null){
-			Connection conn = connMap.get(dataSource);
-			conn.rollback();
-		}
+		Connection conn = connMap.get(dataSource);
+		conn.rollback();
 	}
 	/**
 	 * 保证正常的数据的数据能提交成功，否则直接回滚，并继续执行下一个数据源的提交操作。
@@ -110,15 +104,13 @@ public class ConnectionManager {
 		SqlEntity entity = entityLocal.get();
 		if(entity!=null){
 			Map<DataSource,Connection> connMap = entity.getDataSourceMap();
-			if(connMap!=null){
-				for (Connection conn : connMap.values()) {
-					try{
-						if(conn.getAutoCommit()==false){
-							conn.commit();
-						}
-					}catch (Exception e) {
-						throw e;
+			for (Connection conn : connMap.values()) {
+				try{
+					if(conn.getAutoCommit()==false){
+						conn.commit();
 					}
+				}catch (Exception e) {
+					throw e;
 				}
 			}
 		}
