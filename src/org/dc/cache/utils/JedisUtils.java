@@ -5,7 +5,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map;
 
@@ -21,13 +20,12 @@ import redis.clients.jedis.JedisPool;
  */
 public class JedisUtils {
 	private static final Log log = LogFactory.getLog(JedisUtils.class);
-
-	private static JedisPool pool = new JedisPool("localhost", 6379);
+	private final static JedisPool jedisPool = new JedisPool("localhost", 6379);
 	public static String get(String key){  
 
 		Jedis jedis = null;  
 		try {  
-			jedis = pool.getResource();
+			jedis = jedisPool.getResource();
 			return jedis.get(key);  
 		} catch (Exception e) {  
 			log.error("",e);
@@ -43,7 +41,7 @@ public class JedisUtils {
 		ByteArrayInputStream bais = null;
 		ObjectInputStream ois = null;
 		try {  
-			jedis = pool.getResource();
+			jedis = jedisPool.getResource();
 			byte[] obj_bytes = jedis.get(key);
 			if(obj_bytes!=null){
 				bais = new ByteArrayInputStream(obj_bytes);
@@ -77,7 +75,7 @@ public class JedisUtils {
 	public static String set(String key,String value){  
 		Jedis jedis = null;
 		try {  
-			jedis = pool.getResource();
+			jedis = jedisPool.getResource();
 			return jedis.set(key, value);
 		} catch (Exception e) {  
 			log.error("",e);
@@ -98,7 +96,7 @@ public class JedisUtils {
 		ObjectOutputStream oos = null;
 		ByteArrayOutputStream baos = null;
 		try {  
-			jedis = pool.getResource();
+			jedis = jedisPool.getResource();
 
 
 			//序列化
@@ -130,7 +128,7 @@ public class JedisUtils {
 	public static Long del(byte[]...keys){  
 		Jedis jedis = null;
 		try {  
-			jedis = pool.getResource();
+			jedis = jedisPool.getResource();
 			return jedis.del(keys);
 		} catch (Exception e) {  
 			log.error("",e);
@@ -143,7 +141,7 @@ public class JedisUtils {
 	public static Long del(String...keys){  
 		Jedis jedis = null;
 		try {  
-			jedis = pool.getResource();
+			jedis = jedisPool.getResource();
 			return jedis.del(keys);
 		} catch (Exception e) {
 			log.error("",e);
@@ -156,7 +154,7 @@ public class JedisUtils {
 	public static String hmset(String key,Map<String,String> valueMap){  
 		Jedis jedis = null;
 		try {  
-			jedis = pool.getResource();
+			jedis = jedisPool.getResource();
 			return jedis.hmset(key,valueMap);
 		} catch (Exception e) {
 			log.error("",e);
@@ -169,7 +167,7 @@ public class JedisUtils {
 	public static List<String> hmget(String key,String...fields){  
 		Jedis jedis = null;
 		try {  
-			jedis = pool.getResource();
+			jedis = jedisPool.getResource();
 			return jedis.hmget(key, fields);
 		} catch (Exception e) {
 			log.error("",e);
@@ -180,7 +178,7 @@ public class JedisUtils {
 		return null;
 	}
 	public static void main(String[] args) {
-		try{
+		/*try{
 			int i = 0;
 			String s = "中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中"
 					+ "文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文"
@@ -197,15 +195,15 @@ public class JedisUtils {
 					+ "文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中"
 					+ "文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文";
 			String sql = "select * from user where username = \"dc\" and age =1 left join userinfo on t1.id=t2.idselect * from user where username = \"dc\" and age =1 left join userinfo on t1.id=t2.idselect * from user where username = \"dc\" and age =1 left join userinfo on t1.id=t2.idselect * from user where username = \"dc\" and age =1 left join userinfo on t1.id=t2.idselect * from user where username = \"dc\" and age =1 left join userinfo on t1.id=t2.idselect * from user where username = \"dc\" and age =1 left join userinfo on t1.id=t2.idselect * from user where username = \"dc\" and age =1 left join userinfo on t1.id=t2.idselect * from user where username = \"dc\" and age =1 left join userinfo on t1.id=t2.idselect * from user where username = \"dc\" and age =1 left join userinfo on t1.id=t2.idselect * from user where username = \"dc\" and age =1 left join userinfo on t1.id=t2.id";
-			System.out.println(JedisUtils.get(sql+"_"+1));
-			/*while(true){
+			System.out.println(JedisHelper.get(sql+"_"+1));
+			while(true){
 				System.out.print(JedisUtils.set(sql+"_"+i, s+"_"+i));
 				i++;
 				System.out.print("_"+i+"\n");
-			}*/
+			}
 		}catch(Exception e){
 			e.printStackTrace();
-		}
+		}*/
 		
 	}
 }

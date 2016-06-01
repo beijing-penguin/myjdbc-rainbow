@@ -32,20 +32,11 @@ public class ConnectionManager {
 
 	public static Connection getConnection(DataSource dataSource) throws Exception{
 		SqlEntity sqlEntity = entityLocal.get();
-		Connection conn = null;
-		if(sqlEntity == null){
-			sqlEntity = new SqlEntity();
+		Connection conn = sqlEntity.getDataSourceMap().get(dataSource);
+		if(conn==null){
 			conn = dataSource.getConnection();
 			sqlEntity.getDataSourceMap().put(dataSource, conn);
-			entityLocal.set(sqlEntity);
-		}else{
-			conn = sqlEntity.getDataSourceMap().get(dataSource);
-			if(conn==null){
-				conn = dataSource.getConnection();
-				sqlEntity.getDataSourceMap().put(dataSource, conn);
-			}
 		}
-
 		//设置事务
 		conn.setAutoCommit(!sqlEntity.getTransaction());
 		conn.setReadOnly(sqlEntity.getReadOnly());

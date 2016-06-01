@@ -3,12 +3,14 @@ package org.dc.jdbc.entity;
 import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import javax.sql.DataSource;
 
 public class SqlEntity {
     private String sql;
     private Object[] params;
+    private Set<String> tables;
     private boolean transaction;
     private boolean readOnly;
     private Map<DataSource,Connection> dataSourceMap = new HashMap<DataSource,Connection>();
@@ -43,5 +45,11 @@ public class SqlEntity {
 	}
 	public void setReadOnly(boolean readOnly) {
 		this.readOnly = readOnly;
+	}
+	public Set<String> getTables() {
+		return tables;
+	}
+	public void setTables(Set<String> tables) {
+		this.tables = tables;
 	}
 }

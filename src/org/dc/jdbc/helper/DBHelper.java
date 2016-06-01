@@ -6,9 +6,11 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import org.dc.cache.utils.JedisUtils;
 import org.dc.jdbc.config.JDBCConfig;
 import org.dc.jdbc.core.ConnectionManager;
 import org.dc.jdbc.core.ContextHandle;
+import org.dc.jdbc.core.SQLType;
 import org.dc.jdbc.core.operate.DeleteOper;
 import org.dc.jdbc.core.operate.InsertOper;
 import org.dc.jdbc.core.operate.SelectOper;
@@ -27,9 +29,6 @@ public class DBHelper {
 	private volatile DataSource dataSource;
 	private final ContextHandle contextHandler;
 
-	/*public DBHelper(){
-		this.dataSource = dataSource;
-	}*/
 	public DBHelper(DataSource dataSource){
 		this.dataSource = dataSource;
 		this.contextHandler = this.createContextHandle();
@@ -58,25 +57,35 @@ public class DBHelper {
 	private static final DeleteOper deleteOper = DeleteOper.getInstance();
 
 	public <T> T selectOne(String sqlOrID,Class<? extends T> returnClass,Object...params) throws Exception{
-		Connection conn = ConnectionManager.getConnection(dataSource);
-		
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
 		
+		Connection conn = ConnectionManager.getConnection(dataSource);
 		return selectOper.selectOne(conn,sql,returnClass,params_obj);
 	}
 	public Map<String,Object> selectOne(String sqlOrID,Object...params) throws Exception{
 		return this.selectOne(sqlOrID, null,params);
 	}
 	public <T> List<T> selectList(String sqlOrID,Class<? extends T> returnClass,Object...params) throws Exception{
-		Connection conn = ConnectionManager.getConnection(dataSource);
-		
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
 		
-		return selectOper.selectList(conn,sql,returnClass,params_obj);
+		if(JDBCConfig.isSQLCache){
+			List<T> cachelist = this.getCache(sqlEntity,SQLType.SELECT);
+			if(cachelist!=null){
+				return cachelist;
+			}
+		}
+		
+		Connection conn = ConnectionManager.getConnection(dataSource);
+		List<T> listRtn = selectOper.selectList(conn,sql,returnClass,params_obj);
+		
+		if(listRtn!=null && JDBCConfig.isSQLCache){
+			this.setCache(sqlEntity, listRtn);
+		}
+		return listRtn;
 	}
 	public List<Map<String,Object>> selectList(String sqlOrID,Object...params) throws Exception{
 		return this.selectList(sqlOrID, null, params);
@@ -89,11 +98,11 @@ public class DBHelper {
 	 * @throws Exception
 	 */
 	public int insert(String sqlOrID,Object...params) throws Exception{
-		Connection conn = ConnectionManager.getConnection(dataSource);
-		
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
+		
+		Connection conn = ConnectionManager.getConnection(dataSource);
 		return insertOper.insert(conn, sql, params_obj);
 	}
 	/**
@@ -104,44 +113,58 @@ public class DBHelper {
 	 * @throws Exception
 	 */
 	public Object insertReturnKey(String sqlOrID,Object...params) throws Exception{
-		Connection conn = ConnectionManager.getConnection(dataSource);
-		
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
 		
+		Connection conn = ConnectionManager.getConnection(dataSource);
 		return insertOper.insertRtnPKKey(conn, sql, params_obj);
 	}
 
 	public int update(String sqlOrID,Object...params) throws Exception{
-		Connection conn = ConnectionManager.getConnection(dataSource);
-		
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
 		
+		Connection conn = ConnectionManager.getConnection(dataSource);
 		return updateOper.update(conn, sql, params_obj);
 	}
 
 
 	public int delete(String sqlOrID,Object...params) throws Exception{
-		Connection conn = ConnectionManager.getConnection(dataSource);
-		
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
-
+		
+		Connection conn = ConnectionManager.getConnection(dataSource);
 		return deleteOper.delete(conn, sql, params_obj);
 	}
 
 	public void rollback() throws Exception{
 		ConnectionManager.rollback(dataSource);
 	}
-
-	public DataSource getDataSource() {
-		return dataSource;
+	private <T> T getCache(SqlEntity sqlEntity, SQLType select){
+		if(select==SQLType.SELECT){
+			Object[] params = sqlEntity.getParams();
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < params.length; i++) {
+				sb.append(String.valueOf(params[i]));
+			}
+			String key = sqlEntity.getSql()+sb.toString();
+			T t = JedisUtils.getObject(key.getBytes());
+			if(t!=null){
+				return t;
+			}
+		}
+		return null;
 	}
-	public void setDataSource(DataSource dataSource) {
-		this.dataSource = dataSource;
+	private void setCache(SqlEntity sqlEntity,Object obj){
+		Object[] params = sqlEntity.getParams();
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < params.length; i++) {
+			sb.append(String.valueOf(params[i]));
+		}
+		String key = sqlEntity.getSql()+sb.toString();
+		JedisUtils.setObject(key.getBytes(), obj);
 	}
 }

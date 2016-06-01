@@ -30,9 +30,9 @@ public class SelectOper extends OperSuper{
 			if(rs.last() && (row = rs.getRow())>1){
 				throw new Exception("Query results too much!");
 			}
-			if(row==1){//判断是否有返回结果
+			if(row==1){//判断是否有返回结果，有的话执行下面转化操作
 				if(cls==null || Map.class.isAssignableFrom(cls)){
-					return (T) super.parseSqlResultToMap(rs);//返回结果不可能为空，所以不需要判断空异常 
+					return (T) super.parseSqlResultToMap(rs);
 				}else{
 					if(cls.getClassLoader()==null){//java基本类型
 						return (T) super.parseSqlResultToBaseType(rs);

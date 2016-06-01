@@ -5,8 +5,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.dc.jdbc.core.ConnectionManager;
 import org.dc.jdbc.core.SQLStorage;
@@ -25,14 +27,15 @@ public class XmlSqlHandler extends SQLHandler{
 	 */
 	@Override
 	public SqlEntity handleRequest(String sqlOrID,Object[] params) throws Exception{
-		/*		
-		if(super.getSuccessor() != null){            
-			super.getSuccessor().handleRequest(sqlOrID,params);
-		}else{     */       
 		SqlEntity sqlEntity = ConnectionManager.entityLocal.get();
+		if(sqlEntity==null){
+			sqlEntity = new SqlEntity();
+			ConnectionManager.entityLocal.set(sqlEntity);
+		}
 		List<Object> returnList = new ArrayList<Object>();
+		Set<String> tableSet =new HashSet<String>();
 		StringBuffer sql = new StringBuffer(sqlOrID.startsWith("$")?SQLStorage.getSql(sqlOrID):sqlOrID);
-		
+
 		Map<Object,Object> allparamMap = null;
 		List<Object>  allParamList = null;
 		if(params!=null && params.length>0){
@@ -59,12 +62,11 @@ public class XmlSqlHandler extends SQLHandler{
 					}
 				}
 			}
-			
-			
+
+
 			Lexer lexer = new Lexer(sql.toString());
 			int lastCharLen = 0;
-			boolean have_jinhao = false;
-			boolean have_ques = false;
+			Token lastTok = null;
 			while(true){
 				lexer.nextToken();
 				Token tok = lexer.token();
@@ -72,40 +74,30 @@ public class XmlSqlHandler extends SQLHandler{
 					break;
 				}
 				int curpos = lexer.pos();
-				if(tok.name == null){
-					if(tok == Token.VARIANT){//异类匹配，这里的异类只有#号，sql编写规范的情况下，不需要判断str.contains("#")
-						String str = lexer.stringVal();
-						if(have_ques){
-							throw new Exception("sqlhandle analysis error! parameters do not match to!");
-						}
-						//设置改sql有#号通配符的方式
-						if(have_jinhao==false){
-							have_jinhao = true;
-						}
-						String key = str.substring(2, str.length()-1);
-						if(allparamMap.containsKey(key)){
-							returnList.add(allparamMap.get(key));
-						}else{
-							throw new Exception("sqlhandle analysis error! parameters '"+key+"' do not match to!");
-						}
-						sql.replace(curpos-str.length()-lastCharLen, curpos-lastCharLen, "?");
-						lastCharLen = lastCharLen+str.length()-1;
+				if(tok.name == null && tok == Token.VARIANT){//异类匹配，这里的异类只有#号，sql编写规范的情况下，不需要判断str.contains("#")
+					String str = lexer.stringVal();
+					String key = str.substring(2, str.length()-1);
+					if(allparamMap.containsKey(key)){
+						returnList.add(allparamMap.get(key));
+					}else{
+						throw new Exception("sqlhandle analysis error! parameters '"+key+"' do not match to!");
 					}
+					sql.replace(curpos-str.length()-lastCharLen, curpos-lastCharLen, "?");
+					lastCharLen = lastCharLen+str.length()-1;
 				}else if(tok == Token.QUES){
-					if(have_jinhao){
-						throw new Exception("sqlhandle analysis error! parameters do not match to!");
-					}
-					//设置改sql有?号通配符的方式
-					if(have_ques==false){
-						have_ques = true;
-					}
 					returnList = allParamList;
+				}else if(tok == Token.FROM || tok == Token.IDENTIFIER || tok == Token.INTO || tok == Token.UPDATE || tok == Token.USER){//记录表名
+					if((lastTok != null && tok== Token.IDENTIFIER || tok== Token.USER) && (lastTok == Token.FROM || lastTok == Token.INTO || lastTok == Token.UPDATE)){
+						tableSet.add(lexer.stringVal());
+					}
+					lastTok = tok;
 				}
 			}
 		}
-		
+
 		sqlEntity.setSql(sql.toString());
 		sqlEntity.setParams(returnList.toArray());
+		sqlEntity.setTables(tableSet);
 		return sqlEntity;
 	}
 }
