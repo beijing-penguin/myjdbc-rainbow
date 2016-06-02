@@ -6,11 +6,11 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import org.dc.cache.utils.JedisUtils;
+import org.dc.cache.core.JedisConfig;
+import org.dc.cache.core.JedisHelper;
 import org.dc.jdbc.config.JDBCConfig;
 import org.dc.jdbc.core.ConnectionManager;
 import org.dc.jdbc.core.ContextHandle;
-import org.dc.jdbc.core.SQLType;
 import org.dc.jdbc.core.operate.DeleteOper;
 import org.dc.jdbc.core.operate.InsertOper;
 import org.dc.jdbc.core.operate.SelectOper;
@@ -27,6 +27,8 @@ import org.dc.jdbc.entity.SqlEntity;
  */
 public class DBHelper {
 	private volatile DataSource dataSource;
+	private static JedisHelper jedisHelper = new JedisHelper(JedisConfig.jedisPool);
+
 	private final ContextHandle contextHandler;
 
 	public DBHelper(DataSource dataSource){
@@ -60,7 +62,7 @@ public class DBHelper {
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
-		
+
 		Connection conn = ConnectionManager.getConnection(dataSource);
 		return selectOper.selectOne(conn,sql,returnClass,params_obj);
 	}
@@ -71,19 +73,19 @@ public class DBHelper {
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
-		
+
 		if(JDBCConfig.isSQLCache){
-			List<T> cachelist = this.getCache(sqlEntity,SQLType.SELECT);
+			List<T> cachelist = jedisHelper.getSQLCache(sqlEntity);
 			if(cachelist!=null){
 				return cachelist;
 			}
 		}
-		
+
 		Connection conn = ConnectionManager.getConnection(dataSource);
 		List<T> listRtn = selectOper.selectList(conn,sql,returnClass,params_obj);
-		
+
 		if(listRtn!=null && JDBCConfig.isSQLCache){
-			this.setCache(sqlEntity, listRtn);
+			jedisHelper.setSQLCache(sqlEntity, listRtn);
 		}
 		return listRtn;
 	}
@@ -101,6 +103,10 @@ public class DBHelper {
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
+
+		if(JDBCConfig.isSQLCache){
+			jedisHelper.delSQLCache(sqlEntity);
+		}
 		
 		Connection conn = ConnectionManager.getConnection(dataSource);
 		return insertOper.insert(conn, sql, params_obj);
@@ -117,6 +123,10 @@ public class DBHelper {
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
 		
+		if(JDBCConfig.isSQLCache){
+			jedisHelper.delSQLCache(sqlEntity);
+		}
+		
 		Connection conn = ConnectionManager.getConnection(dataSource);
 		return insertOper.insertRtnPKKey(conn, sql, params_obj);
 	}
@@ -125,6 +135,10 @@ public class DBHelper {
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
+
+		if(JDBCConfig.isSQLCache){
+			jedisHelper.delSQLCache(sqlEntity);
+		}
 		
 		Connection conn = ConnectionManager.getConnection(dataSource);
 		return updateOper.update(conn, sql, params_obj);
@@ -136,35 +150,15 @@ public class DBHelper {
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
 		
+		if(JDBCConfig.isSQLCache){
+			jedisHelper.delSQLCache(sqlEntity);
+		}
+		
 		Connection conn = ConnectionManager.getConnection(dataSource);
 		return deleteOper.delete(conn, sql, params_obj);
 	}
 
 	public void rollback() throws Exception{
 		ConnectionManager.rollback(dataSource);
-	}
-	private <T> T getCache(SqlEntity sqlEntity, SQLType select){
-		if(select==SQLType.SELECT){
-			Object[] params = sqlEntity.getParams();
-			StringBuilder sb = new StringBuilder();
-			for (int i = 0; i < params.length; i++) {
-				sb.append(String.valueOf(params[i]));
-			}
-			String key = sqlEntity.getSql()+sb.toString();
-			T t = JedisUtils.getObject(key.getBytes());
-			if(t!=null){
-				return t;
-			}
-		}
-		return null;
-	}
-	private void setCache(SqlEntity sqlEntity,Object obj){
-		Object[] params = sqlEntity.getParams();
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < params.length; i++) {
-			sb.append(String.valueOf(params[i]));
-		}
-		String key = sqlEntity.getSql()+sb.toString();
-		JedisUtils.setObject(key.getBytes(), obj);
 	}
 }

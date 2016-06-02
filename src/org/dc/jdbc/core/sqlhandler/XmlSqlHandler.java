@@ -62,42 +62,52 @@ public class XmlSqlHandler extends SQLHandler{
 					}
 				}
 			}
-
-
-			Lexer lexer = new Lexer(sql.toString());
-			int lastCharLen = 0;
-			Token lastTok = null;
-			while(true){
-				lexer.nextToken();
-				Token tok = lexer.token();
-				if (tok == Token.EOF) {
-					break;
+		}
+		Lexer lexer = new Lexer(sql.toString());
+		int lastCharLen = 0;
+		Token lastTok = null;
+		while(true){
+			lexer.nextToken();
+			Token tok = lexer.token();
+			if (tok == Token.EOF) {
+				break;
+			}
+			String str = lexer.toString();
+			int curpos = lexer.pos();
+			if(tok.name == null && tok == Token.VARIANT){//异类匹配，这里的异类只有#号，sql编写规范的情况下，不需要判断str.contains("#")
+				String key = str.substring(2, str.length()-1);
+				if(allparamMap!=null && allparamMap.containsKey(key)){
+					returnList.add(allparamMap.get(key));
+				}else{
+					throw new Exception("sqlhandle analysis error! parameters \""+key+"\" do not match to!");
 				}
-				int curpos = lexer.pos();
-				if(tok.name == null && tok == Token.VARIANT){//异类匹配，这里的异类只有#号，sql编写规范的情况下，不需要判断str.contains("#")
-					String str = lexer.stringVal();
-					String key = str.substring(2, str.length()-1);
-					if(allparamMap.containsKey(key)){
-						returnList.add(allparamMap.get(key));
-					}else{
-						throw new Exception("sqlhandle analysis error! parameters '"+key+"' do not match to!");
-					}
-					sql.replace(curpos-str.length()-lastCharLen, curpos-lastCharLen, "?");
-					lastCharLen = lastCharLen+str.length()-1;
-				}else if(tok == Token.QUES){
+				sql.replace(curpos-str.length()-lastCharLen, curpos-lastCharLen, "?");
+				lastCharLen = lastCharLen+str.length()-1;
+			}else if(tok == Token.QUES){
+				if(allParamList!=null){
 					returnList = allParamList;
-				}else if(tok == Token.FROM || tok == Token.IDENTIFIER || tok == Token.INTO || tok == Token.UPDATE || tok == Token.USER){//记录表名
-					if((lastTok != null && tok== Token.IDENTIFIER || tok== Token.USER) && (lastTok == Token.FROM || lastTok == Token.INTO || lastTok == Token.UPDATE)){
-						tableSet.add(lexer.stringVal());
-					}
-					lastTok = tok;
 				}
+			}else if(tok == Token.FROM || tok == Token.IDENTIFIER || tok == Token.INTO || tok == Token.UPDATE || tok == Token.USER){//记录表名
+				if((lastTok != null && tok== Token.IDENTIFIER || tok== Token.USER) && (lastTok == Token.FROM || lastTok == Token.INTO || lastTok == Token.UPDATE)){
+					tableSet.add(lexer.stringVal());
+				}
+				lastTok = tok;
 			}
 		}
-
 		sqlEntity.setSql(sql.toString());
 		sqlEntity.setParams(returnList.toArray());
 		sqlEntity.setTables(tableSet);
 		return sqlEntity;
 	}
+	/*public static void main(String[] args) {
+		XmlSqlHandler xmlsql = new XmlSqlHandler();
+		try {
+			SqlEntity entity = xmlsql.handleRequest("insert                into s select count(*) from user u where username = 'd       c' and age = null", null);
+			System.out.println(entity.getSql());
+			System.out.println(Arrays.toString(entity.getParams()));
+			System.out.println(entity.getTables());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}*/
 }
