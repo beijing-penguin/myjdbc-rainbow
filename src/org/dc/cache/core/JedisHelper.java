@@ -47,14 +47,14 @@ public class JedisHelper {
 			oos.writeObject(value);
 			oos.flush();
 			baos.flush();
-			jedis.set(sqlKey.getBytes(), baos.toByteArray());
 			
+			jedis.set(sqlKey.getBytes(), baos.toByteArray());
 			for (String tableName : sqlEntity.getTables()) {
 				jedis.sadd(tableName, sqlKey);
 			}
 			t.exec();
 		} catch (Exception e) {
-			throw e;
+			log.error("",e);
 		} finally {
 			try {
 				oos.close();
@@ -70,19 +70,20 @@ public class JedisHelper {
 			jedis.close();
 		}
 	}
-	public void delSQLCache(SqlEntity sqlEntity) throws Exception{
+	public void delSQLCache(SqlEntity sqlEntity){
 		Jedis jedis = null;
 		try {  
 			jedis = jedisPool.getResource();
 			Transaction t = jedis.multi();
 			
 			for (String tableName : sqlEntity.getTables()) {
-				Set<String> sqlSet = jedis.smembers(tableName);
-				jedis.del((String[]) sqlSet.toArray());
+				Set<String> sqlkeySet = jedis.smembers(tableName);
+				jedis.del((String[]) sqlkeySet.toArray());
+				jedis.del(tableName);
 			}
 			t.exec();
 		} catch (Exception e) {
-			throw e;
+			log.error("",e);
 		} finally {
 			//返还到连接池  
 			jedis.close();
