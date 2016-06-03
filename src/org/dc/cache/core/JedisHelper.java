@@ -98,33 +98,35 @@ public class JedisHelper {
 		}
 		return sqlEntity.getSql()+params.toString();
 	}
-	public Set<String> getKeys(String key)  throws Exception{
+	public Set<String> getKeys(String key){
 		Jedis jedis = null;  
 		try {
 			jedis = jedisPool.getResource();
 			return jedis.keys(key);
 		} catch (Exception e) {  
-			throw e;
+			log.error("",e);
 		} finally {  
 			//返还到连接池  
 			jedis.close();
 		}
+		return null;
 	}
-	public String get(String key) throws Exception{  
+	public String get(String key){  
 
 		Jedis jedis = null;  
 		try {  
 			jedis = jedisPool.getResource();
 			return jedis.get(key);  
 		} catch (Exception e) {  
-			throw e;
+			log.error("",e);
 		} finally {  
 			//返还到连接池  
 			jedis.close();
 		}
+		return null;
 	}
 	@SuppressWarnings("unchecked")
-	public <T>  T getObject(String key) throws Exception{  
+	public <T>  T getObject(String key){  
 		Jedis jedis = null;
 		ByteArrayInputStream bais = null;
 		ObjectInputStream ois = null;
@@ -137,7 +139,7 @@ public class JedisHelper {
 				return (T) ois.readObject();
 			}
 		} catch (Exception e) {  
-			throw e;
+			log.error("",e);
 		} finally {
 			if(ois!=null){
 				try {
@@ -160,17 +162,18 @@ public class JedisHelper {
 		}
 		return null;  
 	}
-	public String set(String key,String value) throws Exception{  
+	public String set(String key,String value){  
 		Jedis jedis = null;
 		try {  
 			jedis = jedisPool.getResource();
 			return jedis.set(key, value);
 		} catch (Exception e) {  
-			throw e;
+			log.error("",e);
 		} finally {  
 			//返还到连接池  
 			jedis.close();
 		}
+		return null;
 	}
 	/**
 	 * 存储字节数组
@@ -178,7 +181,7 @@ public class JedisHelper {
 	 * @param value
 	 * @return
 	 */
-	public String setObject(String key,Object value) throws Exception{  
+	public String setObject(String key,Object value){  
 		Jedis jedis = null;
 		ObjectOutputStream oos = null;
 		ByteArrayOutputStream baos = null;
@@ -195,7 +198,7 @@ public class JedisHelper {
 
 			return jedis.set(key.getBytes(), baos.toByteArray());
 		} catch (Exception e) {
-			throw e;
+			log.error("",e);
 		} finally {
 			try {
 				oos.close();
@@ -210,78 +213,85 @@ public class JedisHelper {
 			//返还到连接池  
 			jedis.close();
 		}
+		return null;
 	}
-	public Long delObject(byte[]...keys) throws Exception{
+	public Long delObject(byte[]...keys){
 		Jedis jedis = null;
 		try {  
 			jedis = jedisPool.getResource();
 			return jedis.del(keys);
 		} catch (Exception e) {  
-			throw e;
+			log.error("",e);
 		} finally {  
 			//返还到连接池  
 			jedis.close();
 		}
+		return null;
 	}
-	public Long del(String...keys) throws Exception{  
+	public Long del(String...keys){  
 		Jedis jedis = null;
 		try {  
 			jedis = jedisPool.getResource();
 			return jedis.del(keys);
 		} catch (Exception e) {
-			throw e;
+			log.error("",e);
 		} finally {  
 			//返还到连接池  
 			jedis.close();
 		}
+		return null;
 	}
-	public String hmset(String key,Map<String,String> valueMap) throws Exception{  
+	public String hmset(String key,Map<String,String> valueMap){  
 		Jedis jedis = null;
 		try {  
 			jedis = jedisPool.getResource();
 			return jedis.hmset(key,valueMap);
 		} catch (Exception e) {
-			throw e;
+			log.error("",e);
 		} finally {  
 			//返还到连接池  
 			jedis.close();
 		}
+		return null;
 	}
-	public List<String> hmget(String key,String...fields) throws Exception{  
+	public List<String> hmget(String key,String...fields){  
 		Jedis jedis = null;
 		try {  
 			jedis = jedisPool.getResource();
 			return jedis.hmget(key, fields);
 		} catch (Exception e) {
-			throw e;
+			log.error("",e);
 		} finally {  
 			//返还到连接池  
 			jedis.close();
 		}
+		return null;
 	}
-	public Long sadd(String key,String...value) throws Exception{
+	public Long sadd(String key,String...value){
 		Jedis jedis = null;
 		try {  
 			jedis = jedisPool.getResource();
 			return jedis.sadd(key, value);
 		} catch (Exception e) {
-			throw e;
+			log.error("",e);
 		} finally {  
 			//返还到连接池  
 			jedis.close();
 		}
+		return null;
 	}
-	public Set<String> smembers(String key) throws Exception{
+	public Set<String> smembers(String key){
 		Jedis jedis = null;
 		try {  
 			jedis = jedisPool.getResource();
 			return jedis.smembers(key);
 		} catch (Exception e) {
-			throw e;
+			log.error("",e);
 		} finally {  
 			//返还到连接池  
 			jedis.close();
 		}
+		return null;
 	}
 	public static void main(String[] args) {
 		try{

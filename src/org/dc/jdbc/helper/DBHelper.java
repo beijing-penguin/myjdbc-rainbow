@@ -6,7 +6,6 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import org.dc.cache.core.JedisConfig;
 import org.dc.cache.core.JedisHelper;
 import org.dc.jdbc.config.JDBCConfig;
 import org.dc.jdbc.core.ConnectionManager;
@@ -19,6 +18,8 @@ import org.dc.jdbc.core.sqlhandler.PrintSqlLogHandler;
 import org.dc.jdbc.core.sqlhandler.XmlSqlHandler;
 import org.dc.jdbc.entity.SqlEntity;
 
+import redis.clients.jedis.JedisPool;
+
 /**
  * 数据持久化操作类
  * sql执行三部曲：1，sql解析，2，获得数据库连接，3，执行核心jdbc操作。
@@ -27,11 +28,16 @@ import org.dc.jdbc.entity.SqlEntity;
  */
 public class DBHelper {
 	private volatile DataSource dataSource;
-	private static JedisHelper jedisHelper = new JedisHelper(JedisConfig.jedisPool);
+	private volatile JedisHelper jedisHelper;
 
 	private final ContextHandle contextHandler;
 
 	public DBHelper(DataSource dataSource){
+		this.dataSource = dataSource;
+		this.contextHandler = this.createContextHandle();
+	}
+	public DBHelper(DataSource dataSource,JedisPool jedisPool){
+		jedisHelper = new JedisHelper(jedisPool);
 		this.dataSource = dataSource;
 		this.contextHandler = this.createContextHandle();
 	}
