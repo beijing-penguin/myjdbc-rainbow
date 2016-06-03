@@ -12,7 +12,7 @@ import redis.clients.jedis.JedisPoolConfig;
 
 public class JedisConfig {
 	private static final Log log = LogFactory.getLog(JedisHelper.class);
-	public static JedisPool jedisPool = new JedisPool("localhost",6379);
+	public static JedisPool defaultJedisPool;
 	static{
 		InputStream is = null;
 		try {
@@ -33,7 +33,7 @@ public class JedisConfig {
 			
 			//在borrow一个jedis实例时，是否提前进行validate操作；如果为true，则得到的jedis实例均是可用的；  
 			config.setTestOnBorrow(Boolean.parseBoolean(properties.getProperty("redis.testOnBorrow","false")));  
-			jedisPool = new JedisPool(config, properties.getProperty("redis.host"), Integer.parseInt(properties.getProperty("redis.port")));
+			defaultJedisPool = new JedisPool(config, properties.getProperty("redis.host"), Integer.parseInt(properties.getProperty("redis.port")));
 		} catch (Exception e) {
 			log.error("",e);
 		}finally{

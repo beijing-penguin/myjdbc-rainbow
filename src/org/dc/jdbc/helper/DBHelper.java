@@ -68,9 +68,21 @@ public class DBHelper {
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
-
+		
+		if(JDBCConfig.isSQLCache){
+			T  cacheObject = jedisHelper.getSQLCache(sqlEntity);
+			if(cacheObject!=null){
+				return cacheObject;
+			}
+		}
+		
 		Connection conn = ConnectionManager.getConnection(dataSource);
-		return selectOper.selectOne(conn,sql,returnClass,params_obj);
+		T objRtn = selectOper.selectOne(conn,sql,returnClass,params_obj);
+		
+		if(objRtn!=null && JDBCConfig.isSQLCache){
+			jedisHelper.setSQLCache(sqlEntity, objRtn);
+		}
+		return objRtn;
 	}
 	public Map<String,Object> selectOne(String sqlOrID,Object...params) throws Exception{
 		return this.selectOne(sqlOrID, null,params);

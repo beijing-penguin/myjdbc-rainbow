@@ -293,19 +293,4 @@ public class JedisHelper {
 		}
 		return null;
 	}
-	public static void main(String[] args) {
-		try{
-			JedisHelper helper = new JedisHelper(JedisConfig.jedisPool);
-			/*String key1 = "userschoollog";
-			String key2 = "userlog";
-			String key3 = "school";
-			helper.setObject((key1+"_"+"select * from user"), new Object[]{1,2,3,4,5});
-			helper.setObject((key2+"_"+"select * from user"), new Object[]{1,2,3,4,5});
-			helper.setObject((key3+"_"+"select * from user"), new Object[]{1,2,3,4,5});*/
-			System.out.println(helper.getKeys("*school*[_]*"));
-		}catch(Exception e){
-			e.printStackTrace();
-		}
-
-	}
 }
