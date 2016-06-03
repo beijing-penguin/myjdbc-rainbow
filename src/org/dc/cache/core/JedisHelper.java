@@ -15,6 +15,7 @@ import org.dc.jdbc.entity.SqlEntity;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.Transaction;
 /**
  * reids缓存操作
  * @author DC
@@ -30,29 +31,71 @@ public class JedisHelper {
 	public <T> T getSQLCache(SqlEntity sqlEntity) throws Exception{
 		return this.getObject(this.getSQLKey(sqlEntity));
 	}
-	public void setSQLCache(SqlEntity sqlEntity,Object obj) throws Exception{
-		this.setObject(this.getSQLKey(sqlEntity), obj);
-	}
-	public void delSQLCache(SqlEntity sqlEntity) throws Exception{
-		for(String table : sqlEntity.getTables()){
-			Set<String> keys = this.getKeys("*"+table+"*[_]*");
-			for (String key : keys) {
-				this.delObject(key.getBytes());
+	public void setSQLCache(SqlEntity sqlEntity,Object value) throws Exception{
+		String sqlKey = this.getSQLKey(sqlEntity);
+		
+		Jedis jedis = null;
+		ObjectOutputStream oos = null;
+		ByteArrayOutputStream baos = null;
+		try {  
+			jedis = jedisPool.getResource();
+			Transaction t = jedis.multi();
+
+			//序列化
+			baos = new ByteArrayOutputStream();
+			oos = new ObjectOutputStream(baos);
+			oos.writeObject(value);
+			oos.flush();
+			baos.flush();
+			jedis.set(sqlKey.getBytes(), baos.toByteArray());
+			
+			for (String tableName : sqlEntity.getTables()) {
+				jedis.sadd(tableName, sqlKey);
 			}
+			t.exec();
+		} catch (Exception e) {
+			throw e;
+		} finally {
+			try {
+				oos.close();
+			} catch (IOException e) {
+				log.error("",e);
+			}
+			try {
+				baos.close();
+			} catch (IOException e) {
+				log.error("",e);
+			}
+			//返还到连接池  
+			jedis.close();
 		}
 	}
+	public void delSQLCache(SqlEntity sqlEntity) throws Exception{
+		Jedis jedis = null;
+		try {  
+			jedis = jedisPool.getResource();
+			Transaction t = jedis.multi();
+			
+			for (String tableName : sqlEntity.getTables()) {
+				Set<String> sqlSet = jedis.smembers(tableName);
+				jedis.del((String[]) sqlSet.toArray());
+			}
+			t.exec();
+		} catch (Exception e) {
+			throw e;
+		} finally {
+			//返还到连接池  
+			jedis.close();
+		}
+	}
+	
 	public String getSQLKey(SqlEntity sqlEntity){
 		Object[] params_obj = sqlEntity.getParams();
 		StringBuilder params = new StringBuilder();
 		for (int i = 0; i < params_obj.length; i++) {
 			params.append(String.valueOf(params_obj[i]));
 		}
-		StringBuilder tables = new StringBuilder();
-		for (String table : sqlEntity.getTables()) {
-			tables.append(table);
-		}
-		String key = tables.toString()+"_"+sqlEntity.getSql()+params.toString();
-		return key;
+		return sqlEntity.getSql()+params.toString();
 	}
 	public Set<String> getKeys(String key)  throws Exception{
 		Jedis jedis = null;  
@@ -215,6 +258,30 @@ public class JedisHelper {
 			jedis.close();
 		}
 	}
+	public Long sadd(String key,String...value) throws Exception{
+		Jedis jedis = null;
+		try {  
+			jedis = jedisPool.getResource();
+			return jedis.sadd(key, value);
+		} catch (Exception e) {
+			throw e;
+		} finally {  
+			//返还到连接池  
+			jedis.close();
+		}
+	}
+	public Set<String> smembers(String key) throws Exception{
+		Jedis jedis = null;
+		try {  
+			jedis = jedisPool.getResource();
+			return jedis.smembers(key);
+		} catch (Exception e) {
+			throw e;
+		} finally {  
+			//返还到连接池  
+			jedis.close();
+		}
+	}
 	public static void main(String[] args) {
 		try{
 			JedisHelper helper = new JedisHelper(JedisConfig.jedisPool);
@@ -228,6 +295,6 @@ public class JedisHelper {
 		}catch(Exception e){
 			e.printStackTrace();
 		}
-		
+
 	}
 }
