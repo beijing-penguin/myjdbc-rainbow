@@ -5,6 +5,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,15 +33,16 @@ public class JedisHelper {
 	public <T> T getSQLCache(SqlEntity sqlEntity) throws Exception{
 		return this.getObject(this.getSQLKey(sqlEntity));
 	}
-	public void setSQLCache(SqlEntity sqlEntity,Object value) throws Exception{
+	public void setSQLCache(SqlEntity sqlEntity,Object value){
 		String sqlKey = this.getSQLKey(sqlEntity);
-		
+
 		Jedis jedis = null;
 		ObjectOutputStream oos = null;
 		ByteArrayOutputStream baos = null;
+		Transaction t = null;
 		try {  
 			jedis = jedisPool.getResource();
-			Transaction t = jedis.multi();
+			t = jedis.multi();
 
 			//序列化
 			baos = new ByteArrayOutputStream();
@@ -47,10 +50,10 @@ public class JedisHelper {
 			oos.writeObject(value);
 			oos.flush();
 			baos.flush();
-			
-			jedis.set(sqlKey.getBytes(), baos.toByteArray());
+
+			t.set(sqlKey.getBytes(), baos.toByteArray());
 			for (String tableName : sqlEntity.getTables()) {
-				jedis.sadd(tableName, sqlKey);
+				t.sadd(tableName, sqlKey);
 			}
 			t.exec();
 		} catch (Exception e) {
@@ -66,30 +69,52 @@ public class JedisHelper {
 			} catch (IOException e) {
 				log.error("",e);
 			}
+			try {
+				t.close();
+			} catch (IOException e) {
+				log.error("",e);
+			}
 			//返还到连接池  
 			jedis.close();
 		}
 	}
 	public void delSQLCache(SqlEntity sqlEntity){
 		Jedis jedis = null;
+		Transaction t = null;
 		try {  
 			jedis = jedisPool.getResource();
-			Transaction t = jedis.multi();
-			
+			List<String> sqlKeyList = new ArrayList<String>();
 			for (String tableName : sqlEntity.getTables()) {
 				Set<String> sqlkeySet = jedis.smembers(tableName);
-				jedis.del((String[]) sqlkeySet.toArray());
-				jedis.del(tableName);
+				if(sqlkeySet!=null){
+					for (String sql : sqlkeySet) {
+						sqlKeyList.add(sql);
+					}
+				}
+			}
+			t = jedis.multi();
+			for (String sql : sqlKeyList) {
+				t.del(sql);
+			}
+			for (String tableName : sqlEntity.getTables()) {
+				t.del(tableName);
 			}
 			t.exec();
 		} catch (Exception e) {
 			log.error("",e);
 		} finally {
+			try {
+				if(t!=null){
+					t.close();
+				}
+			} catch (Exception e) {
+				log.error("",e);
+			}
 			//返还到连接池  
 			jedis.close();
 		}
 	}
-	
+
 	public String getSQLKey(SqlEntity sqlEntity){
 		Object[] params_obj = sqlEntity.getParams();
 		StringBuilder params = new StringBuilder();
@@ -292,5 +317,15 @@ public class JedisHelper {
 			jedis.close();
 		}
 		return null;
+	}
+	public static void main(String[] args) {
+		JedisHelper jedisHelper =  new JedisHelper(new JedisPool("localhost",6379));
+		for (int i = 0; i < 10; i++) {
+			SqlEntity entity = new SqlEntity();
+			Set s = new HashSet<>();
+			s.add("user");
+			entity.setTables(s);
+			jedisHelper.delSQLCache(entity);
+		}
 	}
 }

@@ -29,7 +29,6 @@ import redis.clients.jedis.JedisPool;
 public class DBHelper {
 	private volatile DataSource dataSource;
 	private volatile JedisHelper jedisHelper;
-
 	private final ContextHandle contextHandler;
 
 	public DBHelper(DataSource dataSource){
@@ -37,7 +36,7 @@ public class DBHelper {
 		this.contextHandler = this.createContextHandle();
 	}
 	public DBHelper(DataSource dataSource,JedisPool jedisPool){
-		jedisHelper = new JedisHelper(jedisPool);
+		this.jedisHelper = new JedisHelper(jedisPool);
 		this.dataSource = dataSource;
 		this.contextHandler = this.createContextHandle();
 	}
@@ -68,21 +67,19 @@ public class DBHelper {
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
-		
 		if(JDBCConfig.isSQLCache){
-			T  cacheObject = jedisHelper.getSQLCache(sqlEntity);
-			if(cacheObject!=null){
-				return cacheObject;
+			T t = jedisHelper.getSQLCache(sqlEntity);
+			if(t!=null){
+				return t;
 			}
 		}
-		
 		Connection conn = ConnectionManager.getConnection(dataSource);
-		T objRtn = selectOper.selectOne(conn,sql,returnClass,params_obj);
-		
-		if(objRtn!=null && JDBCConfig.isSQLCache){
-			jedisHelper.setSQLCache(sqlEntity, objRtn);
+		T t = selectOper.selectOne(conn,sql,returnClass,params_obj);
+		if(JDBCConfig.isSQLCache && t!=null){
+			jedisHelper.setSQLCache(sqlEntity, t);
+			return t;
 		}
-		return objRtn;
+		return null;
 	}
 	public Map<String,Object> selectOne(String sqlOrID,Object...params) throws Exception{
 		return this.selectOne(sqlOrID, null,params);
@@ -91,21 +88,19 @@ public class DBHelper {
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
-
 		if(JDBCConfig.isSQLCache){
-			List<T> cachelist = jedisHelper.getSQLCache(sqlEntity);
-			if(cachelist!=null){
-				return cachelist;
+			List<T> list_t = jedisHelper.getSQLCache(sqlEntity);
+			if(list_t!=null){
+				return list_t;
 			}
 		}
-
 		Connection conn = ConnectionManager.getConnection(dataSource);
-		List<T> listRtn = selectOper.selectList(conn,sql,returnClass,params_obj);
-
-		if(listRtn!=null && JDBCConfig.isSQLCache){
-			jedisHelper.setSQLCache(sqlEntity, listRtn);
+		List<T> list_t = selectOper.selectList(conn,sql,returnClass,params_obj);
+		if(JDBCConfig.isSQLCache && list_t!=null){
+			jedisHelper.setSQLCache(sqlEntity, list_t);
+			return list_t;
 		}
-		return listRtn;
+		return null;
 	}
 	public List<Map<String,Object>> selectList(String sqlOrID,Object...params) throws Exception{
 		return this.selectList(sqlOrID, null, params);
@@ -121,11 +116,9 @@ public class DBHelper {
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
-
 		if(JDBCConfig.isSQLCache){
 			jedisHelper.delSQLCache(sqlEntity);
 		}
-		
 		Connection conn = ConnectionManager.getConnection(dataSource);
 		return insertOper.insert(conn, sql, params_obj);
 	}
@@ -140,11 +133,9 @@ public class DBHelper {
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
-		
 		if(JDBCConfig.isSQLCache){
 			jedisHelper.delSQLCache(sqlEntity);
 		}
-		
 		Connection conn = ConnectionManager.getConnection(dataSource);
 		return insertOper.insertRtnPKKey(conn, sql, params_obj);
 	}
@@ -153,11 +144,9 @@ public class DBHelper {
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
-
 		if(JDBCConfig.isSQLCache){
 			jedisHelper.delSQLCache(sqlEntity);
 		}
-		
 		Connection conn = ConnectionManager.getConnection(dataSource);
 		return updateOper.update(conn, sql, params_obj);
 	}
@@ -167,11 +156,9 @@ public class DBHelper {
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
-		
 		if(JDBCConfig.isSQLCache){
 			jedisHelper.delSQLCache(sqlEntity);
 		}
-		
 		Connection conn = ConnectionManager.getConnection(dataSource);
 		return deleteOper.delete(conn, sql, params_obj);
 	}
