@@ -6,7 +6,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import org.dc.cache.core.JedisHelper;
+import org.dc.jdbc.cache.core.JedisHelper;
 import org.dc.jdbc.config.JDBCConfig;
 import org.dc.jdbc.core.ConnectionManager;
 import org.dc.jdbc.core.ContextHandle;

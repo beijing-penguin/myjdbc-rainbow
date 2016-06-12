@@ -1,4 +1,4 @@
-package org.dc.cache.core;
+package org.dc.jdbc.cache.core;
 
 import java.io.IOException;
 import java.io.InputStream;
