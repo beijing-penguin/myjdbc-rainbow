@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,8 +23,8 @@ import redis.clients.jedis.Transaction;
  * @time 2016-05-16
  */
 public class JedisHelper {
+	private static int EXPIRE_TIME = 365*24*60*60;
 	private static final Log log = LogFactory.getLog(JedisHelper.class);
-	//private JedisPool jedisPool = new JedisPool("localhost", 6379);
 	private volatile JedisPool jedisPool;
 	public JedisHelper(JedisPool jedisPool){
 		this.jedisPool = jedisPool;
@@ -51,7 +50,7 @@ public class JedisHelper {
 			oos.flush();
 			baos.flush();
 
-			t.set(sqlKey.getBytes(), baos.toByteArray());
+			t.setex(sqlKey.getBytes(),EXPIRE_TIME, baos.toByteArray());
 			for (String tableName : sqlEntity.getTables()) {
 				t.sadd(tableName, sqlKey);
 			}
@@ -317,15 +316,5 @@ public class JedisHelper {
 			jedis.close();
 		}
 		return null;
-	}
-	public static void main(String[] args) {
-		JedisHelper jedisHelper =  new JedisHelper(new JedisPool("localhost",6379));
-		for (int i = 0; i < 10; i++) {
-			SqlEntity entity = new SqlEntity();
-			Set s = new HashSet<>();
-			s.add("user");
-			entity.setTables(s);
-			jedisHelper.delSQLCache(entity);
-		}
 	}
 }
