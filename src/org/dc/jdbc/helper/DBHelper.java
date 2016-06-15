@@ -76,7 +76,7 @@ public class DBHelper {
 		Connection conn = ConnectionManager.getConnection(dataSource);
 		T t = selectOper.selectOne(conn,sql,returnClass,params_obj);
 		if(JDBCConfig.isSQLCache && t!=null){
-			jedisHelper.setSQLCache(sqlEntity, t);
+			jedisHelper.setSQLCache(sqlEntity, t,dataSource);
 			return t;
 		}
 		return null;
@@ -97,7 +97,7 @@ public class DBHelper {
 		Connection conn = ConnectionManager.getConnection(dataSource);
 		List<T> list_t = selectOper.selectList(conn,sql,returnClass,params_obj);
 		if(JDBCConfig.isSQLCache && list_t!=null){
-			jedisHelper.setSQLCache(sqlEntity, list_t);
+			jedisHelper.setSQLCache(sqlEntity, list_t,dataSource);
 			return list_t;
 		}
 		return null;

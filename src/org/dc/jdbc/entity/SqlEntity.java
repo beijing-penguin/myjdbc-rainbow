@@ -1,5 +1,6 @@
 package org.dc.jdbc.entity;
 
+import java.io.Serializable;
 import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Map;
@@ -7,8 +8,9 @@ import java.util.Set;
 
 import javax.sql.DataSource;
 
-public class SqlEntity {
-    private String sql;
+public class SqlEntity implements Serializable{
+	private static final long serialVersionUID = -7425527965344197867L;
+	private String sql;
     private Object[] params;
     private Set<String> tables;
     private boolean transaction;

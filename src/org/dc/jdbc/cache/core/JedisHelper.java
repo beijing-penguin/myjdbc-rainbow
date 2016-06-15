@@ -5,11 +5,16 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.sql.DataSource;
+
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dc.jdbc.entity.SqlEntity;
@@ -17,6 +22,7 @@ import org.dc.jdbc.entity.SqlEntity;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Transaction;
+import test.Configure;
 /**
  * reids缓存操作
  * @author DC
@@ -24,33 +30,59 @@ import redis.clients.jedis.Transaction;
  */
 public class JedisHelper {
 	private static int EXPIRE_TIME = 365*24*60*60;
+	private static String RESULT_KEY = "result";
+	private static String DATASOURCE_KEY = "dataSource";
+	
 	private static final Log log = LogFactory.getLog(JedisHelper.class);
 	private volatile JedisPool jedisPool;
+	
+	public static void main(String[] args) {
+		JedisPool j = new JedisPool("localhost",6379);
+		JedisHelper jh = new JedisHelper(j);
+		jh.setObject("aa", new SqlEntity());
+		/*Jedis jj = j.getResource();
+		jj.set("aa".getBytes(), SerializationUtils.serialize(Configure.accSource));*/
+	}
+	
+	/*static{
+		ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
+		cachedThreadPool.submit(new Consumer(Storage.getInstance()));
+	}*/
+	
 	public JedisHelper(JedisPool jedisPool){
 		this.jedisPool = jedisPool;
 	}
 	public <T> T getSQLCache(SqlEntity sqlEntity) throws Exception{
-		return this.getObject(this.getSQLKey(sqlEntity));
+		String sqlKey = this.getSQLKey(sqlEntity);
+		Jedis jedis = null;
+		try {  
+			jedis = jedisPool.getResource();
+			byte[] obj_bytes = jedis.hget(sqlKey.getBytes(),RESULT_KEY.getBytes());
+			if(obj_bytes!=null){
+				return SerializationUtils.deserialize(obj_bytes);
+			}
+		} catch (Exception e) {  
+			log.error("",e);
+		} finally {
+			//返还到连接池  
+			jedis.close();
+		}
+		return null;  
 	}
-	public void setSQLCache(SqlEntity sqlEntity,Object value){
+	public void setSQLCache(SqlEntity sqlEntity,Object value,DataSource dataSource){
 		String sqlKey = this.getSQLKey(sqlEntity);
 
 		Jedis jedis = null;
-		ObjectOutputStream oos = null;
-		ByteArrayOutputStream baos = null;
 		Transaction t = null;
 		try {  
 			jedis = jedisPool.getResource();
 			t = jedis.multi();
-
-			//序列化
-			baos = new ByteArrayOutputStream();
-			oos = new ObjectOutputStream(baos);
-			oos.writeObject(value);
-			oos.flush();
-			baos.flush();
-
-			t.setex(sqlKey.getBytes(),EXPIRE_TIME, baos.toByteArray());
+			Map<byte[],byte[]> m = new HashMap<byte[],byte[]>();
+			m.put(RESULT_KEY.getBytes(), SerializationUtils.serialize((Serializable) value));
+			m.put(DATASOURCE_KEY.getBytes(), SerializationUtils.serialize((Serializable) dataSource));
+			t.hmset(sqlKey.getBytes(),m);
+			t.expire(sqlKey.getBytes(), EXPIRE_TIME);
+			//t.setex(sqlKey.getBytes(),EXPIRE_TIME, );
 			for (String tableName : sqlEntity.getTables()) {
 				t.sadd(tableName, sqlKey);
 			}
@@ -58,16 +90,6 @@ public class JedisHelper {
 		} catch (Exception e) {
 			log.error("",e);
 		} finally {
-			try {
-				oos.close();
-			} catch (IOException e) {
-				log.error("",e);
-			}
-			try {
-				baos.close();
-			} catch (IOException e) {
-				log.error("",e);
-			}
 			try {
 				t.close();
 			} catch (IOException e) {
@@ -87,13 +109,17 @@ public class JedisHelper {
 				Set<String> sqlkeySet = jedis.smembers(tableName);
 				if(sqlkeySet!=null){
 					for (String sql : sqlkeySet) {
-						sqlKeyList.add(sql);
+						if(jedis.exists(sql)){
+							sqlKeyList.add(sql);
+						}
 					}
 				}
 			}
 			t = jedis.multi();
-			for (String sql : sqlKeyList) {
-				t.del(sql);
+			for (String sqlKey : sqlKeyList) {
+				Storage ss = Storage.getInstance();
+				ss.push(sqlKey);
+				//t.del(sql);
 			}
 			for (String tableName : sqlEntity.getTables()) {
 				t.del(tableName);
@@ -150,7 +176,7 @@ public class JedisHelper {
 		return null;
 	}
 	@SuppressWarnings("unchecked")
-	public <T>  T getObject(String key){  
+	public <T>  T getObject(String key){
 		Jedis jedis = null;
 		ByteArrayInputStream bais = null;
 		ObjectInputStream ois = null;
