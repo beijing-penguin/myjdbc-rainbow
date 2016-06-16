@@ -30,7 +30,7 @@ import test.Configure;
  */
 public class JedisHelper {
 	private static int EXPIRE_TIME = 365*24*60*60;
-	private static String RESULT_KEY = "result";
+	private static String DATA_KEY = "data";
 	private static String DATASOURCE_KEY = "dataSource";
 	
 	private static final Log log = LogFactory.getLog(JedisHelper.class);
@@ -52,12 +52,12 @@ public class JedisHelper {
 	public JedisHelper(JedisPool jedisPool){
 		this.jedisPool = jedisPool;
 	}
-	public <T> T getSQLCache(SqlEntity sqlEntity) throws Exception{
-		String sqlKey = this.getSQLKey(sqlEntity);
+	public <T> T getSQLCache(SqlEntity sqlEntity,DataSource dataSource) throws Exception{
+		String sqlKey = this.getSQLKey(sqlEntity,dataSource);
 		Jedis jedis = null;
 		try {  
 			jedis = jedisPool.getResource();
-			byte[] obj_bytes = jedis.hget(sqlKey.getBytes(),RESULT_KEY.getBytes());
+			byte[] obj_bytes = jedis.hget(sqlKey.getBytes(),DATA_KEY.getBytes());
 			if(obj_bytes!=null){
 				return SerializationUtils.deserialize(obj_bytes);
 			}
@@ -70,7 +70,7 @@ public class JedisHelper {
 		return null;  
 	}
 	public void setSQLCache(SqlEntity sqlEntity,Object value,DataSource dataSource){
-		String sqlKey = this.getSQLKey(sqlEntity);
+		String sqlKey = this.getSQLKey(sqlEntity,dataSource);
 
 		Jedis jedis = null;
 		Transaction t = null;
@@ -78,8 +78,8 @@ public class JedisHelper {
 			jedis = jedisPool.getResource();
 			t = jedis.multi();
 			Map<byte[],byte[]> m = new HashMap<byte[],byte[]>();
-			m.put(RESULT_KEY.getBytes(), SerializationUtils.serialize((Serializable) value));
-			m.put(DATASOURCE_KEY.getBytes(), SerializationUtils.serialize((Serializable) dataSource));
+			m.put(DATA_KEY.getBytes(), SerializationUtils.serialize((Serializable) value));
+			m.put(DATASOURCE_KEY.getBytes(), String.valueOf(dataSource.hashCode()).getBytes());
 			t.hmset(sqlKey.getBytes(),m);
 			t.expire(sqlKey.getBytes(), EXPIRE_TIME);
 			//t.setex(sqlKey.getBytes(),EXPIRE_TIME, );
@@ -140,13 +140,13 @@ public class JedisHelper {
 		}
 	}
 
-	public String getSQLKey(SqlEntity sqlEntity){
+	public String getSQLKey(SqlEntity sqlEntity,DataSource dataSource){
 		Object[] params_obj = sqlEntity.getParams();
 		StringBuilder params = new StringBuilder();
 		for (int i = 0; i < params_obj.length; i++) {
 			params.append(String.valueOf(params_obj[i]));
 		}
-		return sqlEntity.getSql()+params.toString();
+		return sqlEntity.getSql()+params.toString()+dataSource.hashCode();
 	}
 	public Set<String> getKeys(String key){
 		Jedis jedis = null;  

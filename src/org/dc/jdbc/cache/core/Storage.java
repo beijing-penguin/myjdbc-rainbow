@@ -3,8 +3,6 @@ package org.dc.jdbc.cache.core;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import javax.sql.DataSource;
-
 public class Storage {
 	private static Storage storage = new Storage();
 	public static Storage getInstance(){

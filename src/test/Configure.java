@@ -1,7 +1,20 @@
 package test;
+import java.sql.SQLException;
+
+import org.apache.commons.lang3.SerializationUtils;
+
 import com.alibaba.druid.pool.DruidDataSource;
 
 public class Configure {
+	public static void main(String[] args) {
+		try {
+			testSource.getConnection();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println(Configure.testSource.toString());
+	}
     /**
      * sql包目录，定义多个目录用逗号分割 
      */

@@ -10,10 +10,9 @@ public class Consumer implements Runnable {
 		try {
 			while (true) {
 				System.out.println("准备消费产品.");
-				String product = s.pop();
-				System.out.println("已消费(" + product.toString() + ").");
+				String sqlKey = s.pop();
+				System.out.println("已消费(" + sqlKey+ ").");
 				System.out.println("===============");
-				Thread.sleep(500);
 			}
 		} catch (InterruptedException e) {
 			e.printStackTrace();

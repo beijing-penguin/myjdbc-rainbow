@@ -1,6 +1,7 @@
 package org.dc.jdbc.helper;
 
 import java.sql.Connection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,15 +31,19 @@ public class DBHelper {
 	private volatile DataSource dataSource;
 	private volatile JedisHelper jedisHelper;
 	private final ContextHandle contextHandler;
+	
+	private static Map<Integer,Object> maps = new HashMap<Integer,Object>();
 
 	public DBHelper(DataSource dataSource){
 		this.dataSource = dataSource;
 		this.contextHandler = this.createContextHandle();
+		maps.put(dataSource.hashCode(), dataSource);
 	}
 	public DBHelper(DataSource dataSource,JedisPool jedisPool){
 		this.jedisHelper = new JedisHelper(jedisPool);
 		this.dataSource = dataSource;
 		this.contextHandler = this.createContextHandle();
+		maps.put(dataSource.hashCode(), dataSource);
 	}
 	private ContextHandle createContextHandle(){
 		final ContextHandle ch = new ContextHandle();
@@ -68,7 +73,7 @@ public class DBHelper {
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
 		if(JDBCConfig.isSQLCache){
-			T t = jedisHelper.getSQLCache(sqlEntity);
+			T t = jedisHelper.getSQLCache(sqlEntity,dataSource);
 			if(t!=null){
 				return t;
 			}
@@ -89,7 +94,7 @@ public class DBHelper {
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
 		if(JDBCConfig.isSQLCache){
-			List<T> list_t = jedisHelper.getSQLCache(sqlEntity);
+			List<T> list_t = jedisHelper.getSQLCache(sqlEntity,dataSource);
 			if(list_t!=null){
 				return list_t;
 			}
