@@ -16,11 +16,9 @@ public class JdbcSuper {
 	protected Object getValueByObjectType(ResultSetMetaData metaData,ResultSet rs,int index) throws Exception{
 		int columnIndex = index+1;
 		Object return_obj = rs.getObject(columnIndex);
-		if(return_obj==null){
-			return null;
-		}
-		int type = metaData.getColumnType(columnIndex);
-		switch (type){
+		if(return_obj!=null){
+			int type = metaData.getColumnType(columnIndex);
+			switch (type){
 			case Types.BIT:
 				return_obj = rs.getByte(columnIndex);
 				break;
@@ -35,6 +33,7 @@ public class JdbcSuper {
 				break;
 			default :
 				return_obj = rs.getObject(columnIndex);
+			}
 		}
 		return return_obj;
 	}

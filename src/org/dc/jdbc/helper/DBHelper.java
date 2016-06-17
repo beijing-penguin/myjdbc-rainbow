@@ -32,18 +32,20 @@ public class DBHelper {
 	private volatile JedisHelper jedisHelper;
 	private final ContextHandle contextHandler;
 	
-	private static Map<Integer,Object> maps = new HashMap<Integer,Object>();
+	public static Map<Integer,DataSource> dataSourceMaps = new HashMap<Integer,DataSource>();
+	//public static Map<Integer,JedisHelper> jedisHelperMaps = new HashMap<Integer,JedisHelper>();
 
 	public DBHelper(DataSource dataSource){
 		this.dataSource = dataSource;
 		this.contextHandler = this.createContextHandle();
-		maps.put(dataSource.hashCode(), dataSource);
+		dataSourceMaps.put(dataSource.hashCode(), dataSource);
 	}
 	public DBHelper(DataSource dataSource,JedisPool jedisPool){
 		this.jedisHelper = new JedisHelper(jedisPool);
 		this.dataSource = dataSource;
 		this.contextHandler = this.createContextHandle();
-		maps.put(dataSource.hashCode(), dataSource);
+		dataSourceMaps.put(dataSource.hashCode(), dataSource);
+		//jedisHelperMaps.put(jedisHelper.hashCode(), jedisHelper);
 	}
 	private ContextHandle createContextHandle(){
 		final ContextHandle ch = new ContextHandle();

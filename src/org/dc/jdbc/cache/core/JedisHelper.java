@@ -22,7 +22,6 @@ import org.dc.jdbc.entity.SqlEntity;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Transaction;
-import test.Configure;
 /**
  * reids缓存操作
  * @author DC
@@ -30,24 +29,11 @@ import test.Configure;
  */
 public class JedisHelper {
 	private static int EXPIRE_TIME = 365*24*60*60;
-	private static String DATA_KEY = "data";
-	private static String DATASOURCE_KEY = "dataSource";
+	public static String DATA_KEY = "data";
+	public static String DATASOURCE_KEY = "dataSource";
 	
 	private static final Log log = LogFactory.getLog(JedisHelper.class);
 	private volatile JedisPool jedisPool;
-	
-	public static void main(String[] args) {
-		JedisPool j = new JedisPool("localhost",6379);
-		JedisHelper jh = new JedisHelper(j);
-		jh.setObject("aa", new SqlEntity());
-		/*Jedis jj = j.getResource();
-		jj.set("aa".getBytes(), SerializationUtils.serialize(Configure.accSource));*/
-	}
-	
-	/*static{
-		ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
-		cachedThreadPool.submit(new Consumer(Storage.getInstance()));
-	}*/
 	
 	public JedisHelper(JedisPool jedisPool){
 		this.jedisPool = jedisPool;

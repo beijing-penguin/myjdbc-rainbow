@@ -70,7 +70,7 @@ public abstract class OperSuper extends JdbcSuper{
 			Object cols_value = super.getValueByObjectType(metaData, rs, i);
 			map.put(cols_name, cols_value);
 		}
-		return map;
+		return (Map<?,?>)map;
 	}
 	public void parseSqlResultToObject(ResultSet rs,Class<?> cls,List<Object> list) throws Exception{
 		ResultSetMetaData metaData  = rs.getMetaData();
