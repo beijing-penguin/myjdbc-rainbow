@@ -13,7 +13,7 @@ public class Configure {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.out.println(Configure.testSource.toString());
+		System.out.println(Configure.testSource.getName());
 	}
     /**
      * sql包目录，定义多个目录用逗号分割 
