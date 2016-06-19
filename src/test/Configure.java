@@ -1,8 +1,6 @@
 package test;
 import java.sql.SQLException;
 
-import org.apache.commons.lang3.SerializationUtils;
-
 import com.alibaba.druid.pool.DruidDataSource;
 
 public class Configure {
