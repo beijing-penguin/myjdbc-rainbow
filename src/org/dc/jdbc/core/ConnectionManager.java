@@ -29,7 +29,14 @@ public class ConnectionManager {
 		sqlEntity.setTransaction(true);
 		entityLocal.set(sqlEntity);
 	}
-
+	public static void setReadOnly(){
+		SqlEntity sqlEntity = entityLocal.get();
+		if(sqlEntity==null){
+			sqlEntity = new SqlEntity();
+		}
+		sqlEntity.setReadOnly(true);
+		entityLocal.set(sqlEntity);
+	}
 	public static Connection getConnection(DataSource dataSource) throws Exception{
 		SqlEntity sqlEntity = entityLocal.get();
 		Connection conn = sqlEntity.getDataSourceMap().get(dataSource);
