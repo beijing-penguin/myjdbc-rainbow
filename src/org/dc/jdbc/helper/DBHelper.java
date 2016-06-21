@@ -1,13 +1,11 @@
 package org.dc.jdbc.helper;
 
 import java.sql.Connection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.sql.DataSource;
 
-import org.dc.jdbc.cache.core.JedisHelper;
 import org.dc.jdbc.config.JDBCConfig;
 import org.dc.jdbc.core.ConnectionManager;
 import org.dc.jdbc.core.ContextHandle;
@@ -29,22 +27,15 @@ import redis.clients.jedis.JedisPool;
  */
 public class DBHelper {
 	private volatile DataSource dataSource;
-	private volatile JedisHelper jedisHelper;
 	private final ContextHandle contextHandler;
 	
-	public static Map<Integer,DataSource> dataSourceMaps = new HashMap<Integer,DataSource>();
-	//public static Map<Integer,JedisHelper> jedisHelperMaps = new HashMap<Integer,JedisHelper>();
-
 	public DBHelper(DataSource dataSource){
 		this.dataSource = dataSource;
 		this.contextHandler = this.createContextHandle();
-		dataSourceMaps.put(dataSource.hashCode(), dataSource);
 	}
 	public DBHelper(DataSource dataSource,JedisPool jedisPool){
-		this.jedisHelper = new JedisHelper(jedisPool);
 		this.dataSource = dataSource;
 		this.contextHandler = this.createContextHandle();
-		dataSourceMaps.put(dataSource.hashCode(), dataSource);
 		//jedisHelperMaps.put(jedisHelper.hashCode(), jedisHelper);
 	}
 	private ContextHandle createContextHandle(){
@@ -74,19 +65,8 @@ public class DBHelper {
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
-		if(JDBCConfig.isSQLCache){
-			T t = jedisHelper.getSQLCache(sqlEntity,dataSource);
-			if(t!=null){
-				return t;
-			}
-		}
 		Connection conn = ConnectionManager.getConnection(dataSource);
-		T t = selectOper.selectOne(conn,sql,returnClass,params_obj);
-		if(JDBCConfig.isSQLCache && t!=null){
-			jedisHelper.setSQLCache(sqlEntity, t,dataSource);
-			return t;
-		}
-		return null;
+		return selectOper.selectOne(conn,sql,returnClass,params_obj);
 	}
 	public Map<String,Object> selectOne(String sqlOrID,Object...params) throws Exception{
 		return this.selectOne(sqlOrID, null,params);
@@ -95,19 +75,8 @@ public class DBHelper {
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
-		if(JDBCConfig.isSQLCache){
-			List<T> list_t = jedisHelper.getSQLCache(sqlEntity,dataSource);
-			if(list_t!=null){
-				return list_t;
-			}
-		}
 		Connection conn = ConnectionManager.getConnection(dataSource);
-		List<T> list_t = selectOper.selectList(conn,sql,returnClass,params_obj);
-		if(JDBCConfig.isSQLCache && list_t!=null){
-			jedisHelper.setSQLCache(sqlEntity, list_t,dataSource);
-			return list_t;
-		}
-		return null;
+		return selectOper.selectList(conn,sql,returnClass,params_obj);
 	}
 	public List<Map<String,Object>> selectList(String sqlOrID,Object...params) throws Exception{
 		return this.selectList(sqlOrID, null, params);
@@ -123,9 +92,6 @@ public class DBHelper {
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
-		if(JDBCConfig.isSQLCache){
-			jedisHelper.delSQLCache(sqlEntity);
-		}
 		Connection conn = ConnectionManager.getConnection(dataSource);
 		return insertOper.insert(conn, sql, params_obj);
 	}
@@ -140,9 +106,6 @@ public class DBHelper {
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
-		if(JDBCConfig.isSQLCache){
-			jedisHelper.delSQLCache(sqlEntity);
-		}
 		Connection conn = ConnectionManager.getConnection(dataSource);
 		return insertOper.insertRtnPKKey(conn, sql, params_obj);
 	}
@@ -151,9 +114,6 @@ public class DBHelper {
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
-		if(JDBCConfig.isSQLCache){
-			jedisHelper.delSQLCache(sqlEntity);
-		}
 		Connection conn = ConnectionManager.getConnection(dataSource);
 		return updateOper.update(conn, sql, params_obj);
 	}
@@ -163,9 +123,6 @@ public class DBHelper {
 		SqlEntity sqlEntity = contextHandler.handleRequest(sqlOrID,params);
 		String sql = sqlEntity.getSql();
 		Object[] params_obj = sqlEntity.getParams();
-		if(JDBCConfig.isSQLCache){
-			jedisHelper.delSQLCache(sqlEntity);
-		}
 		Connection conn = ConnectionManager.getConnection(dataSource);
 		return deleteOper.delete(conn, sql, params_obj);
 	}
