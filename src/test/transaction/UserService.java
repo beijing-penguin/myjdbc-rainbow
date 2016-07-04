@@ -27,4 +27,12 @@ public class UserService {
         int ret = userDBHelper.insert("insert into user(name,age) values(?,?)", "dc", 12);
         return ret > 0;
     }
+    @Transactional
+    public void updateName() throws Exception{
+    	userDBHelper.update("update test.user set name = ? where id=4", "测试嵌套事务姓名111111111");
+    	this.updateName2();
+    }
+    public void updateName2() throws Exception{
+    	userDBHelper.update("update test.user set name = ? where id=5", "测试嵌套事务姓名22222222222222");
+    }
 }

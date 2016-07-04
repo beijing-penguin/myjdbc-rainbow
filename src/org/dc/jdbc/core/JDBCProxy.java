@@ -13,49 +13,65 @@ import net.sf.cglib.proxy.MethodProxy;
  * @time 2015-8-17
  */
 public final class JDBCProxy implements MethodInterceptor {
-    private final static  JDBCProxy jdbcProxy = new JDBCProxy();
-    public static JDBCProxy getInstance(){
-        return jdbcProxy;
-    }
 
-    private JDBCProxy(){}
+	private static ThreadLocal<Method> methodLocal = new ThreadLocal<Method>();
+
+	private final static  JDBCProxy jdbcProxy = new JDBCProxy();
+	public static JDBCProxy getInstance(){
+		return jdbcProxy;
+	}
+
+	private JDBCProxy(){}
 	public Object intercept(Object obj, Method method, Object[] objects, MethodProxy proxy) throws Throwable {
-		Transactional transactional  = method.getAnnotation(Transactional.class);
-        if (transactional == null) {
-            //方法无注解，查找类上注解，并判断当前调用方法是否为当前类定义的（防止父类方法触发事务边界）
-            transactional = method.getDeclaringClass().getAnnotation(Transactional.class);
-        }
+		if(methodLocal.get()==null){
+			methodLocal.set(method);
 
-        if(transactional!=null){//如果不为空，则开启事务
-			if(transactional.readonly()==false){
-				ConnectionManager.startTransaction();
-			}else{
-				ConnectionManager.setReadOnly();
+			Transactional transactional  = method.getAnnotation(Transactional.class);
+			if (transactional == null) {
+				//方法无注解，查找类上注解，并判断当前调用方法是否为当前类定义的（防止父类方法触发事务边界）
+				transactional = method.getDeclaringClass().getAnnotation(Transactional.class);
+			}
+
+			if(transactional!=null){//如果不为空，则开启事务
+				if(transactional.readonly()==false){
+					ConnectionManager.startTransaction();
+				}else{
+					ConnectionManager.setReadOnly();
+				}
 			}
 		}
-
+		boolean isDo = false;
+		if(methodLocal.get()==method){
+			isDo = true;
+		}
 		Object invokeObj = null;
 		try{
-		    //执行目标方法
+			//执行目标方法
 			invokeObj = proxy.invokeSuper(obj, objects);
-			ConnectionManager.commit();
+			if(isDo){
+				ConnectionManager.commit();
+			}
 		}catch(Throwable e){
-            ConnectionManager.rollback();
-            throw e;
+			if(isDo){
+				ConnectionManager.rollback();
+			}
+			throw e;
 		}finally{
-			ConnectionManager.closeConnection();
+			if(isDo){
+				ConnectionManager.closeConnection();
+			}
 		}
 		return invokeObj;
 	}
 
 	@SuppressWarnings("unchecked")
 	public <T> T getTarget(Class<T> target) {
-        Enhancer enhancer = new Enhancer();
+		Enhancer enhancer = new Enhancer();
 		enhancer.setSuperclass(target);
 		// 回调方法
 		enhancer.setCallback(this);
 
-        // 创建代理对象
+		// 创建代理对象
 		return (T) enhancer.create();
 	}
 }
