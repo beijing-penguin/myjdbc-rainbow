@@ -22,6 +22,9 @@ public final class JDBCProxy implements MethodInterceptor {
 	}
 
 	private JDBCProxy(){}
+	/**
+	 * 新增的事务嵌套逻辑
+	 */
 	public Object intercept(Object obj, Method method, Object[] objects, MethodProxy proxy) throws Throwable {
 		if(methodLocal.get()==null){
 			methodLocal.set(method);
