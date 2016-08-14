@@ -22,7 +22,7 @@ import redis.clients.jedis.JedisPool;
  */
 public class DBHelper {
 	private volatile DataSource dataSource;
-	private static IDataBaseDao dataBaseDao = (IDataBaseDao) new DataBaseOperateProxy(new DataBaseDao()).getProxy();
+	private static final IDataBaseDao dataBaseDao = (IDataBaseDao) new DataBaseOperateProxy(new DataBaseDao()).getProxy();
 	public DBHelper(DataSource dataSource){
 		this.dataSource = dataSource;
 	}

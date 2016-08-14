@@ -92,15 +92,4 @@ public class XmlSqlHandler{
 		sqlContext.setTables(tableSet);
 		return sqlContext;
 	}
-	/*public static void main(String[] args) {
-		XmlSqlHandler xmlsql = new XmlSqlHandler();
-		try {
-			SqlEntity entity = xmlsql.handleRequest("insert                into s select count(*) from user u where username = 'd       c' and age = null", null);
-			System.out.println(entity.getSql());
-			System.out.println(Arrays.toString(entity.getParams()));
-			System.out.println(entity.getTables());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}*/
 }
