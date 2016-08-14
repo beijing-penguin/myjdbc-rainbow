@@ -10,14 +10,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.dc.jdbc.core.ConnectionManager;
-import org.dc.jdbc.core.SQLStorage;
-import org.dc.jdbc.entity.SqlEntity;
+import org.dc.jdbc.entity.SqlContext;
 
 import com.alibaba.druid.sql.parser.Lexer;
 import com.alibaba.druid.sql.parser.Token;
 
-public class XmlSqlHandler extends SQLHandler{
+public class XmlSqlHandler{
 	private static final XmlSqlHandler oper = new XmlSqlHandler();
 	public static XmlSqlHandler getInstance(){
 		return oper;
@@ -25,16 +23,11 @@ public class XmlSqlHandler extends SQLHandler{
 	/**
 	 * 处理方法，调用此方法处理请求
 	 */
-	@Override
-	public SqlEntity handleRequest(String sqlOrID,Object[] params) throws Exception{
-		SqlEntity sqlEntity = ConnectionManager.entityLocal.get();
-		if(sqlEntity==null){
-			sqlEntity = new SqlEntity();
-			ConnectionManager.entityLocal.set(sqlEntity);
-		}
+	public SqlContext handleRequest(String doSql,Object[] params) throws Exception{
+		SqlContext sqlContext = SqlContext.getContext();
 		List<Object> returnList = new ArrayList<Object>();
 		Set<String> tableSet =new HashSet<String>();
-		StringBuffer sql = new StringBuffer(sqlOrID.startsWith("$")?SQLStorage.getSql(sqlOrID):sqlOrID);
+		StringBuffer sql = new StringBuffer(doSql);
 
 		Map<Object,Object> allparamMap = null;
 		List<Object>  allParamList = null;
@@ -94,10 +87,10 @@ public class XmlSqlHandler extends SQLHandler{
 				lastTok = tok;
 			}
 		}
-		sqlEntity.setSql(sql.toString());
-		sqlEntity.setParams(returnList.toArray());
-		sqlEntity.setTables(tableSet);
-		return sqlEntity;
+		sqlContext.setSql(sql.toString());
+		sqlContext.setParams(returnList.toArray());
+		sqlContext.setTables(tableSet);
+		return sqlContext;
 	}
 	/*public static void main(String[] args) {
 		XmlSqlHandler xmlsql = new XmlSqlHandler();

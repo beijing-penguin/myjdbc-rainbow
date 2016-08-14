@@ -14,7 +14,7 @@ import org.apache.commons.logging.LogFactory;
  * @time 2016-04-23
  */
 public class GlobalCache {
-	private static final Log jdbclog = LogFactory.getLog(GlobalCache.class);
+	private static final Log LOG = LogFactory.getLog(GlobalCache.class);
 	private static final Lock lock = new ReentrantLock();
 	//对象的字段缓存
 	/**
@@ -43,7 +43,7 @@ public class GlobalCache {
 			cacheFields.put(cls, dataMap);
 			return dataMap;
 		} catch (Exception e) {
-			jdbclog.error("",e);
+			LOG.error("",e);
 		}finally{
 			lock.unlock();
 		}

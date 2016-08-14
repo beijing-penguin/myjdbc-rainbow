@@ -1,6 +1,5 @@
 package org.dc.jdbc.entity;
 
-import java.io.Serializable;
 import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Map;
@@ -8,8 +7,19 @@ import java.util.Set;
 
 import javax.sql.DataSource;
 
-public class SqlEntity implements Serializable{
-	private static final long serialVersionUID = -7425527965344197867L;
+public class SqlContext{
+	private static final ThreadLocal<SqlContext> sqlContext = new ThreadLocal<SqlContext>();
+	public static final Map<String,String> sqlSourceMap = new HashMap<String, String>();
+	
+	public static SqlContext getContext(){
+		SqlContext context = sqlContext.get();
+		if(context==null){
+			context = new SqlContext();
+			sqlContext.set(context);
+		}
+		return context;
+	}
+	
 	private String sql;
     private Object[] params;
     private Set<String> tables;
@@ -17,7 +27,12 @@ public class SqlEntity implements Serializable{
     private boolean readOnly;
     private Map<DataSource,Connection> dataSourceMap = new HashMap<DataSource,Connection>();
     
-    
+    public static void putSourceSql(String key,String sql){
+    	sqlSourceMap.put(key, sql);
+    }
+    public static String getSourceSql(String key){
+        return sqlSourceMap.get(key);
+    }
 	public Map<DataSource, Connection> getDataSourceMap() {
 		return dataSourceMap;
 	}

@@ -6,13 +6,13 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dc.jdbc.config.JDBCConfig;
-import org.dc.jdbc.core.SQLStorage;
+import org.dc.jdbc.entity.SqlContext;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
 public class LoadSqlUtil {
-	private static final Log log = LogFactory.getLog(LoadSqlUtil.class);
+	private static final Log LOG = LogFactory.getLog(LoadSqlUtil.class);
 
 	/**
 	 * 加载xml文件中的sql，遍历该目录下，以及子目录下的所有xml文件。
@@ -24,7 +24,7 @@ public class LoadSqlUtil {
 		SAXReader reader = new SAXReader();
 		File file = new File(readPath);
 		File[] files =  file.listFiles();
-		log.info("文件数"+files.length+"");
+		LOG.info("文件数"+files.length+"");
 		for (int i = 0; i < files.length; i++) {
 			File f = files[i];
 			if(f.isFile()){
@@ -38,14 +38,14 @@ public class LoadSqlUtil {
 					String key = f.getName().substring(0, f.getName().length()-4)+"."+sqlnode.attributeValue("id");
 					key = "$"+key;
 					//检查是否有冲突
-					if(SQLStorage.sqlSourceMap.containsKey(key)){
+					if(SqlContext.sqlSourceMap.containsKey(key)){
 						throw new Exception("sql的id有重复，id="+key);
 					}
-					log.info("加载key="+key);
+					LOG.info("加载key="+key);
 					if(JDBCConfig.isPrintSqlLog){
-						SQLStorage.put(key, sqlnode.getText());
+						SqlContext.putSourceSql(key, sqlnode.getTextTrim());
 					}else{
-						SQLStorage.put(key, sqlnode.getTextTrim());
+						SqlContext.putSourceSql(key, sqlnode.getTextTrim());
 					}
 				}
 			}else{

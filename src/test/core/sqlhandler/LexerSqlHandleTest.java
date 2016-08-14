@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.dc.jdbc.core.sqlhandler.XmlSqlHandler;
-import org.dc.jdbc.entity.SqlEntity;
+import org.dc.jdbc.entity.SqlContext;
 
 import junit.framework.TestCase;
 import test.User;
@@ -26,7 +26,7 @@ public class LexerSqlHandleTest extends TestCase{
 		User u =new User();
 		u.setAge(50);
 		u.setName("企鹅2号");
-		SqlEntity sqlEntity = xmlSqlHandler.handleRequest("select *,if(sva=1,'男','女') as ssva from user name=#{name} and filed1 = '#{name}' and age=#{age} ", new Object[]{"dc",12,m,u});
+		SqlContext sqlEntity = xmlSqlHandler.handleRequest("select *,if(sva=1,'男','女') as ssva from user name=#{name} and filed1 = '#{name}' and age=#{age} ", new Object[]{"dc",12,m,u});
 		System.out.println(sqlEntity.getSql());
 		System.out.println(Arrays.toString(sqlEntity.getParams()));
 	}

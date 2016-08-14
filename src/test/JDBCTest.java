@@ -7,8 +7,11 @@ import java.util.Map;
 import org.dc.jdbc.config.JDBCConfig;
 import org.dc.jdbc.core.ConnectionManager;
 import org.dc.jdbc.helper.DBHelper;
+import org.dc.jdbc.init.LoadSqlUtil;
 import org.junit.Before;
 import org.junit.Test;
+
+import com.alibaba.druid.support.json.JSONUtils;
 
 public class JDBCTest {
 	private static DBHelper accDBHelper;
@@ -20,7 +23,7 @@ public class JDBCTest {
 
 			testDBHelper = new DBHelper(Configure.testSource);
 			accDBHelper= new DBHelper(Configure.accSource);
-			//LoadSqlUtil.loadSql("D:\\Git\\MyJdbc\\target\\classes\\test\\sql");
+			LoadSqlUtil.loadSql("E:\\workspace\\Myjdbc\\target\\classes\\test\\sql");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -33,10 +36,14 @@ public class JDBCTest {
 			ConnectionManager.startTransaction();
 			/*start*/
 			Map<String,Object> map = testDBHelper.selectOne("select * from user limit 1");
+			System.out.println(map);
 			List<Map<String,Object>> mapList = testDBHelper.selectList("select * from user");
+			System.out.println(mapList);
 			/*end*/
 			Map<String,Object> map_WithParam1 = testDBHelper.selectOne("select * from user where name=? and age=? limit 1","dc",20);
+			System.out.println(map_WithParam1);
 			User user = testDBHelper.selectOne("select name,age from user where name=? and age=? limit 1",User.class,"dc",20);
+			System.out.println(JSONUtils.toJSONString(user));
 			//只返回年龄,如数据的该字段没查到则返回的数据为null，那么用Integer类型接受即可，不然会报NullPointerException
 			//int age = testDBHelper.selectOne("select age from user where name=? and age=? limit 1",Integer.class,"dc",20);
 			Integer age = testDBHelper.selectOne("select age from user where name=? and age=? limit 1",Integer.class,"dc",20);
@@ -62,8 +69,6 @@ public class JDBCTest {
 			List<Integer> mapList_withParam1_3 = testDBHelper.selectList("select name from user",Integer.class);
 		} catch (Exception e) {
 			e.printStackTrace();
-		}finally{
-			ConnectionManager.closeConnection();
 		}
 	}
 	@Test
@@ -90,7 +95,6 @@ public class JDBCTest {
 		}catch(Exception e){
 			e.printStackTrace();
 		}
-		ConnectionManager.closeConnection();
 	}
 	@Test
 	public void insert(){
