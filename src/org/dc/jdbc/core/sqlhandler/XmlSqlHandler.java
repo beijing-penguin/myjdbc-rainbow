@@ -72,7 +72,7 @@ public class XmlSqlHandler extends SQLHandler{
 			if (tok == Token.EOF) {
 				break;
 			}
-			String str = lexer.toString();
+			String str = lexer.stringVal();
 			int curpos = lexer.pos();
 			if(tok.name == null && tok == Token.VARIANT){//异类匹配，这里的异类只有#号，sql编写规范的情况下，不需要判断str.contains("#")
 				String key = str.substring(2, str.length()-1);
