@@ -10,7 +10,6 @@ import org.dc.jdbc.core.ConnectionManager;
 import org.dc.jdbc.core.operate.DataBaseDaoImp;
 import org.dc.jdbc.core.operate.IDataBaseDao;
 import org.dc.jdbc.core.proxy.DataBaseOperateProxy;
-import org.dc.jdbc.entity.SqlContext;
 
 import redis.clients.jedis.JedisPool;
 
@@ -30,17 +29,15 @@ public class DBHelper {
 		this.dataSource = dataSource;
 	}
 	public <T> T selectOne(String sqlOrID,Class<? extends T> returnClass,Object...params) throws Exception{
-		String sql = sqlOrID.startsWith("$")?SqlContext.getSourceSql(sqlOrID):sqlOrID;
 		Connection conn = ConnectionManager.getConnection(dataSource);
-		return dataBaseDao.selectOne(conn, sql, returnClass, params);
+		return dataBaseDao.selectOne(conn, sqlOrID, returnClass, params);
 	}
 	public Map<String,Object> selectOne(String sqlOrID,Object...params) throws Exception{
 		return this.selectOne(sqlOrID, null,params);
 	}
 	public <T> List<T> selectList(String sqlOrID,Class<? extends T> returnClass,Object...params) throws Exception{
-		String sql = sqlOrID.startsWith("$")?SqlContext.getSourceSql(sqlOrID):sqlOrID;
 		Connection conn = ConnectionManager.getConnection(dataSource);
-		return dataBaseDao.selectList(conn, sql, returnClass, params);
+		return dataBaseDao.selectList(conn, sqlOrID, returnClass, params);
 	}
 	public List<Map<String,Object>> selectList(String sqlOrID,Object...params) throws Exception{
 		return this.selectList(sqlOrID, null, params);
@@ -53,9 +50,8 @@ public class DBHelper {
 	 * @throws Exception
 	 */
 	public int insert(String sqlOrID,Object...params) throws Exception{
-		String sql = sqlOrID.startsWith("$")?SqlContext.getSourceSql(sqlOrID):sqlOrID;
 		Connection conn = ConnectionManager.getConnection(dataSource);
-		return dataBaseDao.insert(conn, sql, params);
+		return dataBaseDao.insert(conn, sqlOrID, params);
 	}
 	/**
 	 * 插入数据并返回主键
@@ -65,22 +61,19 @@ public class DBHelper {
 	 * @throws Exception
 	 */
 	public Object insertReturnKey(String sqlOrID,Object...params) throws Exception{
-		String sql = sqlOrID.startsWith("$")?SqlContext.getSourceSql(sqlOrID):sqlOrID;
 		Connection conn = ConnectionManager.getConnection(dataSource);
-		return dataBaseDao.insertRtnPKKey(conn, sql, params);
+		return dataBaseDao.insertRtnPKKey(conn, sqlOrID, params);
 	}
 
 	public int update(String sqlOrID,Object...params) throws Exception{
-		String sql = sqlOrID.startsWith("$")?SqlContext.getSourceSql(sqlOrID):sqlOrID;
 		Connection conn = ConnectionManager.getConnection(dataSource);
-		return dataBaseDao.update(conn, sql, params);
+		return dataBaseDao.update(conn, sqlOrID, params);
 	}
 
 
 	public int delete(String sqlOrID,Object...params) throws Exception{
-		String sql = sqlOrID.startsWith("$")?SqlContext.getSourceSql(sqlOrID):sqlOrID;
 		Connection conn = ConnectionManager.getConnection(dataSource);
-		return dataBaseDao.delete(conn, sql, params);
+		return dataBaseDao.delete(conn, sqlOrID, params);
 	}
 	/**
 	 * 回滚之前所有操作

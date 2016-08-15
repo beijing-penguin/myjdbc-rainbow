@@ -29,24 +29,26 @@ public class LoadSqlUtil {
 		for (int i = 0; i < files.length; i++) {
 			File f = files[i];
 			if(f.isFile()){
-				//读取文件 转换成Document  
-				Document document = reader.read(f);
-				//获取根节点元素对象  
-				Element root = document.getRootElement();  
-				List<?> sqlNodeList = root.elements("sql");
-				for (Object aSqlNodeList : sqlNodeList) {
-					Element sqlnode = (Element) aSqlNodeList;
-					String key = f.getName().substring(0, f.getName().length()-4)+"."+sqlnode.attributeValue("id");
-					key = "$"+key;
-					//检查是否有冲突
-					if(SqlContext.sqlSourceMap.containsKey(key)){
-						throw new Exception("sql的id有重复，id="+key);
-					}
-					LOG.info("加载key="+key);
-					if(JDBCConfig.isPrintSqlLog){
-						SqlContext.putSourceSql(key, sqlnode.getText());
-					}else{
-						SqlContext.putSourceSql(key, sqlnode.getTextTrim());
+				if(f.getAbsolutePath().endsWith(".xml")){
+					//读取文件 转换成Document  
+					Document document = reader.read(f);
+					//获取根节点元素对象  
+					Element root = document.getRootElement();  
+					List<?> sqlNodeList = root.elements("sql");
+					for (Object aSqlNodeList : sqlNodeList) {
+						Element sqlnode = (Element) aSqlNodeList;
+						String key = f.getName().substring(0, f.getName().length()-4)+"."+sqlnode.attributeValue("id");
+						key = "$"+key;
+						//检查是否有冲突
+						if(SqlContext.sqlSourceMap.containsKey(key)){
+							throw new Exception("sql的id有重复，id="+key);
+						}
+						LOG.info("加载key="+key);
+						if(JDBCConfig.isPrintSqlLog){
+							SqlContext.putSourceSql(key, sqlnode.getText());
+						}else{
+							SqlContext.putSourceSql(key, sqlnode.getTextTrim());
+						}
 					}
 				}
 			}else{

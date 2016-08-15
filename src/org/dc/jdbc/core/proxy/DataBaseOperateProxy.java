@@ -25,12 +25,21 @@ public class DataBaseOperateProxy implements InvocationHandler{
 
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+		if(args[0].toString()==null || args[0].toString().trim().length()==0){
+			throw new Throwable("connection is null");
+		}
+		String sqlOrID = args[1].toString();
+		String sql = sqlOrID.startsWith("$")?SqlContext.getSourceSql(sqlOrID):sqlOrID;
+		if(sql==null || sql.trim().length()==0){
+			throw new Throwable("sql is null");
+		}
+		
 		SqlContext context = SqlContext.getContext();
 		if(args.length==4){
-			XmlSqlHandler.getInstance().handleRequest(args[1].toString(), (Object[]) args[3]);
+			XmlSqlHandler.getInstance().handleRequest(sql, (Object[]) args[3]);
 			args[3] = context.getParams();
 		}else if(args.length==3){
-			XmlSqlHandler.getInstance().handleRequest(args[1].toString(), (Object[]) args[2]);
+			XmlSqlHandler.getInstance().handleRequest(sql, (Object[]) args[2]);
 			args[2] = context.getParams();
 		}
 		args[1] = context.getSql();
