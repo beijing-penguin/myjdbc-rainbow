@@ -3,13 +3,14 @@ package org.dc.jdbc.init;
 import java.io.File;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.dc.jdbc.config.JDBCConfig;
 import org.dc.jdbc.entity.SqlContext;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
+
+import com.alibaba.druid.support.logging.Log;
+import com.alibaba.druid.support.logging.LogFactory;
 
 public class LoadSqlUtil {
 	private static final Log LOG = LogFactory.getLog(LoadSqlUtil.class);
@@ -43,7 +44,7 @@ public class LoadSqlUtil {
 					}
 					LOG.info("加载key="+key);
 					if(JDBCConfig.isPrintSqlLog){
-						SqlContext.putSourceSql(key, sqlnode.getTextTrim());
+						SqlContext.putSourceSql(key, sqlnode.getText());
 					}else{
 						SqlContext.putSourceSql(key, sqlnode.getTextTrim());
 					}

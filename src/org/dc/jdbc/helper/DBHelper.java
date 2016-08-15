@@ -7,7 +7,7 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import org.dc.jdbc.core.ConnectionManager;
-import org.dc.jdbc.core.operate.DataBaseDao;
+import org.dc.jdbc.core.operate.DataBaseDaoImp;
 import org.dc.jdbc.core.operate.IDataBaseDao;
 import org.dc.jdbc.core.proxy.DataBaseOperateProxy;
 import org.dc.jdbc.entity.SqlContext;
@@ -22,7 +22,7 @@ import redis.clients.jedis.JedisPool;
  */
 public class DBHelper {
 	private volatile DataSource dataSource;
-	private static final IDataBaseDao dataBaseDao = (IDataBaseDao) new DataBaseOperateProxy(new DataBaseDao()).getProxy();
+	private static final IDataBaseDao dataBaseDao = (IDataBaseDao) new DataBaseOperateProxy(new DataBaseDaoImp()).getProxy();
 	public DBHelper(DataSource dataSource){
 		this.dataSource = dataSource;
 	}

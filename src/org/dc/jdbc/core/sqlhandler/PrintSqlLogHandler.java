@@ -1,9 +1,9 @@
 package org.dc.jdbc.core.sqlhandler;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import com.alibaba.druid.sql.parser.Lexer;
 import com.alibaba.druid.sql.parser.Token;
+import com.alibaba.druid.support.logging.Log;
+import com.alibaba.druid.support.logging.LogFactory;
 
 public class PrintSqlLogHandler{
 	private static final Log LOG = LogFactory.getLog(PrintSqlLogHandler.class);
@@ -45,6 +45,6 @@ public class PrintSqlLogHandler{
 				}
 			}
 		}
-		LOG.info("\n"+sbsql.toString());
+		LOG.info(sbsql.toString());
 	}
 }
