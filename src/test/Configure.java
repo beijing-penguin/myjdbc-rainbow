@@ -19,7 +19,7 @@ public class Configure {
     public static DruidDataSource testSource = new DruidDataSource();
 	public static DruidDataSource accSource = new DruidDataSource();
 	static{
-		testSource.setUrl("jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8");
+		testSource.setUrl("jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8&useSSL=false");
 		testSource.setUsername("root");
 		testSource.setPassword("123456");
 		/*密码加密

@@ -25,6 +25,7 @@ public class DataBaseOperateProxy implements InvocationHandler{
 
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+		SqlContext context = SqlContext.getContext();
 		if(args[0].toString()==null || args[0].toString().trim().length()==0){
 			throw new Throwable("connection is null");
 		}
@@ -33,21 +34,20 @@ public class DataBaseOperateProxy implements InvocationHandler{
 		if(sql==null || sql.trim().length()==0){
 			throw new Throwable("sql is null");
 		}
-		
-		SqlContext context = SqlContext.getContext();
-		if(args.length==4){
-			XmlSqlHandler.getInstance().handleRequest(sql, (Object[]) args[3]);
-			args[3] = context.getParams();
-		}else if(args.length==3){
-			XmlSqlHandler.getInstance().handleRequest(sql, (Object[]) args[2]);
-			args[2] = context.getParams();
-		}
-		args[1] = context.getSql();
-		
-		if(JDBCConfig.isPrintSqlLog){
-			PrintSqlLogHandler.getInstance().handleRequest(context.getSql(), context.getParams());
-		}
+		if(!"insertBatch".equals(method.getName())){
+			if(args.length==4){
+				XmlSqlHandler.getInstance().handleRequest(sql, (Object[]) args[3]);
+				args[3] = context.getParams();
+			}else if(args.length==3){
+				XmlSqlHandler.getInstance().handleRequest(sql, (Object[]) args[2]);
+				args[2] = context.getParams();
+			}
+			args[1] = context.getSql();
 
+			if(JDBCConfig.isPrintSqlLog){
+				PrintSqlLogHandler.getInstance().handleRequest(context.getSql(), context.getParams());
+			}
+		}
 		Object rt = method.invoke(target, args);
 		if(!context.getTransaction()){
 			ConnectionManager.closeConnection();
