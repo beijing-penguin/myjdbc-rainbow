@@ -11,8 +11,6 @@ import org.dc.jdbc.core.operate.DataBaseDaoImp;
 import org.dc.jdbc.core.operate.IDataBaseDao;
 import org.dc.jdbc.core.proxy.DataBaseOperateProxy;
 
-import redis.clients.jedis.JedisPool;
-
 /**
  * 数据持久化操作类
  * sql执行三部曲：1，sql解析，2，获得数据库连接，3，执行核心jdbc操作。
@@ -23,9 +21,6 @@ public class DBHelper {
 	private volatile DataSource dataSource;
 	private static final IDataBaseDao dataBaseDao = (IDataBaseDao) new DataBaseOperateProxy(new DataBaseDaoImp()).getProxy();
 	public DBHelper(DataSource dataSource){
-		this.dataSource = dataSource;
-	}
-	public DBHelper(DataSource dataSource,JedisPool jedisPool){
 		this.dataSource = dataSource;
 	}
 	public <T> T selectOne(String sqlOrID,Class<? extends T> returnClass,Object...params) throws Exception{

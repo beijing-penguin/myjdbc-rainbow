@@ -1,7 +1,7 @@
 package test.transaction;
 
 import org.dc.jdbc.config.JDBCConfig;
-import org.dc.jdbc.core.JDBCProxy;
+import org.dc.jdbc.core.proxy.JdbcServiceProxy;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -11,7 +11,7 @@ public class TestNestedTransaction {
     @BeforeClass
     public static void init() {
     	JDBCConfig.isPrintSqlLog = true;
-    	userService=JDBCProxy.getInstance().getTarget(UserService.class);
+    	userService=JdbcServiceProxy.getInstance().getTarget(UserService.class);
     }
     
     @Test

@@ -1,29 +1,30 @@
-package org.dc.jdbc.core;
+package org.dc.jdbc.core.proxy;
 
 import java.lang.reflect.Method;
 
 import org.dc.jdbc.anno.Transactional;
+import org.dc.jdbc.core.ConnectionManager;
 
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 /**
- * 动态反向代理,主要作用：拦截参数、管理数据库事务
+ * 动态反向代理,主要作用：解析注解、管理数据库事务
  * @author dc
  * @time 2015-8-17
  */
-public final class JDBCProxy implements MethodInterceptor {
+public final class JdbcServiceProxy implements MethodInterceptor {
 
 	private static ThreadLocal<Method> methodLocal = new ThreadLocal<Method>();
 
-	private final static  JDBCProxy jdbcProxy = new JDBCProxy();
-	public static JDBCProxy getInstance(){
-		return jdbcProxy;
+	private final static  JdbcServiceProxy INSTANCE = new JdbcServiceProxy();
+	public static JdbcServiceProxy getInstance(){
+		return INSTANCE;
 	}
 
-	private JDBCProxy(){}
+	private JdbcServiceProxy(){}
 	/**
-	 * 新增的事务嵌套逻辑
+	 * 代理方法入口
 	 */
 	public Object intercept(Object obj, Method method, Object[] objects, MethodProxy proxy) throws Throwable {
 		if(methodLocal.get()==null){

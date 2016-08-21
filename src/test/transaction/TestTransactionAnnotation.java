@@ -1,6 +1,6 @@
 package test.transaction;
 
-import org.dc.jdbc.core.JDBCProxy;
+import org.dc.jdbc.core.proxy.JdbcServiceProxy;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -16,7 +16,7 @@ public class TestTransactionAnnotation {
 
     @BeforeClass
     public static void init() {
-        userService = JDBCProxy.getInstance().getTarget(UserService.class);
+        userService = JdbcServiceProxy.getInstance().getTarget(UserService.class);
     }
 
     @Test
