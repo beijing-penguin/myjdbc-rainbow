@@ -48,8 +48,10 @@ public class ConnectionManager {
 		Map<DataSource,Connection> connMap = sqlContext.getDataSourceMap();
 		for (Connection conn : connMap.values()) {
 			try{
-				conn.close();
-				conn = null;
+				if(conn!=null && !conn.isClosed()){
+					conn.close();
+					conn = null;
+				}
 			}catch (Exception e) {
 				LOG.error("",e);
 			}
@@ -63,7 +65,9 @@ public class ConnectionManager {
 		Map<DataSource,Connection> connMap = sqlContext.getDataSourceMap();
 		for (Connection conn : connMap.values()) {
 			try{
-				conn.rollback();
+				if(conn!=null && !conn.isClosed()){
+					conn.rollback();
+				}
 			}catch (Exception e) {
 				LOG.error("",e);
 			}
@@ -88,7 +92,7 @@ public class ConnectionManager {
 		Map<DataSource,Connection> connMap = sqlContext.getDataSourceMap();
 		for (Connection conn : connMap.values()) {
 			try{
-				if(conn.getAutoCommit()==false){
+				if(conn!=null && !conn.isClosed() && conn.getAutoCommit()==false){
 					conn.commit();
 				}
 			}catch (Exception e) {

@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 
 import org.dc.jdbc.anno.Transactional;
 import org.dc.jdbc.core.ConnectionManager;
+import org.dc.jdbc.entity.SqlContext;
 
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
