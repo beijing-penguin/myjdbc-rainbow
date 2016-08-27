@@ -99,7 +99,7 @@ public class JDBCUtils {
 	 * @throws Exception
 	 */
 	public static List<Object> parseSqlResultToListMap(ResultSet rs) throws Exception{
-		List<Object> list = new ArrayList<>();
+		List<Object> list = new ArrayList<Object>();
 		ResultSetMetaData metaData  = rs.getMetaData();
 		int cols_len = metaData.getColumnCount();
 		while(rs.next()){
