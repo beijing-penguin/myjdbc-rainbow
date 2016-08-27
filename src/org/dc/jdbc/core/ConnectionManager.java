@@ -20,12 +20,11 @@ public class ConnectionManager {
 
 	//当前线程连接对象的参与元素
 	public static void startTransaction(){
-		SqlContext sqlContext = SqlContext.getContext();
-		sqlContext.setTransaction(true);
+		SqlContext.getContext().setTransaction(true);
 	}
 	public static void setReadOnly(){
-		SqlContext sqlContext = SqlContext.getContext();
-		sqlContext.setReadOnly(true);
+		SqlContext.getContext().setTransaction(true);
+		SqlContext.getContext().setReadOnly(true);
 	}
 	public static Connection getConnection(DataSource dataSource) throws Exception{
 		SqlContext sqlContext = SqlContext.getContext();

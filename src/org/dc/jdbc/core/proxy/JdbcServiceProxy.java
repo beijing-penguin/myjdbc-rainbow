@@ -4,7 +4,6 @@ import java.lang.reflect.Method;
 
 import org.dc.jdbc.anno.Transactional;
 import org.dc.jdbc.core.ConnectionManager;
-import org.dc.jdbc.entity.SqlContext;
 
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
@@ -40,7 +39,7 @@ public final class JdbcServiceProxy implements MethodInterceptor {
 			if(transactional!=null){//如果不为空，则开启事务
 				if(transactional.readonly()==false){
 					ConnectionManager.startTransaction();
-				}else{
+				}else{//开启只读事物
 					ConnectionManager.setReadOnly();
 				}
 			}
