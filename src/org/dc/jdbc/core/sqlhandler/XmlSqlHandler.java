@@ -3,7 +3,6 @@ package org.dc.jdbc.core.sqlhandler;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -11,9 +10,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.dc.jdbc.entity.SqlContext;
+import org.dc.jdbc.sqlparse.Lexer;
+import org.dc.jdbc.sqlparse.Token;
 
-import com.alibaba.druid.sql.parser.Lexer;
-import com.alibaba.druid.sql.parser.Token;
 
 public class XmlSqlHandler{
 	private static final XmlSqlHandler oper = new XmlSqlHandler();
@@ -23,11 +22,16 @@ public class XmlSqlHandler{
 	/**
 	 * 处理方法，调用此方法处理请求
 	 */
-	public SqlContext handleRequest(String doSql,Object[] params) throws Exception{
+	public SqlContext handleRequest(String doSql,Object...params) throws Exception{
+		doSql = doSql.startsWith("$")?SqlContext.sqlSourceMap.get(doSql):doSql;
+		if(doSql==null || doSql.trim().length()==0){
+			throw new Exception("sql is null");
+		}
 		SqlContext sqlContext = SqlContext.getContext();
 		List<Object> returnList = new ArrayList<Object>();
 		Set<String> tableSet =new HashSet<String>();
-		StringBuffer sql = new StringBuffer(doSql);
+
+		StringBuilder sql = new StringBuilder(doSql);
 
 		Map<Object,Object> allparamMap = null;
 		List<Object>  allParamList = null;
@@ -40,9 +44,7 @@ public class XmlSqlHandler{
 				}else if(Map.class.isAssignableFrom(param.getClass())){
 					Map<?,?> paramMap = (Map<?, ?>) param;
 					allparamMap.putAll(paramMap);
-				}else if(Object[].class.isAssignableFrom(param.getClass())){
-					Collections.addAll(allParamList, (Object[])param);
-				}else if(Collection.class.isAssignableFrom(param.getClass())){
+				}else if(Object[].class.isAssignableFrom(param.getClass()) || Collection.class.isAssignableFrom(param.getClass())){
 					allParamList.addAll((Collection<?>) param);
 				}else if(param.getClass().getClassLoader()==null){
 					allParamList.add(param);

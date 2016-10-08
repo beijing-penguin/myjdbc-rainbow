@@ -5,10 +5,10 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.dc.jdbc.entity.SqlContext;
 
-import com.alibaba.druid.support.logging.Log;
-import com.alibaba.druid.support.logging.LogFactory;
 
 /**
  * 连接管理
@@ -20,11 +20,12 @@ public class ConnectionManager {
 
 	//当前线程连接对象的参与元素
 	public static void startTransaction(){
-		SqlContext.getContext().setTransaction(true);
+		SqlContext sqlContext = SqlContext.getContext();
+		sqlContext.setTransaction(true);
 	}
 	public static void setReadOnly(){
-		SqlContext.getContext().setTransaction(true);
-		SqlContext.getContext().setReadOnly(true);
+		SqlContext sqlContext = SqlContext.getContext();
+		sqlContext.setReadOnly(true);
 	}
 	public static Connection getConnection(DataSource dataSource) throws Exception{
 		SqlContext sqlContext = SqlContext.getContext();

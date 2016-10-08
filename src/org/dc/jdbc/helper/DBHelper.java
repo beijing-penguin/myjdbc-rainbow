@@ -19,13 +19,14 @@ import org.dc.jdbc.core.proxy.DataBaseOperateProxy;
  */
 public class DBHelper {
 	private volatile DataSource dataSource;
+	
 	private static final IDataBaseDao dataBaseDao = (IDataBaseDao) new DataBaseOperateProxy(new DataBaseDaoImp()).getProxy();
 	public DBHelper(DataSource dataSource){
 		this.dataSource = dataSource;
 	}
 	public <T> T selectOne(String sqlOrID,Class<? extends T> returnClass,Object...params) throws Exception{
 		Connection conn = ConnectionManager.getConnection(dataSource);
-		return dataBaseDao.selectOne(conn, sqlOrID, returnClass, params);
+		return dataBaseDao.selectOne(conn,sqlOrID, returnClass, params);
 	}
 	public Map<String,Object> selectOne(String sqlOrID,Object...params) throws Exception{
 		return this.selectOne(sqlOrID, null,params);
@@ -46,7 +47,7 @@ public class DBHelper {
 	 */
 	public int insert(String sqlOrID,Object...params) throws Exception{
 		Connection conn = ConnectionManager.getConnection(dataSource);
-		return dataBaseDao.insert(conn, sqlOrID, params);
+		return dataBaseDao.insert(conn, sqlOrID,null, params);
 	}
 	/**
 	 * 插入数据并返回主键
@@ -57,18 +58,18 @@ public class DBHelper {
 	 */
 	public Object insertReturnKey(String sqlOrID,Object...params) throws Exception{
 		Connection conn = ConnectionManager.getConnection(dataSource);
-		return dataBaseDao.insertRtnPKKey(conn, sqlOrID, params);
+		return dataBaseDao.insertRtnPKKey(conn, sqlOrID,null, params);
 	}
 
 	public int update(String sqlOrID,Object...params) throws Exception{
 		Connection conn = ConnectionManager.getConnection(dataSource);
-		return dataBaseDao.update(conn, sqlOrID, params);
+		return dataBaseDao.update(conn, sqlOrID,null, params);
 	}
 
 
 	public int delete(String sqlOrID,Object...params) throws Exception{
 		Connection conn = ConnectionManager.getConnection(dataSource);
-		return dataBaseDao.delete(conn, sqlOrID, params);
+		return dataBaseDao.delete(conn, sqlOrID,null, params);
 	}
 	/**
 	 * 回滚之前所有操作

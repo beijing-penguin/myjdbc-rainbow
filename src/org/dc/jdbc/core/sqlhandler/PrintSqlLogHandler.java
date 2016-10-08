@@ -1,9 +1,10 @@
 package org.dc.jdbc.core.sqlhandler;
 
-import com.alibaba.druid.sql.parser.Lexer;
-import com.alibaba.druid.sql.parser.Token;
-import com.alibaba.druid.support.logging.Log;
-import com.alibaba.druid.support.logging.LogFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.dc.jdbc.sqlparse.Lexer;
+import org.dc.jdbc.sqlparse.Token;
+
 
 public class PrintSqlLogHandler{
 	private static final Log LOG = LogFactory.getLog(PrintSqlLogHandler.class);

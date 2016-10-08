@@ -29,24 +29,12 @@ public class DataBaseOperateProxy implements InvocationHandler{
 		if(args[0].toString()==null || args[0].toString().trim().length()==0){
 			throw new Throwable("connection is null");
 		}
-		String sqlOrID = args[1].toString();
-		String sql = sqlOrID.startsWith("$")?SqlContext.getSourceSql(sqlOrID):sqlOrID;
-		if(sql==null || sql.trim().length()==0){
-			throw new Throwable("sql is null");
-		}
-		if(!"insertBatch".equals(method.getName())){
-			if(args.length==4){
-				XmlSqlHandler.getInstance().handleRequest(sql, (Object[]) args[3]);
-				args[3] = context.getParams();
-			}else if(args.length==3){
-				XmlSqlHandler.getInstance().handleRequest(sql, (Object[]) args[2]);
-				args[2] = context.getParams();
-			}
-			args[1] = context.getSql();
-
-			if(JDBCConfig.isPrintSqlLog){
-				PrintSqlLogHandler.getInstance().handleRequest(context.getSql(), context.getParams());
-			}
+		XmlSqlHandler.getInstance().handleRequest(args[1].toString(), (Object[])args[3]);		
+		args[1] = context.getSql();
+		args[3] = context.getParams();
+		
+		if(JDBCConfig.isPrintSqlLog){
+			PrintSqlLogHandler.getInstance().handleRequest(args[1].toString() , (Object[])args[3]);
 		}
 		Object rt = method.invoke(target, args);
 		if(!context.getTransaction()){

@@ -26,12 +26,14 @@ public class DataBaseDaoImp implements IDataBaseDao{
 					return (T) JDBCUtils.parseSqlResultToMap(rs);
 				}else{
 					if(cls.getClassLoader()==null){//java基本类型
-						return (T) JDBCUtils.parseSqlResultToBaseType(rs);
+						return  (T)JDBCUtils.parseSqlResultToBaseType(rs);
 					}else{//java对象
 						return (T) JDBCUtils.parseSqlResultToObject(rs, cls);
 					}
 				}
 			}
+
+
 		} catch (Exception e) {
 			throw e;
 		}finally{
@@ -51,6 +53,7 @@ public class DataBaseDaoImp implements IDataBaseDao{
 			int rowNum = rs.getRow();
 			if(rowNum>0){
 				rs.beforeFirst();
+
 				if(cls==null || Map.class.isAssignableFrom(cls)){//封装成Map
 					return (List<T>) JDBCUtils.parseSqlResultToListMap(rs);
 				}else{
@@ -70,16 +73,15 @@ public class DataBaseDaoImp implements IDataBaseDao{
 	}
 
 	@Override
-	public int update(Connection conn, String sql, Object[] params) throws Exception {
+	public int update(Connection conn, String sql,Class<?> returnClass, Object[] params) throws Exception {
 		return JDBCUtils.preparedAndExcuteSQL(conn, sql, params);
 	}
 
 	@Override
-	public int insert(Connection conn, String sql, Object[] params) throws Exception {
+	public int insert(Connection conn, String sql,Class<?> returnClass, Object[] params) throws Exception {
 		return JDBCUtils.preparedAndExcuteSQL(conn, sql, params);
 	}
 
-	@Override
 	public int[] insertBatch(Connection conn, String sql, Object[][] params) throws Exception {
 		PreparedStatement ps = null;
 		try {
@@ -100,7 +102,7 @@ public class DataBaseDaoImp implements IDataBaseDao{
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T insertRtnPKKey(Connection conn, String sql, Object[] params) throws Exception {
+	public <T> T insertRtnPKKey(Connection conn, String sql,Class<?> returnClass, Object[] params) throws Exception {
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 		try {
@@ -127,8 +129,8 @@ public class DataBaseDaoImp implements IDataBaseDao{
 	}
 
 	@Override
-	public int delete(Connection conn, String sql, Object[] params) throws Exception {
+	public int delete(Connection conn, String sql, Class<?> returnClass,Object[] params) throws Exception {
 		return JDBCUtils.preparedAndExcuteSQL(conn, sql, params);
 	}
-	
+
 }
