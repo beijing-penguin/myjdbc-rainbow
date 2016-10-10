@@ -5,10 +5,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.List;
-import java.util.Map;
 
 public class DataBaseDaoImp implements IDataBaseDao{
-	@SuppressWarnings("unchecked")
 	@Override
 	public  <T> T selectOne(Connection conn,String sql,Class<? extends T> cls,Object[] params) throws Exception{
 		ResultSet rs = null;
@@ -17,31 +15,13 @@ public class DataBaseDaoImp implements IDataBaseDao{
 			ps = conn.prepareStatement(sql);
 			rs = JDBCUtils.preparedSQLReturnRS(ps, sql, params);
 
-			int row = 0;
-			if(rs.last() && (row = rs.getRow())>1){
-				throw new Exception("Query results too much!");
-			}
-			if(row==1){//判断是否有返回结果，有的话执行下面转化操作
-				if(cls==null || Map.class.isAssignableFrom(cls)){
-					return (T) JDBCUtils.parseSqlResultToMap(rs);
-				}else{
-					if(cls.getClassLoader()==null){//java基本类型
-						return  (T)JDBCUtils.parseSqlResultToBaseType(rs);
-					}else{//java对象
-						return (T) JDBCUtils.parseSqlResultToObject(rs, cls);
-					}
-				}
-			}
-
-
+			return JDBCUtils.parseSqlResultOne(rs,cls);
 		} catch (Exception e) {
 			throw e;
 		}finally{
-			JDBCUtils.close(ps,rs);
+			JDBCUtils.close(rs,ps);
 		}
-		return null;
 	}
-	@SuppressWarnings("unchecked")
 	@Override
 	public <T> List<T> selectList(Connection conn, String sql, Class<? extends T> cls, Object[] params) throws Exception {
 		ResultSet rs = null;
@@ -49,27 +29,13 @@ public class DataBaseDaoImp implements IDataBaseDao{
 		try {
 			ps = conn.prepareStatement(sql);
 			rs = JDBCUtils.preparedSQLReturnRS(ps, sql, params);
-			rs.last();
-			int rowNum = rs.getRow();
-			if(rowNum>0){
-				rs.beforeFirst();
-
-				if(cls==null || Map.class.isAssignableFrom(cls)){//封装成Map
-					return (List<T>) JDBCUtils.parseSqlResultToListMap(rs);
-				}else{
-					if(cls.getClassLoader()==null){//封装成基本类型
-						return (List<T>) JDBCUtils.parseSqlResultToListBaseType(rs);
-					}else{//对象
-						return (List<T>) JDBCUtils.parseSqlResultToListObject(rs,cls);
-					}
-				}
-			}
+			
+			return JDBCUtils.parseSqlResultList(rs, cls);
 		} catch (Exception e) {
 			throw e;
 		}finally{
-			JDBCUtils.close(ps,rs);
+			JDBCUtils.close(rs,ps);
 		}
-		return null;
 	}
 
 	@Override
@@ -123,7 +89,7 @@ public class DataBaseDaoImp implements IDataBaseDao{
 		} catch (Exception e) {
 			throw e;
 		}finally{
-			JDBCUtils.close(ps,rs);
+			JDBCUtils.close(rs,ps);
 		}
 		return null;
 	}

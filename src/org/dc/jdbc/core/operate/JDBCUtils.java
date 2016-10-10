@@ -1,28 +1,31 @@
 package org.dc.jdbc.core.operate;
 
+import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.Types;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-public class JDBCUtils extends BaseJdbc{
+public class JDBCUtils{
 	private static final Log LOG = LogFactory.getLog(JDBCUtils.class);
-	public static void close(PreparedStatement ps,ResultSet rs){
-		close(rs);
-		close(ps);
-	}
-	public static void close(AutoCloseable ac){
-		if(ac!=null){
-			try{
-				ac.close();
-			}catch (Exception e) {
-				LOG.error("",e);
+	
+	public static void close(AutoCloseable...ac){
+		for (int i = 0; i < ac.length; i++) {
+			AutoCloseable autoClose = ac[i];
+			if(autoClose!=null){
+				try {
+					autoClose.close();
+				} catch (Exception e) {
+					LOG.error("",e);
+				}
 			}
 		}
 	}
@@ -64,7 +67,7 @@ public class JDBCUtils extends BaseJdbc{
 	 * @param list
 	 * @throws Exception
 	 */
-	public static List<Object> parseSqlResultToListMap(ResultSet rs) throws Exception{
+	private static List<Object> parseSqlResultToListMap(ResultSet rs) throws Exception{
 		List<Object> list = new ArrayList<Object>();
 		ResultSetMetaData metaData  = rs.getMetaData();
 		int cols_len = metaData.getColumnCount();
@@ -79,7 +82,7 @@ public class JDBCUtils extends BaseJdbc{
 	 * @return
 	 * @throws Exception
 	 */
-	public static Map<?,?> parseSqlResultToMap(ResultSet rs) throws Exception{
+	private static Map<?,?> parseSqlResultToMap(ResultSet rs) throws Exception{
 		ResultSetMetaData metaData  = rs.getMetaData();
 		int cols_len = metaData.getColumnCount();
 		
@@ -93,7 +96,7 @@ public class JDBCUtils extends BaseJdbc{
 	 * @param list
 	 * @throws Exception
 	 */
-	public static List<Object> parseSqlResultToListObject(ResultSet rs,Class<?> cls) throws Exception{
+	private static List<Object> parseSqlResultToListObject(ResultSet rs,Class<?> cls) throws Exception{
 		List<Object> list = new ArrayList<Object>();
 		ResultSetMetaData metaData  = rs.getMetaData();
 		int cols_len = metaData.getColumnCount();
@@ -103,7 +106,7 @@ public class JDBCUtils extends BaseJdbc{
 
 		return list;
 	}
-	public static Object parseSqlResultToObject(ResultSet rs,Class<?> cls) throws Exception{
+	private static Object parseSqlResultToObject(ResultSet rs,Class<?> cls) throws Exception{
 		ResultSetMetaData metaData  = rs.getMetaData();
 		int cols_len = metaData.getColumnCount();
 		return JDBCUtils.getObject(rs, metaData, cls, cols_len);
@@ -121,7 +124,7 @@ public class JDBCUtils extends BaseJdbc{
 		}
 		return list;
 	}
-	public static Object parseSqlResultToBaseType(ResultSet rs) throws Exception{
+	private static Object parseSqlResultToBaseType(ResultSet rs) throws Exception{
 		ResultSetMetaData metaData  = rs.getMetaData();
 		int cols_len = metaData.getColumnCount();//列数
 		if(cols_len>1){
@@ -130,5 +133,103 @@ public class JDBCUtils extends BaseJdbc{
 		Object cols_value = JDBCUtils.getValueByObjectType(metaData, rs, 0);
 		
 		return cols_value;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static <T> T  parseSqlResultOne(ResultSet rs, Class<? extends T> cls) throws Exception {
+		int row = 0;
+		if(rs.last() && (row = rs.getRow())>1){
+			throw new Exception("Query results too much!");
+		}
+		if(row == 0){
+			return null;
+		}
+		if(cls==null || Map.class.isAssignableFrom(cls)){
+			return (T) parseSqlResultToMap(rs);
+		}else{
+			if(cls.getClassLoader()==null){//java基本类型
+				return  (T)parseSqlResultToBaseType(rs);
+			}else{//java对象
+				return (T) parseSqlResultToObject(rs, cls);
+			}
+		}
+	}
+	@SuppressWarnings("unchecked")
+	public static <T> List<T>  parseSqlResultList(ResultSet rs, Class<? extends T> cls) throws Exception {
+		rs.last();
+		int rowNum = rs.getRow();
+		if(rowNum>0){
+			rs.beforeFirst();
+			
+			if(cls==null || Map.class.isAssignableFrom(cls)){//封装成Map
+				return (List<T>) JDBCUtils.parseSqlResultToListMap(rs);
+			}else{
+				if(cls.getClassLoader()==null){//封装成基本类型
+					return (List<T>) JDBCUtils.parseSqlResultToListBaseType(rs);
+				}else{//对象
+					return (List<T>) JDBCUtils.parseSqlResultToListObject(rs,cls);
+				}
+			}
+		}
+		return null;
+	}
+	
+	
+	public static void setParams(PreparedStatement ps, Object[] params) throws Exception {
+		for (int i = 0; i < params.length; i++) {
+			ps.setObject(i+1, params[i]);
+		}
+	}
+	private static Object getObject(ResultSet rs,ResultSetMetaData metaData,Class<?> cls,int cols_len) throws Exception{
+		Object obj_newInsten = cls.newInstance();
+		for(int i = 0; i<cols_len; i++){
+			String cols_name = metaData.getColumnLabel(i+1);  
+			Field field  = null;
+			try{
+				field = obj_newInsten.getClass().getDeclaredField(cols_name);
+			}catch (Exception e) {
+			}
+			if(field!=null){
+				Object cols_value =  JDBCUtils.getValueByObjectType(metaData, rs, i);
+
+				field.setAccessible(true);
+				field.set(obj_newInsten, cols_value);
+			}
+		}
+		return obj_newInsten;
+	}
+	private static Map<?,?> getMap(ResultSet rs,ResultSetMetaData metaData,int cols_len) throws Exception{
+		Map<String, Object> map = new LinkedHashMap<String, Object>();
+		
+		for(int i=0; i<cols_len; i++){
+			String cols_name = metaData.getColumnLabel(i+1);  
+			Object cols_value = JDBCUtils.getValueByObjectType(metaData, rs, i);
+			map.put(cols_name, cols_value);
+		}
+		return map;
+	}
+	private static Object getValueByObjectType(ResultSetMetaData metaData,ResultSet rs,int index) throws Exception{
+		int columnIndex = index+1;
+		Object return_obj = rs.getObject(columnIndex);
+		if(return_obj!=null){
+			int type = metaData.getColumnType(columnIndex);
+			switch (type){
+			case Types.BIT:
+				return_obj = rs.getByte(columnIndex);
+				break;
+			case Types.TINYINT:
+				return_obj = rs.getByte(columnIndex);
+				break;
+			case Types.SMALLINT:
+				return_obj = rs.getShort(columnIndex);
+				break;
+			case Types.LONGVARBINARY:
+				return_obj = rs.getBytes(columnIndex);
+				break;
+			default :
+				return_obj = rs.getObject(columnIndex);
+			}
+		}
+		return return_obj;
 	}
 }
