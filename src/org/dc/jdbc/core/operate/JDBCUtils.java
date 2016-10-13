@@ -77,18 +77,6 @@ public class JDBCUtils{
 		return list;
 	}
 	/**
-	 * 将sql查询结果转化成Map
-	 * @param rs
-	 * @return
-	 * @throws Exception
-	 */
-	private static Map<?,?> parseSqlResultToMap(ResultSet rs) throws Exception{
-		ResultSetMetaData metaData  = rs.getMetaData();
-		int cols_len = metaData.getColumnCount();
-
-		return getMap(rs, metaData, cols_len);
-	}
-	/**
 	 * 将sql查询结果转化成对象
 	 * @param <T>
 	 * @param rs
@@ -106,12 +94,13 @@ public class JDBCUtils{
 
 		return list;
 	}
-	private static Object parseSqlResultToObject(ResultSet rs,Class<?> cls) throws Exception{
-		ResultSetMetaData metaData  = rs.getMetaData();
-		int cols_len = metaData.getColumnCount();
-		return getObject(rs, metaData, cls, cols_len);
-	}
-	public static List<Object> parseSqlResultToListBaseType(ResultSet rs) throws Exception{
+	/**
+	 * 将sql查询结果转化成java基本数据类型
+	 * @param rs
+	 * @return
+	 * @throws Exception
+	 */
+	private static List<Object> parseSqlResultToListBaseType(ResultSet rs) throws Exception{
 		List<Object> list = new ArrayList<Object>();
 		ResultSetMetaData metaData  = rs.getMetaData();
 		int cols_len = metaData.getColumnCount();
@@ -124,57 +113,48 @@ public class JDBCUtils{
 		}
 		return list;
 	}
-	private static Object parseSqlResultToBaseType(ResultSet rs) throws Exception{
-		ResultSetMetaData metaData  = rs.getMetaData();
-		int cols_len = metaData.getColumnCount();//列数
-		if(cols_len>1){
-			throw new Exception("The number of returned data columns is too many");
-		}
-		Object cols_value = getValueByObjectType(metaData, rs, 0);
-
-		return cols_value;
-	}
-
-	@SuppressWarnings("unchecked")
+	/**
+	 * 将sql查询结果封装成cls指定的泛型类型返回，且只返回一个结果
+	 * @param rs
+	 * @param cls
+	 * @return
+	 * @throws Exception 当查询结果超过一个，或者查询失败时，抛出程序可能出现一切异常
+	 */
 	public static <T> T  parseSqlResultOne(ResultSet rs, Class<? extends T> cls) throws Exception {
-		int row = 0;
-		if(rs.last() && (row = rs.getRow())>1){
+		List<T> list = parseSqlResultList(rs, cls);
+		if(list == null){
+			return null;
+		}
+		if(list.size()>1){
 			throw new Exception("Query results too much!");
 		}
-		if(row == 0){
-			return null;
-		}
-		if(cls==null || Map.class.isAssignableFrom(cls)){
-			return (T) parseSqlResultToMap(rs);
-		}else{
-			if(cls.getClassLoader()==null){//java基本类型
-				return  (T)parseSqlResultToBaseType(rs);
-			}else{//java对象
-				return (T) parseSqlResultToObject(rs, cls);
-			}
-		}
+		return list.get(0);
 	}
+	/**
+	 * 将sql查询结果封装成cls指定的泛型类型的集合并
+	 * @param rs
+	 * @param cls
+	 * @return
+	 * @throws Exception 抛出程序可能出现一切异常
+	 */
 	@SuppressWarnings("unchecked")
 	public static <T> List<T>  parseSqlResultList(ResultSet rs, Class<? extends T> cls) throws Exception {
-		rs.last();
-		int rowNum = rs.getRow();
-		if(rowNum == 0){
-			return null;
-		}
-		
-		rs.beforeFirst();
+		List<Object> list = null;
 		if(cls==null || Map.class.isAssignableFrom(cls)){//封装成Map
-			return (List<T>) parseSqlResultToListMap(rs);
+			list = parseSqlResultToListMap(rs);
 		}else{
 			if(cls.getClassLoader()==null){//封装成基本类型
-				return (List<T>) parseSqlResultToListBaseType(rs);
+				list = parseSqlResultToListBaseType(rs);
 			}else{//对象
-				return (List<T>) parseSqlResultToListObject(rs,cls);
+				list = parseSqlResultToListObject(rs, cls);
 			}
 		}
+		if(list==null || list.size()==0){
+			return null;
+		}else{
+			return (List<T>) list;
+		}
 	}
-
-
 	public static void setParams(PreparedStatement ps, Object[] params) throws Exception {
 		for (int i = 0; i < params.length; i++) {
 			ps.setObject(i+1, params[i]);
@@ -198,7 +178,7 @@ public class JDBCUtils{
 		}
 		return obj_newInsten;
 	}
-	private static Map<?,?> getMap(ResultSet rs,ResultSetMetaData metaData,int cols_len) throws Exception{
+	private static Map<String, Object> getMap(ResultSet rs,ResultSetMetaData metaData,int cols_len) throws Exception{
 		Map<String, Object> map = new LinkedHashMap<String, Object>();
 
 		for(int i=0; i<cols_len; i++){
@@ -208,7 +188,15 @@ public class JDBCUtils{
 		}
 		return map;
 	}
-	private static Object getValueByObjectType(ResultSetMetaData metaData,ResultSet rs,int index) throws Exception{
+	/**
+	 * 获取index指定的值，处理java数据类型和数据库类型的转换问题
+	 * @param metaData
+	 * @param rs
+	 * @param index
+	 * @return
+	 * @throws Exception
+	 */
+	public static Object getValueByObjectType(ResultSetMetaData metaData,ResultSet rs,int index) throws Exception{
 		int columnIndex = index+1;
 		Object return_obj = rs.getObject(columnIndex);
 		if(return_obj!=null){

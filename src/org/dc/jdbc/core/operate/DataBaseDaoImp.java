@@ -3,7 +3,9 @@ package org.dc.jdbc.core.operate;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 
 public class DataBaseDaoImp implements IDataBaseDao{
@@ -76,22 +78,25 @@ public class DataBaseDaoImp implements IDataBaseDao{
 			JDBCUtils.setParams(ps, params);
 			ps.executeUpdate();
 			rs = ps.getGeneratedKeys();
-			rs.last();
-			int rowNum = rs.getRow();
-			if(rowNum>0){
-				if(rowNum==1){
-					return (T) rs.getObject(1);
-				}else{
-					rs.beforeFirst();
-					return (T) JDBCUtils.parseSqlResultToListBaseType(rs);
-				}
+			List<Object> list = new ArrayList<Object>();
+			ResultSetMetaData metaData  = rs.getMetaData();
+			while(rs.next()){
+				Object cols_value = JDBCUtils.getValueByObjectType(metaData, rs, 0);
+				list.add(cols_value);
+			}
+			if(list.size()==0){
+				return null;
+			}
+			if(list.size()==1){
+				return (T) list.get(0);
+			}else{
+				return (T) list;
 			}
 		} catch (Exception e) {
 			throw e;
 		}finally{
 			JDBCUtils.close(rs,ps);
 		}
-		return null;
 	}
 
 	@Override
