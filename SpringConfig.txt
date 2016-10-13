@@ -1,0 +1,53 @@
+1,编写事务管理类，加上@Component，保证该类在spring初始化的时候能作为bean加载到spring内核
+@Component
+public class TransactionManager {
+	//用来做环绕通知的方法可以第一个参数定义为org.aspectj.lang.ProceedingJoinPoint类型  
+	public Object doAround(ProceedingJoinPoint call) throws Throwable {
+		Object[] clss = call.getArgs();
+		Class<?>[] argsClass = new Class<?>[clss.length];
+		for (int i = 0; i < argsClass.length; i++) {
+			argsClass[i] = clss[i].getClass();
+		}
+		String methodName = call.getSignature().getName();
+		Method method = call.getTarget().getClass().getDeclaredMethod(methodName, argsClass);
+
+		Transactional transactional  = method.getAnnotation(Transactional.class);
+		if (transactional == null) {
+			//方法无注解，查找类上注解，并判断当前调用方法是否为当前类定义的（防止父类方法触发事务边界）
+			transactional = method.getDeclaringClass().getAnnotation(Transactional.class);
+		}
+
+		if(transactional!=null){//如果不为空，则开启事务
+			if(transactional.readOnly()==false){
+				ConnectionManager.startTransaction();
+			}else{
+				ConnectionManager.setReadOnly();
+			}
+		}
+		Object invokeObj = null;
+		try{
+			//执行目标方法
+			invokeObj = call.proceed();
+			//invokeObj = method.invoke(call.getTarget(), call.getArgs());
+			ConnectionManager.commit();
+		}catch(Throwable e){
+			ConnectionManager.rollback();
+			throw e;
+		}finally{
+			ConnectionManager.closeConnection();
+		}
+		return invokeObj;
+	}
+}
+2，spring.xml添加如下配置，相关扫描路径，记得修改成自己的架包路径
+<!-- 第1步： AOP的配置 -->  
+    <aop:config>  
+        <!-- 第2步：配置一个切面 -->  
+        <aop:aspect id="transactionAspect" ref="transactionManager">  
+            <!-- 第3步：定义切入点,指定切入点表达式 -->  
+            <aop:pointcut id="allMethod" expression="execution(* com.user.manage.web.*.*.service.*.*(..))"/>
+            <!-- 第4步：应用环绕通知 -->  
+            <aop:around method="doAround" pointcut-ref="allMethod" /> 
+               
+        </aop:aspect>  
+    </aop:config>
