@@ -1,6 +1,5 @@
 package org.dc.jdbc.helper;
 
-import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
 
@@ -10,6 +9,7 @@ import org.dc.jdbc.core.ConnectionManager;
 import org.dc.jdbc.core.operate.DataBaseDaoImp;
 import org.dc.jdbc.core.operate.IDataBaseDao;
 import org.dc.jdbc.core.proxy.DataBaseOperateProxy;
+import org.dc.jdbc.entity.SqlContext;
 
 /**
  * 数据持久化操作类
@@ -25,15 +25,15 @@ public class DBHelper {
 		this.dataSource = dataSource;
 	}
 	public <T> T selectOne(String sqlOrID,Class<? extends T> returnClass,Object...params) throws Exception{
-		Connection conn = ConnectionManager.getConnection(dataSource);
-		return dataBaseDao.selectOne(conn,sqlOrID, returnClass, params);
+		SqlContext.getContext().setCurrentDataSource(dataSource);
+		return dataBaseDao.selectOne(null,sqlOrID, returnClass, params);
 	}
 	public Map<String,Object> selectOne(String sqlOrID,Object...params) throws Exception{
 		return this.selectOne(sqlOrID, null,params);
 	}
 	public <T> List<T> selectList(String sqlOrID,Class<? extends T> returnClass,Object...params) throws Exception{
-		Connection conn = ConnectionManager.getConnection(dataSource);
-		return dataBaseDao.selectList(conn, sqlOrID, returnClass, params);
+		SqlContext.getContext().setCurrentDataSource(dataSource);
+		return dataBaseDao.selectList(null, sqlOrID, returnClass, params);
 	}
 	public List<Map<String,Object>> selectList(String sqlOrID,Object...params) throws Exception{
 		return this.selectList(sqlOrID, null, params);
@@ -46,8 +46,8 @@ public class DBHelper {
 	 * @throws Exception
 	 */
 	public int insert(String sqlOrID,Object...params) throws Exception{
-		Connection conn = ConnectionManager.getConnection(dataSource);
-		return dataBaseDao.insert(conn, sqlOrID,null, params);
+		SqlContext.getContext().setCurrentDataSource(dataSource);
+		return dataBaseDao.insert(null, sqlOrID,null, params);
 	}
 	/**
 	 * 插入数据并返回主键
@@ -57,19 +57,19 @@ public class DBHelper {
 	 * @throws Exception
 	 */
 	public Object insertReturnKey(String sqlOrID,Object...params) throws Exception{
-		Connection conn = ConnectionManager.getConnection(dataSource);
-		return dataBaseDao.insertRtnPKKey(conn, sqlOrID,null, params);
+		SqlContext.getContext().setCurrentDataSource(dataSource);
+		return dataBaseDao.insertRtnPKKey(null, sqlOrID,null, params);
 	}
 
 	public int update(String sqlOrID,Object...params) throws Exception{
-		Connection conn = ConnectionManager.getConnection(dataSource);
-		return dataBaseDao.update(conn, sqlOrID,null, params);
+		SqlContext.getContext().setCurrentDataSource(dataSource);
+		return dataBaseDao.update(null, sqlOrID,null, params);
 	}
 
 
 	public int delete(String sqlOrID,Object...params) throws Exception{
-		Connection conn = ConnectionManager.getConnection(dataSource);
-		return dataBaseDao.delete(conn, sqlOrID,null, params);
+		SqlContext.getContext().setCurrentDataSource(dataSource);
+		return dataBaseDao.delete(null, sqlOrID,null, params);
 	}
 	/**
 	 * 回滚之前所有操作

@@ -18,6 +18,14 @@ public class SqlContext{
     private boolean readOnly;
     private Map<DataSource,Connection> dataSourceMap = new HashMap<DataSource,Connection>();
     
+    private DataSource currentDataSource;
+    
+	public DataSource getCurrentDataSource() {
+		return currentDataSource;
+	}
+	public void setCurrentDataSource(DataSource currentDataSource) {
+		this.currentDataSource = currentDataSource;
+	}
 	public Map<DataSource, Connection> getDataSourceMap() {
 		return dataSourceMap;
 	}

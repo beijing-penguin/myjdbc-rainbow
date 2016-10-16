@@ -24,9 +24,6 @@ public class XmlSqlHandler{
 	 */
 	public SqlContext handleRequest(String doSql,Object...params) throws Exception{
 		doSql = doSql.startsWith("$")?SqlContext.sqlSourceMap.get(doSql):doSql;
-		if(doSql==null || doSql.trim().length()==0){
-			throw new Exception("sql is null");
-		}
 		SqlContext sqlContext = SqlContext.getContext();
 		List<Object> returnList = new ArrayList<Object>();
 		Set<String> tableSet =new HashSet<String>();

@@ -17,11 +17,12 @@ import org.dc.jdbc.entity.SqlContext;
 public class ConnectionManager {
 	private static final Log LOG = LogFactory.getLog(ConnectionManager.class);
 
-	//当前线程连接对象的参与元素
+	//设置事物
 	public static void startTransaction(){
 		SqlContext sqlContext = SqlContext.getContext();
 		sqlContext.setTransaction(true);
 	}
+	//设置只读
 	public static void setReadOnly(){
 		SqlContext sqlContext = SqlContext.getContext();
 		sqlContext.setReadOnly(true);

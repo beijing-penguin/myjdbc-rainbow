@@ -3,7 +3,6 @@ package org.dc.jdbc.core.proxy;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-
 import org.dc.jdbc.config.JDBCConfig;
 import org.dc.jdbc.core.ConnectionManager;
 import org.dc.jdbc.core.sqlhandler.PrintSqlLogHandler;
@@ -26,10 +25,9 @@ public class DataBaseOperateProxy implements InvocationHandler{
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 		SqlContext context = SqlContext.getContext();
-		if(args[0].toString()==null || args[0].toString().trim().length()==0){
-			throw new Throwable("connection is null");
-		}
-		XmlSqlHandler.getInstance().handleRequest(args[1].toString(), (Object[])args[3]);		
+		XmlSqlHandler.getInstance().handleRequest(args[1].toString(), (Object[])args[3]);
+		
+		args[0] = ConnectionManager.getConnection(context.getCurrentDataSource());
 		args[1] = context.getSql();
 		args[3] = context.getParams();
 		
@@ -37,7 +35,7 @@ public class DataBaseOperateProxy implements InvocationHandler{
 			PrintSqlLogHandler.getInstance().handleRequest(args[1].toString() , (Object[])args[3]);
 		}
 		Object rt = method.invoke(target, args);
-		if(!context.getTransaction()){
+		if(context.getReadOnly()){
 			ConnectionManager.closeConnection();
 		}
 		return rt;
