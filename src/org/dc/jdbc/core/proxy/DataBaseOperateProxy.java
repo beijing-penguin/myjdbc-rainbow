@@ -6,7 +6,7 @@ import java.lang.reflect.Proxy;
 import org.dc.jdbc.config.JDBCConfig;
 import org.dc.jdbc.core.ConnectionManager;
 import org.dc.jdbc.core.sqlhandler.PrintSqlLogHandler;
-import org.dc.jdbc.core.sqlhandler.XmlSqlHandler;
+import org.dc.jdbc.core.sqlhandler.SqlCoreHandle;
 import org.dc.jdbc.entity.SqlContext;
 
 public class DataBaseOperateProxy implements InvocationHandler{
@@ -25,7 +25,7 @@ public class DataBaseOperateProxy implements InvocationHandler{
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 		SqlContext context = SqlContext.getContext();
-		XmlSqlHandler.getInstance().handleRequest(args[1].toString(), (Object[])args[3]);
+		SqlCoreHandle.getInstance().handleRequest(args[1].toString(), (Object[])args[3]);
 		
 		args[0] = ConnectionManager.getConnection(context.getCurrentDataSource());
 		args[1] = context.getSql();

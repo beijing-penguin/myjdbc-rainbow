@@ -14,9 +14,9 @@ import org.dc.jdbc.sqlparse.Lexer;
 import org.dc.jdbc.sqlparse.Token;
 
 
-public class XmlSqlHandler{
-	private static final XmlSqlHandler oper = new XmlSqlHandler();
-	public static XmlSqlHandler getInstance(){
+public class SqlCoreHandle{
+	private static final SqlCoreHandle oper = new SqlCoreHandle();
+	public static SqlCoreHandle getInstance(){
 		return oper;
 	}
 	/**

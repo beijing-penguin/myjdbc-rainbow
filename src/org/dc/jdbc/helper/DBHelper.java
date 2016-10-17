@@ -20,20 +20,20 @@ import org.dc.jdbc.entity.SqlContext;
 public class DBHelper {
 	private volatile DataSource dataSource;
 	
-	private static final IDataBaseDao dataBaseDao = (IDataBaseDao) new DataBaseOperateProxy(new DataBaseDaoImp()).getProxy();
+	private static final IDataBaseDao dataBaseDaoProxy = (IDataBaseDao) new DataBaseOperateProxy(new DataBaseDaoImp()).getProxy();
 	public DBHelper(DataSource dataSource){
 		this.dataSource = dataSource;
 	}
 	public <T> T selectOne(String sqlOrID,Class<? extends T> returnClass,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
-		return dataBaseDao.selectOne(null,sqlOrID, returnClass, params);
+		return dataBaseDaoProxy.selectOne(null,sqlOrID, returnClass, params);
 	}
 	public Map<String,Object> selectOne(String sqlOrID,Object...params) throws Exception{
 		return this.selectOne(sqlOrID, null,params);
 	}
 	public <T> List<T> selectList(String sqlOrID,Class<? extends T> returnClass,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
-		return dataBaseDao.selectList(null, sqlOrID, returnClass, params);
+		return dataBaseDaoProxy.selectList(null, sqlOrID, returnClass, params);
 	}
 	public List<Map<String,Object>> selectList(String sqlOrID,Object...params) throws Exception{
 		return this.selectList(sqlOrID, null, params);
@@ -47,7 +47,7 @@ public class DBHelper {
 	 */
 	public int insert(String sqlOrID,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
-		return dataBaseDao.insert(null, sqlOrID,null, params);
+		return dataBaseDaoProxy.insert(null, sqlOrID,null, params);
 	}
 	/**
 	 * 插入数据并返回主键
@@ -58,18 +58,18 @@ public class DBHelper {
 	 */
 	public Object insertReturnKey(String sqlOrID,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
-		return dataBaseDao.insertRtnPKKey(null, sqlOrID,null, params);
+		return dataBaseDaoProxy.insertRtnPKKey(null, sqlOrID,null, params);
 	}
 
 	public int update(String sqlOrID,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
-		return dataBaseDao.update(null, sqlOrID,null, params);
+		return dataBaseDaoProxy.update(null, sqlOrID,null, params);
 	}
 
 
 	public int delete(String sqlOrID,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
-		return dataBaseDao.delete(null, sqlOrID,null, params);
+		return dataBaseDaoProxy.delete(null, sqlOrID,null, params);
 	}
 	/**
 	 * 回滚之前所有操作
