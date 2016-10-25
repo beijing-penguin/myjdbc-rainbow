@@ -1,11 +1,13 @@
 package org.dc.jdbc.helper;
 
+import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
 
 import javax.sql.DataSource;
 
-import org.dc.jdbc.core.ConnectionManager;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.dc.jdbc.core.operate.DataBaseDaoImp;
 import org.dc.jdbc.core.operate.IDataBaseDao;
 import org.dc.jdbc.core.proxy.DataBaseOperateProxy;
@@ -19,7 +21,8 @@ import org.dc.jdbc.entity.SqlContext;
  */
 public class DBHelper {
 	private volatile DataSource dataSource;
-	
+
+	private static final Log LOG = LogFactory.getLog(DBHelper.class);
 	private static final IDataBaseDao dataBaseDaoProxy = (IDataBaseDao) new DataBaseOperateProxy(new DataBaseDaoImp()).getProxy();
 	public DBHelper(DataSource dataSource){
 		this.dataSource = dataSource;
@@ -72,10 +75,38 @@ public class DBHelper {
 		return dataBaseDaoProxy.delete(null, sqlOrID,null, params);
 	}
 	/**
-	 * 回滚之前所有操作
+	 * 仅仅只回滚当前连接
 	 * @throws Exception
 	 */
 	public void rollback() throws Exception{
-		ConnectionManager.rollback(dataSource);
+		try{
+			Map<DataSource,Connection> connMap = SqlContext.getContext().getDataSourceMap();
+			Connection conn = connMap.get(dataSource);
+			conn.rollback();
+		}catch (Exception e) {
+			LOG.error("",e);
+		}
+	}
+	/**
+	 * 仅仅只提交当前连接
+	 * @throws Exception
+	 */
+	public void commit() throws Exception{
+		Map<DataSource,Connection> connMap = SqlContext.getContext().getDataSourceMap();
+		Connection conn = connMap.get(dataSource);
+		conn.commit();
+	}
+	/**
+	 * 仅仅只关闭当前连接
+	 * @throws Exception
+	 */
+	public void close(){
+		try{
+			Map<DataSource,Connection> connMap = SqlContext.getContext().getDataSourceMap();
+			Connection conn = connMap.get(dataSource);
+			conn.close();
+		}catch (Exception e) {
+			LOG.error("",e);
+		}
 	}
 }

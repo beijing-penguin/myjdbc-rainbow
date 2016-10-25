@@ -36,7 +36,7 @@ public class DataBaseOperateProxy implements InvocationHandler{
 		}
 		Object rt = method.invoke(target, args);
 		if(context.getReadOnly()){
-			ConnectionManager.closeConnection();
+			ConnectionManager.closeConnectionAll();
 		}
 		return rt;
 	}

@@ -43,7 +43,7 @@ public class ConnectionManager {
 	/**
 	 * 关闭当前操作中的所有连接对象，如果关闭失败，则继续关闭其他conn对象，直到关闭所有连接，改方法属于最后一步的操作，除非线程挂掉或者被kill掉，否则最后一定会被执行。
 	 */
-	public static void closeConnection(){
+	public static void closeConnectionAll(){
 		SqlContext sqlContext = SqlContext.getContext();
 		Map<DataSource,Connection> connMap = sqlContext.getDataSourceMap();
 		for (Connection conn : connMap.values()) {
@@ -60,7 +60,7 @@ public class ConnectionManager {
 	/**
 	 * 回滚所有数据源的操作，正常的数据库能够回滚，回滚异常也不用管，继续回滚下一个数据库，知道回滚操作结束
 	 */
-	public static void rollback() {
+	public static void rollbackAll() {
 		SqlContext sqlContext = SqlContext.getContext();
 		Map<DataSource,Connection> connMap = sqlContext.getDataSourceMap();
 		for (Connection conn : connMap.values()) {
@@ -74,20 +74,10 @@ public class ConnectionManager {
 		}
 	}
 	/**
-	 * 回滚当前连接
-	 * @param dataSource
-	 * @throws Exception 
-	 */
-	public static void rollback(DataSource dataSource) throws Exception {
-		Map<DataSource,Connection> connMap = SqlContext.getContext().getDataSourceMap();
-		Connection conn = connMap.get(dataSource);
-		conn.rollback();
-	}
-	/**
 	 * 保证正常的数据的数据能提交成功，否则直接回滚，并继续执行下一个数据源的提交操作。
 	 * @throws Exception 
 	 */
-	public static void commit() throws Exception{
+	public static void commitAll() throws Exception{
 		SqlContext sqlContext = SqlContext.getContext();
 		Map<DataSource,Connection> connMap = sqlContext.getDataSourceMap();
 		for (Connection conn : connMap.values()) {
