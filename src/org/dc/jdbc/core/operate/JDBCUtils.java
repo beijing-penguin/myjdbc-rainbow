@@ -13,7 +13,11 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
+/**
+ * jdbc api封装成的工具类
+ * @author DC
+ *
+ */
 public class JDBCUtils{
 	private static final Log LOG = LogFactory.getLog(JDBCUtils.class);
 

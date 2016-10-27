@@ -7,7 +7,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-
 public class DataBaseDaoImp implements IDataBaseDao{
 	@Override
 	public  <T> T selectOne(Connection conn,String sql,Class<? extends T> cls,Object[] params) throws Exception{

@@ -3,17 +3,19 @@ package org.dc.jdbc.entity;
 import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import javax.sql.DataSource;
-
+/**
+ * sql上下文
+ * @author DC
+ * @time 2015-8-17
+ */
 public class SqlContext{
 	private static final ThreadLocal<SqlContext> sqlContext = new ThreadLocal<SqlContext>();
 	public static final Map<String,String> sqlSourceMap = new HashMap<String, String>();
 	
 	private String sql;
     private Object[] params;
-    private Set<String> tables;
     private boolean transaction;
     private boolean readOnly;
     private Map<DataSource,Connection> dataSourceMap = new HashMap<DataSource,Connection>();
@@ -55,12 +57,6 @@ public class SqlContext{
 	}
 	public void setReadOnly(boolean readOnly) {
 		this.readOnly = readOnly;
-	}
-	public Set<String> getTables() {
-		return tables;
-	}
-	public void setTables(Set<String> tables) {
-		this.tables = tables;
 	}
 	public static SqlContext getContext(){
 		SqlContext context = sqlContext.get();

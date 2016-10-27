@@ -8,7 +8,11 @@ import org.dc.jdbc.core.ConnectionManager;
 import org.dc.jdbc.core.sqlhandler.PrintSqlLogHandler;
 import org.dc.jdbc.core.sqlhandler.SqlCoreHandle;
 import org.dc.jdbc.entity.SqlContext;
-
+/**
+ * 数据操作层代理
+ * @author DC
+ *
+ */
 public class DataBaseOperateProxy implements InvocationHandler{
 	// 目标对象   
 	private Object target;  
@@ -24,8 +28,9 @@ public class DataBaseOperateProxy implements InvocationHandler{
 
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-		SqlContext context = SqlContext.getContext();
-		SqlCoreHandle.getInstance().handleRequest(args[1].toString(), (Object[])args[3]);
+		String sqlOrId = args[1].toString();
+		String dosql = sqlOrId.startsWith("$")?SqlContext.sqlSourceMap.get(sqlOrId):sqlOrId;
+		SqlContext context = SqlCoreHandle.getInstance().handleRequest(dosql, (Object[])args[3]);
 		
 		args[0] = ConnectionManager.getConnection(context.getCurrentDataSource());
 		args[1] = context.getSql();
