@@ -35,7 +35,13 @@ public class SqlCoreHandle{
 				allParamList.add(param);
 			}else if(Map.class.isAssignableFrom(param.getClass())){
 				Map<?,?> paramMap = (Map<?, ?>) param;
-				allparamMap.putAll(paramMap);
+				for (Object key : paramMap.keySet()) {
+					if(allparamMap.containsKey(key)){
+						throw new Exception("key="+key+" is already repeated");
+					}else{
+						allparamMap.put(key, paramMap.get(key));
+					}
+				}
 			}else if(Object[].class.isAssignableFrom(param.getClass()) || Collection.class.isAssignableFrom(param.getClass())){
 				allParamList.addAll((Collection<?>) param);
 			}else if(param.getClass().getClassLoader()==null){
@@ -45,7 +51,12 @@ public class SqlCoreHandle{
 				for (Field field : fields) {
 					field.setAccessible(true);
 					Object value = field.get(param);
-					allparamMap.put(field.getName(), value);
+					String key = field.getName();
+					if(allparamMap.containsKey(key)){
+						throw new Exception("key="+key+" is already repeated");
+					}else{
+						allparamMap.put(key, value);
+					}
 				}
 			}
 		}

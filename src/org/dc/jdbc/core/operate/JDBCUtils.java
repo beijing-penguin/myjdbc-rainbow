@@ -1,6 +1,7 @@
 package org.dc.jdbc.core.operate;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -173,7 +174,7 @@ public class JDBCUtils{
 				field = obj_newInsten.getClass().getDeclaredField(cols_name);
 			}catch (Exception e) {
 			}
-			if(field!=null){
+			if(field!=null && !Modifier.isStatic(field.getModifiers())){
 				Object cols_value =  getValueByObjectType(metaData, rs, i);
 
 				field.setAccessible(true);
