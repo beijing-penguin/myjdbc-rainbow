@@ -28,34 +28,38 @@ public class SqlCoreHandle{
 		List<Object> returnList = new ArrayList<Object>();
 		StringBuilder sql = new StringBuilder(doSql);
 
-		Map<Object,Object> allparamMap = new HashMap<Object,Object>();
-		List<Object>  allParamList = new ArrayList<Object>();
-		for (Object param : params) {
-			if(param==null){
-				allParamList.add(param);
-			}else if(Map.class.isAssignableFrom(param.getClass())){
-				Map<?,?> paramMap = (Map<?, ?>) param;
-				for (Object key : paramMap.keySet()) {
-					if(allparamMap.containsKey(key)){
-						throw new Exception("key="+key+" is already repeated");
-					}else{
-						allparamMap.put(key, paramMap.get(key));
+		Map<Object,Object> allparamMap = null;
+		List<Object>  allParamList = null;
+		if(params!=null && params.length>0){
+			allparamMap = new HashMap<Object,Object>();
+			allParamList = new ArrayList<Object>();
+			for (Object param : params) {
+				if(param==null){
+					allParamList.add(param);
+				}else if(Map.class.isAssignableFrom(param.getClass())){
+					Map<?,?> paramMap = (Map<?, ?>) param;
+					for (Object key : paramMap.keySet()) {
+						if(allparamMap.containsKey(key)){
+							throw new Exception("key="+key+" is already repeated");
+						}else{
+							allparamMap.put(key, paramMap.get(key));
+						}
 					}
-				}
-			}else if(Object[].class.isAssignableFrom(param.getClass()) || Collection.class.isAssignableFrom(param.getClass())){
-				allParamList.addAll((Collection<?>) param);
-			}else if(param.getClass().getClassLoader()==null){
-				allParamList.add(param);
-			}else { // java对象
-				Field[] fields = param.getClass().getDeclaredFields();
-				for (Field field : fields) {
-					field.setAccessible(true);
-					Object value = field.get(param);
-					String key = field.getName();
-					if(allparamMap.containsKey(key)){
-						throw new Exception("key="+key+" is already repeated");
-					}else{
-						allparamMap.put(key, value);
+				}else if(Object[].class.isAssignableFrom(param.getClass()) || Collection.class.isAssignableFrom(param.getClass())){
+					allParamList.addAll((Collection<?>) param);
+				}else if(param.getClass().getClassLoader()==null){
+					allParamList.add(param);
+				}else { // java对象
+					Field[] fields = param.getClass().getDeclaredFields();
+					for (Field field : fields) {
+						field.setAccessible(true);
+						Object value = field.get(param);
+						String key = field.getName();
+						if(allparamMap.containsKey(key)){
+							throw new Exception("key="+key+" is already repeated");
+						}else{
+							allparamMap.put(key, value);
+						}
 					}
 				}
 			}
@@ -72,7 +76,7 @@ public class SqlCoreHandle{
 			int curpos = lexer.pos();
 			if(tok.name == null && tok == Token.VARIANT){//异类匹配，这里的异类只有#号，sql编写规范的情况下，不需要判断str.contains("#")
 				String key = str.substring(2, str.length()-1);
-				if(!allparamMap.containsKey(key)){
+				if(allparamMap!=null && !allparamMap.containsKey(key)){
 					throw new Exception("sqlhandle analysis error! parameters \""+key+"\" do not match to!");
 				}
 				Object value = allparamMap.get(key);
@@ -89,9 +93,5 @@ public class SqlCoreHandle{
 		sqlContext.setSql(sql.toString());
 		sqlContext.setParams(returnList.toArray());
 		return sqlContext;
-	}
-	public static void main(String[] args) throws Exception {
-		SqlCoreHandle core = new SqlCoreHandle();
-		core.handleRequest("select ");
 	}
 }
