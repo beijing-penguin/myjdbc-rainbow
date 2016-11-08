@@ -1,4 +1,4 @@
-package org.dc.jdbc.helper;
+package org.dc.jdbc.core;
 
 import java.sql.Connection;
 import java.util.List;
@@ -11,7 +11,6 @@ import org.apache.commons.logging.LogFactory;
 import org.dc.jdbc.core.operate.DataBaseDaoImp;
 import org.dc.jdbc.core.operate.IDataBaseDao;
 import org.dc.jdbc.core.proxy.DataBaseOperateProxy;
-import org.dc.jdbc.entity.SqlContext;
 
 /**
  * 数据持久化操作类
@@ -74,6 +73,12 @@ public class DBHelper {
 		SqlContext.getContext().setCurrentDataSource(dataSource);
 		return dataBaseDaoProxy.delete(null, sqlOrID,null, params);
 	}
+	
+	public int excuteSQL(String sqlOrID,Object...params) throws Exception{
+		SqlContext.getContext().setCurrentDataSource(dataSource);
+		return dataBaseDaoProxy.excuteSQL(null, sqlOrID,null, params);
+	}
+	
 	/**
 	 * 仅仅只回滚当前连接
 	 * @throws Exception

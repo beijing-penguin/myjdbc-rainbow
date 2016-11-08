@@ -10,4 +10,5 @@ public interface IDataBaseDao {
 	public int insert(Connection conn,String sql,Class<?> returnClass,Object[] params) throws Exception;
 	public <T> T insertRtnPKKey(Connection conn,String sql,Class<?> returnClass,Object[] params) throws Exception;
 	public  int delete(Connection conn,String sql,Class<?> returnClass,Object[] params) throws Exception;
+	public  int excuteSQL(Connection conn,String sql,Class<?> returnClass,Object[] params) throws Exception;
 }

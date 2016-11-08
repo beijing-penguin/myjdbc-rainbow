@@ -1,4 +1,4 @@
-package org.dc.jdbc.entity;
+package org.dc.jdbc.core;
 
 import java.sql.Connection;
 import java.util.HashMap;

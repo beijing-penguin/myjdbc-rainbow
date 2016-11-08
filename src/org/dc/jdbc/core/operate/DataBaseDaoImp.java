@@ -10,18 +10,14 @@ import java.util.List;
 public class DataBaseDaoImp implements IDataBaseDao{
 	@Override
 	public  <T> T selectOne(Connection conn,String sql,Class<? extends T> cls,Object[] params) throws Exception{
-		ResultSet rs = null;
-		PreparedStatement ps = null;
-		try {
-			ps = conn.prepareStatement(sql);
-			rs = JDBCUtils.preparedSQLReturnRS(ps, sql, params);
-
-			return JDBCUtils.parseSqlResultOne(rs,cls);
-		} catch (Exception e) {
-			throw e;
-		}finally{
-			JDBCUtils.close(rs,ps);
+		List<T> list = this.selectList(conn, sql, cls, params);
+		if(list == null){
+			return null;
 		}
+		if(list.size()>1){
+			throw new Exception("Query results too much!");
+		}
+		return list.get(0);
 	}
 	@Override
 	public <T> List<T> selectList(Connection conn, String sql, Class<? extends T> cls, Object[] params) throws Exception {
@@ -102,5 +98,8 @@ public class DataBaseDaoImp implements IDataBaseDao{
 	public int delete(Connection conn, String sql, Class<?> returnClass,Object[] params) throws Exception {
 		return JDBCUtils.preparedAndExcuteSQL(conn, sql, params);
 	}
-
+	@Override
+	public int excuteSQL(Connection conn, String sql, Class<?> returnClass,Object[] params) throws Exception {
+		return JDBCUtils.preparedAndExcuteSQL(conn, sql, params);
+	}
 }

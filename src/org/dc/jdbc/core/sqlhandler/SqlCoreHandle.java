@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.dc.jdbc.entity.SqlContext;
+import org.dc.jdbc.core.SqlContext;
 import org.dc.jdbc.sqlparse.Lexer;
 import org.dc.jdbc.sqlparse.Token;
 

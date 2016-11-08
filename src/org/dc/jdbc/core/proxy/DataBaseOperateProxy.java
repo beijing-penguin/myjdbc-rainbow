@@ -3,11 +3,12 @@ package org.dc.jdbc.core.proxy;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+
 import org.dc.jdbc.config.JDBCConfig;
 import org.dc.jdbc.core.ConnectionManager;
+import org.dc.jdbc.core.SqlContext;
 import org.dc.jdbc.core.sqlhandler.PrintSqlLogHandler;
 import org.dc.jdbc.core.sqlhandler.SqlCoreHandle;
-import org.dc.jdbc.entity.SqlContext;
 /**
  * 数据操作层代理
  * @author DC
