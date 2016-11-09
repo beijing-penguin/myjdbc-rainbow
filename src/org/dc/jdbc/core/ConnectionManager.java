@@ -58,7 +58,7 @@ public class ConnectionManager {
 		}
 	}
 	/**
-	 * 回滚所有数据源的操作，正常的数据库能够回滚，回滚异常也不用管，继续回滚下一个数据库，知道回滚操作结束
+	 * 回滚所有数据源的操作，正常的数据库能够回滚，回滚异常也不用管，继续回滚下一个数据库，直到回滚操作结束
 	 */
 	public static void rollbackAll() {
 		SqlContext sqlContext = SqlContext.getContext();
@@ -74,7 +74,7 @@ public class ConnectionManager {
 		}
 	}
 	/**
-	 * 保证正常的数据的数据能提交成功，否则直接回滚，并继续执行下一个数据源的提交操作。
+	 * 保证正常的数据的数据能提交成功，否则直接回滚
 	 * @throws Exception 
 	 */
 	public static void commitAll() throws Exception{
