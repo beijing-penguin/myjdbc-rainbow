@@ -8,6 +8,12 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 public class DataBaseDaoImp implements IDataBaseDao{
+	private DataBaseDaoImp(){}
+	
+	private static final DataBaseDaoImp INSTANCE = new DataBaseDaoImp();
+	public static DataBaseDaoImp getInstance(){
+		return INSTANCE;
+	}
 	@Override
 	public  <T> T selectOne(Connection conn,String sql,Class<? extends T> cls,Object[] params) throws Exception{
 		List<T> list = this.selectList(conn, sql, cls, params);
@@ -26,7 +32,7 @@ public class DataBaseDaoImp implements IDataBaseDao{
 		try {
 			ps = conn.prepareStatement(sql);
 			rs = JDBCUtils.preparedSQLReturnRS(ps, sql, params);
-			
+
 			return JDBCUtils.parseSqlResultList(rs, cls);
 		} catch (Exception e) {
 			throw e;
@@ -34,7 +40,7 @@ public class DataBaseDaoImp implements IDataBaseDao{
 			JDBCUtils.close(rs,ps);
 		}
 	}
-
+	
 	@Override
 	public int update(Connection conn, String sql,Class<?> returnClass, Object[] params) throws Exception {
 		return JDBCUtils.preparedAndExcuteSQL(conn, sql, params);
@@ -71,27 +77,30 @@ public class DataBaseDaoImp implements IDataBaseDao{
 		try {
 			ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 			JDBCUtils.setParams(ps, params);
-			ps.executeUpdate();
-			rs = ps.getGeneratedKeys();
-			List<Object> list = new ArrayList<Object>();
-			ResultSetMetaData metaData  = rs.getMetaData();
-			while(rs.next()){
-				Object cols_value = JDBCUtils.getValueByObjectType(metaData, rs, 0);
-				list.add(cols_value);
-			}
-			if(list.size()==0){
-				return null;
-			}
-			if(list.size()==1){
-				return (T) list.get(0);
-			}else{
-				return (T) list;
+			int rowNum = ps.executeUpdate();
+			if(rowNum>0){
+				rs = ps.getGeneratedKeys();
+				List<Object> list = new ArrayList<Object>();
+				ResultSetMetaData metaData  = rs.getMetaData();
+				while(rs.next()){
+					Object cols_value = JDBCUtils.getValueByObjectType(metaData, rs, 0);
+					list.add(cols_value);
+				}
+				if(list.size()==0){
+					return null;
+				}
+				if(list.size()==1){
+					return (T) list.get(0);
+				}else{
+					return (T) list;
+				}
 			}
 		} catch (Exception e) {
 			throw e;
 		}finally{
 			JDBCUtils.close(rs,ps);
 		}
+		return null;
 	}
 
 	@Override

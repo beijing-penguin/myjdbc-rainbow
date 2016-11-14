@@ -87,6 +87,7 @@ public class SqlCoreHandle{
 				if(allParamList!=null){
 					returnList = allParamList;
 				}
+				break;
 			}
 		}
 		SqlContext sqlContext = SqlContext.getContext();

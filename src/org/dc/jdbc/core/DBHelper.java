@@ -22,9 +22,12 @@ public class DBHelper {
 	private volatile DataSource dataSource;
 
 	private static final Log LOG = LogFactory.getLog(DBHelper.class);
-	private static final IDataBaseDao dataBaseDaoProxy = (IDataBaseDao) new DataBaseOperateProxy(new DataBaseDaoImp()).getProxy();
+	private static final IDataBaseDao dataBaseDaoProxy = (IDataBaseDao) new DataBaseOperateProxy(DataBaseDaoImp.getInstance()).getProxy();
 	public DBHelper(DataSource dataSource){
 		this.dataSource = dataSource;
+	}
+	public <T> T selectObject(Object obj) throws Exception{
+		return null;
 	}
 	public <T> T selectOne(String sqlOrID,Class<? extends T> returnClass,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);

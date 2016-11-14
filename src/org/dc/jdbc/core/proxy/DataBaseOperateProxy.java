@@ -24,7 +24,7 @@ public class DataBaseOperateProxy implements InvocationHandler{
 	 */  
 	public DataBaseOperateProxy(Object target) {  
 		super();  
-		this.target = target;  
+		this.target = target;
 	}  
 
 	@Override
