@@ -6,6 +6,7 @@ import java.lang.reflect.Proxy;
 
 import org.dc.jdbc.config.JDBCConfig;
 import org.dc.jdbc.core.ConnectionManager;
+import org.dc.jdbc.core.CacheCenter;
 import org.dc.jdbc.core.SqlContext;
 import org.dc.jdbc.core.sqlhandler.PrintSqlLogHandler;
 import org.dc.jdbc.core.sqlhandler.SqlCoreHandle;
@@ -30,7 +31,7 @@ public class DataBaseOperateProxy implements InvocationHandler{
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 		String sqlOrId = args[1].toString();
-		String dosql = sqlOrId.startsWith("$")?SqlContext.sqlSourceMap.get(sqlOrId):sqlOrId;
+		String dosql = sqlOrId.startsWith("$")?CacheCenter.sqlSourceMap.get(sqlOrId):sqlOrId;
 		SqlContext context = SqlCoreHandle.getInstance().handleRequest(dosql, (Object[])args[3]);
 		
 		args[0] = ConnectionManager.getConnection(context.getCurrentDataSource());

@@ -1,19 +1,25 @@
-package org.dc.jdbc.core.operate;
+package org.dc.jdbc.core.utils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.sql.DataSource;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.dc.jdbc.core.CacheCenter;
+import org.dc.jdbc.core.entity.TableInfo;
 /**
  * jdbc api封装成的工具类
  * @author DC
@@ -216,5 +222,57 @@ public class JDBCUtils{
 			}
 		}
 		return return_obj;
+	}
+
+	public static String getInsertSqlByEntity(Object entity){
+		Class<?> entityClass = entity.getClass();
+		String insertSql = CacheCenter.insertSqlCache.get(entityClass);
+		if(insertSql!=null){
+			return insertSql;
+		}
+		Field[] fieldArr = entityClass.getDeclaredFields();
+		String sql = "INSERT INTO "+entity.getClass().getSimpleName().toUpperCase() +" (";
+		String values = "(";
+		for (int i = 0; i < fieldArr.length; i++) {
+			String fdName = fieldArr[i].getName();
+			sql = sql + fdName + ",";
+
+			values = values+"#{"+fdName+"},";
+		}
+		insertSql = sql.substring(0, sql.length()-1)+")"+" VALUES "+values.substring(0, values.length()-1)+")";
+		return insertSql;
+	}
+	public static void initDataBaseInfo(DataSource dataSource){
+		if(!CacheCenter.databaseInfoCache.containsKey(dataSource)){
+			Connection conn = null;
+			try {
+				List<TableInfo> tabList = new ArrayList<TableInfo>();
+				conn = dataSource.getConnection();
+				DatabaseMetaData meta = conn.getMetaData(); 
+				ResultSet tablesResultSet = meta.getTables(conn.getCatalog(), null, null,new String[] { "TABLE" });  
+				while(tablesResultSet.next()){  
+					String tableName = tablesResultSet.getString("TABLE_NAME");
+					ResultSet primaryKeyResultSet = meta.getPrimaryKeys(conn.getCatalog(),null,tableName);  
+					while(primaryKeyResultSet.next()){  
+						String primaryKeyColumnName = primaryKeyResultSet.getString("COLUMN_NAME");
+						TableInfo tabInfo = new TableInfo();
+						tabInfo.setPrimaryKeyName(primaryKeyColumnName);
+						tabInfo.setTableName(tableName);
+						tabList.add(tabInfo);
+					}
+				}
+				CacheCenter.databaseInfoCache.put(dataSource, tabList);
+			} catch (Exception e) {
+				LOG.info("",e);
+			}finally{
+				try {
+					if(conn!=null && !conn.isClosed()){
+						conn.close();
+					}
+				} catch (SQLException e) {
+					LOG.info("",e);
+				}
+			}
+		}
 	}
 }

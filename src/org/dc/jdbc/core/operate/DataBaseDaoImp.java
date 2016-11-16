@@ -7,6 +7,8 @@ import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.dc.jdbc.core.utils.JDBCUtils;
 public class DataBaseDaoImp implements IDataBaseDao{
 	private DataBaseDaoImp(){}
 	

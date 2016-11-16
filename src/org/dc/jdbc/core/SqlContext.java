@@ -12,7 +12,6 @@ import javax.sql.DataSource;
  */
 public class SqlContext{
 	private static final ThreadLocal<SqlContext> sqlContext = new ThreadLocal<SqlContext>();
-	public static final Map<String,String> sqlSourceMap = new HashMap<String, String>();
 	
 	private String sql;
     private Object[] params;

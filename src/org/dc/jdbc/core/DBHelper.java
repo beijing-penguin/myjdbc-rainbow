@@ -11,6 +11,7 @@ import org.apache.commons.logging.LogFactory;
 import org.dc.jdbc.core.operate.DataBaseDaoImp;
 import org.dc.jdbc.core.operate.IDataBaseDao;
 import org.dc.jdbc.core.proxy.DataBaseOperateProxy;
+import org.dc.jdbc.core.utils.JDBCUtils;
 
 /**
  * 数据持久化操作类
@@ -25,9 +26,7 @@ public class DBHelper {
 	private static final IDataBaseDao dataBaseDaoProxy = (IDataBaseDao) new DataBaseOperateProxy(DataBaseDaoImp.getInstance()).getProxy();
 	public DBHelper(DataSource dataSource){
 		this.dataSource = dataSource;
-	}
-	public <T> T selectObject(Object obj) throws Exception{
-		return null;
+		JDBCUtils.initDataBaseInfo(dataSource);
 	}
 	public <T> T selectOne(String sqlOrID,Class<? extends T> returnClass,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
@@ -55,6 +54,15 @@ public class DBHelper {
 		return dataBaseDaoProxy.insert(null, sqlOrID,null, params);
 	}
 	/**
+	 * 插入一个实体数据，表名为Class类型大写（mysql大小写不敏感，oracle只支持大写）
+	 * @param entity
+	 * @return
+	 * @throws Exception
+	 */
+	public int insert(Object entity) throws Exception{
+		return this.insert(JDBCUtils.getInsertSqlByEntity(entity), entity);
+	}
+	/**
 	 * 插入数据并返回主键
 	 * @param sqlOrID
 	 * @param params
@@ -65,7 +73,9 @@ public class DBHelper {
 		SqlContext.getContext().setCurrentDataSource(dataSource);
 		return dataBaseDaoProxy.insertRtnPKKey(null, sqlOrID,null, params);
 	}
-
+	public Object insertReturnKey(Object entity) throws Exception{
+		return this.insertReturnKey(JDBCUtils.getInsertSqlByEntity(entity), entity);
+	}
 	public int update(String sqlOrID,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
 		return dataBaseDaoProxy.update(null, sqlOrID,null, params);
