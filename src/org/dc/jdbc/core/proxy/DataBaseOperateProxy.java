@@ -33,14 +33,13 @@ public class DataBaseOperateProxy implements InvocationHandler{
 		String sqlOrId = args[1].toString();
 		String dosql = sqlOrId.startsWith("$")?CacheCenter.sqlSourceMap.get(sqlOrId):sqlOrId;
 		SqlContext context = SqlCoreHandle.getInstance().handleRequest(dosql, (Object[])args[3]);
-		
-		args[0] = ConnectionManager.getConnection(context.getCurrentDataSource());
-		args[1] = context.getSql();
-		args[3] = context.getParams();
 		//打印日志
 		if(JDBCConfig.isPrintSqlLog){
-			PrintSqlLogHandler.getInstance().handleRequest(args[1].toString() , (Object[])args[3]);
+			PrintSqlLogHandler.getInstance().handleRequest(context.getSql() , context.getParams());
 		}
+		args[1] = context.getSql();
+		args[3] = context.getParams();
+		args[0] = ConnectionManager.getConnection(context.getCurrentDataSource());
 		Object rt = method.invoke(target, args);
 		//如果为只读事务，关闭连接，避免连接占用时间太长，会阻塞其他线程。
 		if(context.getReadOnly()){

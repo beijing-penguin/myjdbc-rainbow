@@ -15,8 +15,8 @@ public class SqlContext{
 	
 	private String sql;
     private Object[] params;
-    private boolean transaction;
-    private boolean readOnly;
+    private boolean transaction = false;
+    private boolean readOnly = false;
     private Map<DataSource,Connection> dataSourceMap = new HashMap<DataSource,Connection>();
     
     private DataSource currentDataSource;
