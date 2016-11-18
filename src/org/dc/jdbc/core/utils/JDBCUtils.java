@@ -19,7 +19,8 @@ import javax.sql.DataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dc.jdbc.core.CacheCenter;
-import org.dc.jdbc.core.entity.TableInfo;
+import org.dc.jdbc.core.entity.ColumnBean;
+import org.dc.jdbc.core.entity.TableInfoBean;
 /**
  * jdbc api封装成的工具类
  * @author DC
@@ -246,20 +247,39 @@ public class JDBCUtils{
 		if(!CacheCenter.databaseInfoCache.containsKey(dataSource)){
 			Connection conn = null;
 			try {
-				List<TableInfo> tabList = new ArrayList<TableInfo>();
+				List<TableInfoBean> tabList = new ArrayList<TableInfoBean>();
 				conn = dataSource.getConnection();
 				DatabaseMetaData meta = conn.getMetaData(); 
 				ResultSet tablesResultSet = meta.getTables(conn.getCatalog(), null, null,new String[] { "TABLE" });  
-				while(tablesResultSet.next()){  
+				while(tablesResultSet.next()){
+					TableInfoBean tableBean = new TableInfoBean();
 					String tableName = tablesResultSet.getString("TABLE_NAME");
-					ResultSet primaryKeyResultSet = meta.getPrimaryKeys(conn.getCatalog(),null,tableName);  
-					while(primaryKeyResultSet.next()){  
-						String primaryKeyColumnName = primaryKeyResultSet.getString("COLUMN_NAME");
-						TableInfo tabInfo = new TableInfo();
-						tabInfo.setPrimaryKeyName(primaryKeyColumnName);
-						tabInfo.setTableName(tableName);
-						tabList.add(tabInfo);
+
+
+					ResultSet colRS = meta.getColumns(conn.getCatalog(), "%", tableName, "%");
+
+					boolean isGetPK = true;
+					while(colRS.next()){
+						ColumnBean colbean = new ColumnBean();
+						if(isGetPK){
+							ResultSet primaryKeyResultSet = meta.getPrimaryKeys(conn.getCatalog(),null,tableName);  
+							while(primaryKeyResultSet.next()){  
+								String primaryKeyColumnName = primaryKeyResultSet.getString("COLUMN_NAME");
+								colbean.setPrimaryKey(true);
+								colbean.setColumnName(primaryKeyColumnName);
+								isGetPK = false;
+							}
+						}
+						if(colbean.getColumnName()==null){
+							String colName = colRS.getString("COLUMN_NAME");
+							colbean.setColumnName(colName);
+						}
+						
+						//
+						
+						tableBean.getColumnList().add(colbean);
 					}
+					tabList.add(tableBean);
 				}
 				CacheCenter.databaseInfoCache.put(dataSource, tabList);
 			} catch (Exception e) {
