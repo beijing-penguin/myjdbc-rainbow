@@ -167,10 +167,10 @@ public class JDBCUtils{
 	private static Object getObject(ResultSet rs,ResultSetMetaData metaData,Class<?> cls,int cols_len) throws Exception{
 		Object obj_newInsten = cls.newInstance();
 		for(int i = 0; i<cols_len; i++){
-			String cols_name = metaData.getColumnLabel(i+1);  
+			String field_name = getBeanName(metaData.getColumnLabel(i+1));
 			Field field  = null;
 			try{
-				field = obj_newInsten.getClass().getDeclaredField(cols_name);
+				field = obj_newInsten.getClass().getDeclaredField(field_name);
 			}catch (Exception e) {
 			}
 			if(field!=null && !Modifier.isStatic(field.getModifiers())){
@@ -224,23 +224,44 @@ public class JDBCUtils{
 		}
 		return return_obj;
 	}
-
-	public static String getInsertSqlByEntity(Object entity){
+	public static String getInsertSqlByEntity(Object entity,DataSource dataSource){
 		Class<?> entityClass = entity.getClass();
 		String insertSql = CacheCenter.insertSqlCache.get(entityClass);
 		if(insertSql!=null){
 			return insertSql;
 		}
+		List<TableInfoBean>  tabList = CacheCenter.databaseInfoCache.get(dataSource);
+		String insertTabName = null;
+		TableInfoBean tabInfo = null;
+		for (int i = 0; i < tabList.size(); i++) {
+			String tabname = tabList.get(i).getTableName();
+			if(getBeanName(tabname).toUpperCase().equals(getBeanName(entity.getClass().getSimpleName()).toUpperCase())){
+				insertTabName = tabname.toUpperCase();
+				tabInfo = tabList.get(i);
+			}
+		}
+		if(insertTabName==null){
+			insertTabName = entity.getClass().getSimpleName().toUpperCase();
+		}
 		Field[] fieldArr = entityClass.getDeclaredFields();
-		String sql = "INSERT INTO "+entity.getClass().getSimpleName().toUpperCase() +" (";
+		String sql = "INSERT INTO "+insertTabName +" (";
 		String values = "(";
 		for (int i = 0; i < fieldArr.length; i++) {
 			String fdName = fieldArr[i].getName();
+			if(tabInfo!=null){
+				for (int j = 0; j < tabInfo.getColumnList().size(); j++) {
+					ColumnBean col = tabInfo.getColumnList().get(j);
+					if(getBeanName(col.getColumnName()).equals(getBeanName(fdName))){
+						fdName = col.getColumnName().toUpperCase();
+					}
+				}
+			}
 			sql = sql + fdName + ",";
 
 			values = values+"#{"+fdName+"},";
 		}
 		insertSql = sql.substring(0, sql.length()-1)+")"+" VALUES "+values.substring(0, values.length()-1)+")";
+		CacheCenter.insertSqlCache.put(entityClass, insertSql);
 		return insertSql;
 	}
 	public static void initDataBaseInfo(DataSource dataSource){
@@ -250,14 +271,12 @@ public class JDBCUtils{
 				List<TableInfoBean> tabList = new ArrayList<TableInfoBean>();
 				conn = dataSource.getConnection();
 				DatabaseMetaData meta = conn.getMetaData(); 
-				ResultSet tablesResultSet = meta.getTables(conn.getCatalog(), null, null,new String[] { "TABLE" });  
+				ResultSet tablesResultSet = meta.getTables(conn.getCatalog(), null, "%",new String[] { "TABLE" });  
 				while(tablesResultSet.next()){
 					TableInfoBean tableBean = new TableInfoBean();
 					String tableName = tablesResultSet.getString("TABLE_NAME");
-
-
 					ResultSet colRS = meta.getColumns(conn.getCatalog(), "%", tableName, "%");
-
+					tableBean.setTableName(tableName);
 					boolean isGetPK = true;
 					while(colRS.next()){
 						ColumnBean colbean = new ColumnBean();
@@ -274,11 +293,34 @@ public class JDBCUtils{
 							String colName = colRS.getString("COLUMN_NAME");
 							colbean.setColumnName(colName);
 						}
-						
-						//
-						
+
+						//检查字段名规范
+						List<ColumnBean> colList =  tableBean.getColumnList();
+						for (int i = 0; i < colList.size(); i++) {
+							ColumnBean col = colList.get(i);
+							if(getBeanName(col.getColumnName()).toUpperCase().equals(getBeanName(colbean.getColumnName()).toUpperCase())){
+								try{
+									throw new Exception("field name='"+tableName+"."+col.getColumnName()+"' is not standard");
+								}catch(Exception e ){
+									LOG.error("",e);
+								}
+							}
+						}
+
 						tableBean.getColumnList().add(colbean);
+
 					}
+					//检查表明规范
+					for (int i = 0; i < tabList.size(); i++) {
+						if(getBeanName(tabList.get(i).getTableName()).toUpperCase().equals(getBeanName(tableName).toUpperCase())){
+							try{
+								throw new Exception("table name= '"+tabList.get(i).getTableName()+"' is not standard");
+							}catch(Exception e ){
+								LOG.error("",e);
+							}
+						}
+					}
+
 					tabList.add(tableBean);
 				}
 				CacheCenter.databaseInfoCache.put(dataSource, tabList);
@@ -293,6 +335,22 @@ public class JDBCUtils{
 					LOG.info("",e);
 				}
 			}
+		}
+	}
+	/**
+	 * 将字符串转化为java bean驼峰命名规范
+	 * @param str
+	 * @return
+	 */
+	private static String getBeanName(String str){
+		int markIndex = str.lastIndexOf("_");
+		if(markIndex!=-1){
+			String startStr = str.substring(0, markIndex);
+			String endStr = str.substring(markIndex, str.length());
+			String newStr = startStr + endStr.substring(1, 2).toUpperCase()+endStr.substring(2);
+			return getBeanName(newStr);
+		}else{
+			return str;
 		}
 	}
 }

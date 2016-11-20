@@ -60,7 +60,7 @@ public class DBHelper {
 	 * @throws Exception
 	 */
 	public int insert(Object entity) throws Exception{
-		return this.insert(JDBCUtils.getInsertSqlByEntity(entity), entity);
+		return this.insert(JDBCUtils.getInsertSqlByEntity(entity,dataSource), entity);
 	}
 	/**
 	 * 插入数据并返回主键
@@ -74,7 +74,7 @@ public class DBHelper {
 		return dataBaseDaoProxy.insertRtnPKKey(null, sqlOrID,null, params);
 	}
 	public Object insertReturnKey(Object entity) throws Exception{
-		return this.insertReturnKey(JDBCUtils.getInsertSqlByEntity(entity), entity);
+		return this.insertReturnKey(JDBCUtils.getInsertSqlByEntity(entity,dataSource), entity);
 	}
 	public int update(String sqlOrID,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
