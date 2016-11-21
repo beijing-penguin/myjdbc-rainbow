@@ -236,27 +236,28 @@ public class JDBCUtils{
 		for (int i = 0; i < tabList.size(); i++) {
 			String tabname = tabList.get(i).getTableName();
 			if(getBeanName(tabname).toUpperCase().equals(getBeanName(entity.getClass().getSimpleName()).toUpperCase())){
-				insertTabName = tabname.toUpperCase();
+				insertTabName = tabname;
 				tabInfo = tabList.get(i);
 			}
 		}
 		if(insertTabName==null){
-			insertTabName = entity.getClass().getSimpleName().toUpperCase();
+			insertTabName = javaBeanToUnderline(entity.getClass().getSimpleName(),null);
 		}
 		Field[] fieldArr = entityClass.getDeclaredFields();
 		String sql = "INSERT INTO "+insertTabName +" (";
 		String values = "(";
 		for (int i = 0; i < fieldArr.length; i++) {
 			String fdName = fieldArr[i].getName();
+			String colName = fdName;
 			if(tabInfo!=null){
 				for (int j = 0; j < tabInfo.getColumnList().size(); j++) {
 					ColumnBean col = tabInfo.getColumnList().get(j);
 					if(getBeanName(col.getColumnName()).equals(getBeanName(fdName))){
-						fdName = col.getColumnName().toUpperCase();
+						colName = col.getColumnName().toUpperCase();
 					}
 				}
 			}
-			sql = sql + fdName + ",";
+			sql = sql + colName + ",";
 
 			values = values+"#{"+fdName+"},";
 		}
@@ -352,5 +353,27 @@ public class JDBCUtils{
 		}else{
 			return str;
 		}
+	}
+	/**
+	 * 将驼峰命名的java字符串转下划线或者其他分隔符(默认分隔符为下划线)
+	 * @param str
+	 * @return
+	 */
+	public static String javaBeanToUnderline(String str,Character separatorChar){
+		if(str==null || str.length()==0){
+			return null;
+		}
+		if(separatorChar==null){
+			separatorChar = '_';
+		}
+		StringBuilder sb =new StringBuilder(str);
+		for (int i = 1; i < str.length(); i++) {
+			char c = str.charAt(i);
+			if(Character.isUpperCase(c)){
+				sb.replace(i, i+1, String.valueOf(c).toLowerCase());
+				sb.insert(i, separatorChar);
+			}
+		}
+		return sb.toString().toLowerCase();
 	}
 }
