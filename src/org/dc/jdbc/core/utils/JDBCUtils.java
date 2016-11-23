@@ -336,25 +336,28 @@ public class JDBCUtils{
 		return sb.toString().toLowerCase();
 	}
 
-	public static String getInsertSqlByEntity(Object entity,DataSource dataSource){
+	public static String getInsertSqlByEntity(Object entity,DataSource dataSource) throws Exception{
 		Class<?> entityClass = entity.getClass();
 		String insertSql = CacheCenter.INSERT_SQL_CACHE.get(entityClass);
 		if(insertSql!=null){
 			return insertSql;
 		}
 		List<TableInfoBean>  tabList = CacheCenter.DATABASE_INFO_CACHE.get(dataSource);
-		String tabName = javaBeanToUnderline(entity.getClass().getSimpleName(),null);
+		String tablename = null;
 		TableInfoBean tabInfo = null;
 		for (int i = 0; i < tabList.size(); i++) {
 			String tabname = tabList.get(i).getTableName();
-			if(getBeanName(tabname).toUpperCase().equals(getBeanName(entity.getClass().getSimpleName()).toUpperCase())){
-				tabName = tabname;
+			if(getBeanName(tabname).equalsIgnoreCase(getBeanName(entity.getClass().getSimpleName()))){
+				tablename = tabname;
 				tabInfo = tabList.get(i);
 				break;
 			}
 		}
+		if(tablename == null){
+			throw new Exception("table is null");
+		}
 		Field[] fieldArr = entityClass.getDeclaredFields();
-		String sql = "INSERT INTO "+tabName +" (";
+		String sql = "INSERT INTO "+tablename +" (";
 		String values = "(";
 		for (int i = 0; i < fieldArr.length; i++) {
 			Field field = fieldArr[i];
@@ -386,18 +389,18 @@ public class JDBCUtils{
 			return cachesql;
 		}
 		List<TableInfoBean>  tabList = CacheCenter.DATABASE_INFO_CACHE.get(dataSource);
-		String tablename = javaBeanToUnderline(entity.getClass().getSimpleName(),null);
+		String tablename = null;
 		TableInfoBean tabInfo = null;
 		for (int i = 0; i < tabList.size(); i++) {
 			String tabname = tabList.get(i).getTableName();
-			if(getBeanName(tabname).toUpperCase().equals(getBeanName(entity.getClass().getSimpleName()).toUpperCase())){
+			if(getBeanName(tabname).equalsIgnoreCase(getBeanName(entity.getClass().getSimpleName()))){
 				tablename = tabname;
 				tabInfo = tabList.get(i);
 				break;
 			}
 		}
-		if(tablename==null){
-			tablename = javaBeanToUnderline(entity.getClass().getSimpleName(),null);
+		if(tablename == null){
+			throw new Exception("table is null");
 		}
 		Field[] fieldArr = entityClass.getDeclaredFields();
 		String sql = "UPDATE "+tablename +" SET ";
@@ -440,15 +443,18 @@ public class JDBCUtils{
 			return cachesql;
 		}
 		List<TableInfoBean>  tabList = CacheCenter.DATABASE_INFO_CACHE.get(dataSource);
-		String tablename = javaBeanToUnderline(entity.getClass().getSimpleName(),null);
+		String tablename = null;
 		TableInfoBean tabInfo = null;
 		for (int i = 0; i < tabList.size(); i++) {
 			String tabname = tabList.get(i).getTableName();
-			if(getBeanName(tabname).toUpperCase().equals(getBeanName(entity.getClass().getSimpleName()).toUpperCase())){
+			if(getBeanName(tabname).equalsIgnoreCase(getBeanName(entity.getClass().getSimpleName()))){
 				tablename = tabname;
 				tabInfo = tabList.get(i);
 				break;
 			}
+		}
+		if(tablename == null){
+			throw new Exception("table is null");
 		}
 		Field[] fieldArr = entityClass.getDeclaredFields();
 		String sql = "DELETE FROM "+tablename;
