@@ -83,7 +83,8 @@ public class DBHelper {
 		return dataBaseDaoProxy.insertRtnPKKey(sqlOrID,null, params);
 	}
 	public Object insertReturnKey(Object entity) throws Exception{
-		return this.insertReturnKey(JDBCUtils.getInsertSqlByEntity(entity,dataSource), entity);
+		SqlContext.getContext().setCurrentDataSource(dataSource);
+		return dataBaseDaoProxy.insertRtnPKKey(entity);
 	}
 	public int update(String sqlOrID,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
@@ -99,7 +100,8 @@ public class DBHelper {
 		return dataBaseDaoProxy.delete(sqlOrID,null, params);
 	}
 	public int deleteEntity(Object entity) throws Exception{
-		return this.delete(JDBCUtils.getDeleteSqlByEntity(entity,dataSource), entity);
+		//return this.delete(JDBCUtils.getDeleteSqlByEntity(entity,dataSource), entity);
+		return 0;
 	}
 	public int excuteSQL(String sqlOrID,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);

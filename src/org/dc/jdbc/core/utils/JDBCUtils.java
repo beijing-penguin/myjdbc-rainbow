@@ -341,91 +341,14 @@ public class JDBCUtils{
 		for (int i = 0; i < tabList.size(); i++) {
 			TableInfoBean tabInfo = tabList.get(i);
 			String tabname = tabList.get(i).getTableName();
-			if(getBeanName(tabname).equalsIgnoreCase(class_tabName)){
+			if(tabname.equalsIgnoreCase(class_tabName)){
 				return tabInfo;
 			}
 		}
 		return null;
 	}
-	public static String getInsertSqlByEntity(Object entity,DataSource dataSource) throws Exception{
-		Class<?> entityClass = entity.getClass();
-		String insertSql = CacheCenter.INSERT_SQL_CACHE.get(entityClass);
-		if(insertSql!=null){
-			return insertSql;
-		}
-		TableInfoBean tabInfo = getTableInfo(entityClass.getSimpleName(), dataSource);
-		if(tabInfo == null){
-			throw new Exception("table is null");
-		}
-		Field[] fieldArr = entityClass.getDeclaredFields();
-		String sql = "INSERT INTO "+tabInfo.getTableName() +" (";
-		String values = "(";
-		for (int i = 0; i < fieldArr.length; i++) {
-			Field field = fieldArr[i];
-			if(!Modifier.isStatic(field.getModifiers())){//去除静态类型字段
-				String fdName = field.getName();
-				String colName = fdName;
-				if(tabInfo!=null){
-					for (int j = 0; j < tabInfo.getColumnList().size(); j++) {
-						ColumnBean col = tabInfo.getColumnList().get(j);
-						if(getBeanName(col.getColumnName()).equals(getBeanName(fdName))){
-							colName = col.getColumnName().toUpperCase();
-						}
-					}
-				}
-				sql = sql + colName + ",";
 
-				values = values+"#{"+fdName+"},";
-			}
-		}
-		insertSql = sql.substring(0, sql.length()-1)+")"+" VALUES "+values.substring(0, values.length()-1)+")";
-		CacheCenter.INSERT_SQL_CACHE.put(entityClass, insertSql);
-		return insertSql;
-	}
-
-	public static String getUpdateSqlByEntity(Object entity, DataSource dataSource) throws Exception {
-		Class<?> entityClass = entity.getClass();
-		String cachesql =null;
-		TableInfoBean tabInfo = getTableInfo(entityClass.getSimpleName(), dataSource);
-		if(tabInfo == null){
-			throw new Exception("table is null");
-		}
-		Field[] fieldArr = entityClass.getDeclaredFields();
-		String sql = "UPDATE "+tabInfo.getTableName() +" SET ";
-		String where = new String();
-
-		for (int i = 0; i < fieldArr.length; i++) {
-			Field field = fieldArr[i];
-			if(!Modifier.isStatic(field.getModifiers())){//去除静态类型字段
-				String fdName = field.getName();
-				String colName = null;
-				boolean isPK = false;
-				for (int j = 0; j < tabInfo.getColumnList().size(); j++) {
-					ColumnBean col = tabInfo.getColumnList().get(j);
-					if(getBeanName(col.getColumnName()).equalsIgnoreCase(fdName)){
-						colName = col.getColumnName();
-						if(col.isPrimaryKey() && where.length()==0){
-							isPK = true;
-							where = " WHERE " + colName+"="+"#{"+fdName+"}";
-						}
-					}
-				}
-				if(!isPK){
-					field.setAccessible(true);
-					Object value = field.get(entity);
-					if(value!=null && colName!=null){
-						sql = sql + colName + "=" +"#{"+fdName+"},";
-					}
-				}
-			}
-		}
-		if(where.length()==0){
-			throw new Exception("primary key is null");
-		}
-		cachesql = sql.substring(0, sql.length()-1) + where;
-		return cachesql;
-	}
-	public static String getDeleteSqlByEntity(Object entity, DataSource dataSource) throws Exception {
+	/*public static String getDeleteSqlByEntity(Object entity, DataSource dataSource) throws Exception {
 		Class<?> entityClass = entity.getClass();
 		String cachesql = CacheCenter.DELETE_SQL_CACHE.get(entityClass);
 		if(cachesql!=null){
@@ -461,5 +384,5 @@ public class JDBCUtils{
 		cachesql = sql+where;
 		CacheCenter.DELETE_SQL_CACHE.put(entityClass, cachesql);
 		return cachesql;
-	}
+	}*/
 }

@@ -105,51 +105,10 @@ public class SqlCoreHandle{
 	 */
 	public static SqlContext handleUpdateRequest(Object entity) throws Exception{
 		Class<?> entityClass = entity.getClass();
-		TableInfoBean tabInfo = CacheCenter.UPDATE_SQL_TABLE_CACHE.get(entityClass);
-		if(tabInfo==null){
-			tabInfo = JDBCUtils.getTableInfo(entityClass.getSimpleName(), SqlContext.getContext().getCurrentDataSource());
-			CacheCenter.UPDATE_SQL_TABLE_CACHE.put(entityClass, tabInfo);
-		}
-		if(tabInfo == null){
-			throw new Exception("table "+JDBCUtils.javaBeanToSeparator(entityClass.getSimpleName(), null)+" is not exist");
-		}
-		List<Field> fieldList =  CacheCenter.UPDATE_SQL_FIELD_CACHE.get(entityClass);
-		List<String> colNameList = CacheCenter.UPDATE_SQL_COLNAME_CACHE.get(entityClass);
-		if(fieldList==null){
-			fieldList = new ArrayList<Field>();
-			colNameList = new ArrayList<String>();
-			
-			Field[] fieldArr = entityClass.getDeclaredFields();
-			Field pk_field = null;
-			String col_pk_name = null;
-			for (int i = 0; i < fieldArr.length; i++) {
-				Field field = fieldArr[i];
-				if(!Modifier.isStatic(field.getModifiers())){//去除静态类型字段
-					String fdName = field.getName();
-					for (int j = 0; j < tabInfo.getColumnList().size(); j++) {
-						ColumnBean col = tabInfo.getColumnList().get(j);
-						if(JDBCUtils.getBeanName(col.getColumnName()).equalsIgnoreCase(fdName)){
-							if(col.isPrimaryKey()){
-								pk_field = field;
-								col_pk_name = col.getColumnName();
-								break;
-							}else{
-								colNameList.add(col.getColumnName());
-								fieldList.add(field);
-							}
-						}
-					}
-				}
-			}
-			if(col_pk_name==null){
-				throw new Exception("primary key is not exist");
-			}
-			colNameList.add(col_pk_name);
-			fieldList.add(pk_field);
-
-			CacheCenter.UPDATE_SQL_FIELD_CACHE.put(entityClass, fieldList);
-			CacheCenter.UPDATE_SQL_COLNAME_CACHE.put(entityClass, colNameList);
-		}
+		TableInfoBean tabInfo = getTableInfo(entityClass);
+		List<Field> fieldList = getFieldList(entityClass, tabInfo, true);
+		List<String> colNameList = CacheCenter.CLASS_SQL_COLNAME_CACHE.get(entityClass);
+		
 		String sql = "UPDATE "+tabInfo.getTableName() +" SET ";
 		List<Object> paramsList = new ArrayList<Object>();
 		for (int i = 0,len=fieldList.size(); i < len; i++) {
@@ -181,46 +140,84 @@ public class SqlCoreHandle{
 	 */
 	public static SqlContext handleInsertRequest(Object entity) throws Exception{
 		Class<?> entityClass = entity.getClass();
-		TableInfoBean tabInfo = CacheCenter.UPDATE_SQL_TABLE_CACHE.get(entityClass);
+		SqlContext sqlContext = SqlContext.getContext();
+		String insertSql = CacheCenter.INSERT_SQL_CACHE.get(entityClass);
+		TableInfoBean tabInfo = getTableInfo(entityClass);
+		List<Field> fieldList = getFieldList(entityClass, tabInfo, false);
+		List<String> colNameList = CacheCenter.CLASS_SQL_COLNAME_CACHE.get(entityClass);
+		
+		List<Object> paramsList = new ArrayList<Object>();
+		if(insertSql==null){
+			String sql = "INSERT INTO "+tabInfo.getTableName() +" (";
+			String values = "VALUES(";
+			for (int i = 0; i < colNameList.size(); i++) {
+				sql = sql + colNameList.get(i) + ",";
+				values = values + "?,";
+			}
+			insertSql = sql.substring(0,sql.length()-1) +")" + values.substring(0,values.length()-1) + ")";
+			CacheCenter.INSERT_SQL_CACHE.put(entityClass, insertSql);
+		}
+		for (int i = 0; i < fieldList.size(); i++) {
+			Field field = fieldList.get(i);
+			field.setAccessible(true);
+			paramsList.add(fieldList.get(i).get(entity));
+		}
+		sqlContext.setParams(paramsList.toArray());
+		sqlContext.setSql(insertSql);
+		return sqlContext;
+	}
+	
+	public static TableInfoBean getTableInfo(Class<?> entityClass) throws Exception{
+		TableInfoBean tabInfo = CacheCenter.SQL_TABLE_CACHE.get(entityClass);
 		if(tabInfo==null){
 			tabInfo = JDBCUtils.getTableInfo(entityClass.getSimpleName(), SqlContext.getContext().getCurrentDataSource());
-			CacheCenter.INSERT_SQL_TABLE_CACHE.put(entityClass, tabInfo);
+			if(tabInfo == null){
+				throw new Exception("table "+JDBCUtils.javaBeanToSeparator(entityClass.getSimpleName(), null)+" is not exist");
+			}
+			CacheCenter.SQL_TABLE_CACHE.put(entityClass, tabInfo);
 		}
-		if(tabInfo == null){
-			throw new Exception("table "+JDBCUtils.javaBeanToSeparator(entityClass.getSimpleName(), null)+" is not exist");
-		}
-		SqlContext sqlContext = SqlContext.getContext();
-		Class<?> entityClass = entity.getClass();
-		String insertSql = CacheCenter.INSERT_SQL_CACHE.get(entityClass);
-		if(insertSql!=null){
-			sqlContext.setSql(insertSql);
-		}
-		TableInfoBean tabInfo = getTableInfo(entityClass.getSimpleName(), dataSource);
-		if(tabInfo == null){
-			throw new Exception("table is null");
-		}
-		Field[] fieldArr = entityClass.getDeclaredFields();
-		String sql = "INSERT INTO "+tabInfo.getTableName() +" (";
-		String values = "(";
-		for (int i = 0; i < fieldArr.length; i++) {
-			Field field = fieldArr[i];
-			if(!Modifier.isStatic(field.getModifiers())){//去除静态类型字段
-				String fdName = field.getName();
-				String colName = fdName;
-				if(tabInfo!=null){
+		return tabInfo;
+	}
+	public static List<Field> getFieldList(Class<?> entityClass,TableInfoBean tabInfo,boolean ischeckPK) throws Exception{
+		List<Field> fieldList =  CacheCenter.CLASS_SQL_FIELD_CACHE.get(entityClass);
+		List<String> colNameList = CacheCenter.CLASS_SQL_COLNAME_CACHE.get(entityClass);
+		if(fieldList==null){
+			fieldList = new ArrayList<Field>();
+			colNameList = new ArrayList<String>();
+			
+			Field[] fieldArr = entityClass.getDeclaredFields();
+			Field pk_field = null;
+			String col_pk_name = null;
+			for (int i = 0; i < fieldArr.length; i++) {
+				Field field = fieldArr[i];
+				if(!Modifier.isStatic(field.getModifiers())){//去除静态类型字段
+					String fdName = field.getName();
 					for (int j = 0; j < tabInfo.getColumnList().size(); j++) {
 						ColumnBean col = tabInfo.getColumnList().get(j);
-						if(getBeanName(col.getColumnName()).equals(getBeanName(fdName))){
-							colName = col.getColumnName().toUpperCase();
+						if(JDBCUtils.getBeanName(col.getColumnName()).equalsIgnoreCase(fdName)){
+							if(col.isPrimaryKey()){
+								pk_field = field;
+								col_pk_name = col.getColumnName();
+								break;
+							}else{
+								colNameList.add(col.getColumnName());
+								fieldList.add(field);
+							}
 						}
 					}
 				}
-				sql = sql + colName + ",";
-
-				values = values+"#{"+fdName+"},";
 			}
+			if(ischeckPK && col_pk_name==null ){
+				throw new Exception("primary key is not exist");
+			}else{
+				if(col_pk_name!=null){
+					colNameList.add(col_pk_name);
+					fieldList.add(pk_field);
+				}
+			}
+			CacheCenter.CLASS_SQL_FIELD_CACHE.put(entityClass, fieldList);
+			CacheCenter.CLASS_SQL_COLNAME_CACHE.put(entityClass, colNameList);
 		}
-		insertSql = sql.substring(0, sql.length()-1)+")"+" VALUES "+values.substring(0, values.length()-1)+")";
-		CacheCenter.INSERT_SQL_CACHE.put(entityClass, insertSql);
+		return fieldList;
 	}
 }

@@ -124,4 +124,9 @@ public class DataBaseDaoImp implements IDataBaseDao{
 		SqlContext sqlContext = SqlContext.getContext();
 		return JDBCUtils.preparedAndExcuteSQL(sqlContext.getCurrentConnection(), sqlContext.getSql(), sqlContext.getParams());
 	}
+	@Override
+	public Object insertRtnPKKey(Object entity) throws Exception {
+		SqlContext sqlContext = SqlContext.getContext();
+		return this.insertRtnPKKey(sqlContext.getSql(), null, sqlContext.getParams());
+	}
 }

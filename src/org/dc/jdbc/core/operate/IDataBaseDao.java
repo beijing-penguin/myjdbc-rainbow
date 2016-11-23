@@ -13,4 +13,5 @@ public interface IDataBaseDao {
 	
 	public int updateEntity(Object entity) throws Exception;
 	public int insertEntity(Object entity) throws Exception;
+	public Object insertRtnPKKey(Object entity) throws Exception;
 }
