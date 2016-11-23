@@ -13,6 +13,5 @@ public class CacheCenter {
 	public static final Map<String,String> SQL_SOURCE_MAP = new HashMap<String, String>();
 	public static final Map<DataSource,List<TableInfoBean>> DATABASE_INFO_CACHE = new ConcurrentHashMap<DataSource, List<TableInfoBean>>();
 	public static final Map<Class<?>,String> INSERT_SQL_CACHE = new ConcurrentHashMap<Class<?>,String>();
-	public static final Map<Class<?>,String> UPDATE_SQL_CACHE = new ConcurrentHashMap<Class<?>,String>();
 	public static final Map<Class<?>,String> DELETE_SQL_CACHE = new ConcurrentHashMap<Class<?>,String>();
 }

@@ -384,10 +384,7 @@ public class JDBCUtils{
 
 	public static String getUpdateSqlByEntity(Object entity, DataSource dataSource) throws Exception {
 		Class<?> entityClass = entity.getClass();
-		String cachesql = CacheCenter.UPDATE_SQL_CACHE.get(entityClass);
-		if(cachesql!=null){
-			return cachesql;
-		}
+		String cachesql =null;
 		List<TableInfoBean>  tabList = CacheCenter.DATABASE_INFO_CACHE.get(dataSource);
 		String tablename = null;
 		TableInfoBean tabInfo = null;
@@ -425,7 +422,11 @@ public class JDBCUtils{
 					}
 				}
 				if(!isPK){
-					sql = sql + colName + "=" +"#{"+fdName+"},";
+					field.setAccessible(true);
+					Object value = field.get(entity);
+					if(value!=null){
+						sql = sql + colName + "=" +"#{"+fdName+"},";
+					}
 				}
 			}
 		}
@@ -433,7 +434,6 @@ public class JDBCUtils{
 			throw new Exception("primary key is null");
 		}
 		cachesql = sql.substring(0, sql.length()-1) + where;
-		CacheCenter.UPDATE_SQL_CACHE.put(entityClass, cachesql);
 		return cachesql;
 	}
 	public static String getDeleteSqlByEntity(Object entity, DataSource dataSource) throws Exception {
