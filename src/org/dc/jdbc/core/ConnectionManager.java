@@ -33,6 +33,7 @@ public class ConnectionManager {
 		if(conn==null || conn.isClosed()){
 			conn = dataSource.getConnection();
 			sqlContext.getDataSourceMap().put(dataSource, conn);
+			sqlContext.setCurrentConnection(conn);
 		}
 		//设置事务
 		conn.setAutoCommit(!sqlContext.getTransaction());

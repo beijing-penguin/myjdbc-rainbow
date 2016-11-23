@@ -30,17 +30,30 @@ public class DataBaseOperateProxy implements InvocationHandler{
 
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-		String sqlOrId = args[1].toString();
-		String dosql = sqlOrId.startsWith("$")?CacheCenter.SQL_SOURCE_MAP.get(sqlOrId):sqlOrId;
-		SqlContext context = SqlCoreHandle.getInstance().handleRequest(dosql, (Object[])args[3]);
+		SqlContext context = SqlContext.getContext();
+		if(args.length==1){
+			String methodName = method.getName();
+			if(methodName.equals("updateEntity")){
+				context = SqlCoreHandle.handleUpdateRequest(args[0]);
+			}else if(methodName.equals("insertEntity")){
+				
+			}
+		}else{
+			String sqlOrId = args[0].toString();
+			String dosql = sqlOrId.startsWith("$")?CacheCenter.SQL_SOURCE_MAP.get(sqlOrId):sqlOrId;
+			context = SqlCoreHandle.handleRequest(dosql, (Object[])args[2]);
+			args[0] = context.getSql();
+			args[2] = context.getParams();
+		}
 		//打印日志
 		if(JDBCConfig.isPrintSqlLog){
 			PrintSqlLogHandler.getInstance().handleRequest(context.getSql() , context.getParams());
 		}
-		args[1] = context.getSql();
-		args[3] = context.getParams();
-		args[0] = ConnectionManager.getConnection(context.getCurrentDataSource());
+		//获取连接
+		ConnectionManager.getConnection(context.getCurrentDataSource());
+		
 		Object rt = method.invoke(target, args);
+		
 		//如果为只读事务，关闭连接，避免连接占用时间太长，会阻塞其他线程。
 		if(context.getReadOnly()){
 			ConnectionManager.closeConnectionAll();

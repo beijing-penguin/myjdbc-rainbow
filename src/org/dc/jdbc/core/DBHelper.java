@@ -30,7 +30,7 @@ public class DBHelper {
 	}
 	public <T> T selectOne(String sqlOrID,Class<? extends T> returnClass,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
-		return dataBaseDaoProxy.selectOne(null,sqlOrID, returnClass, params);
+		return dataBaseDaoProxy.selectOne(sqlOrID, returnClass, params);
 	}
 	public Map<String,Object> selectOne(String sqlOrID,Object...params) throws Exception{
 		return this.selectOne(sqlOrID, null,params);
@@ -45,7 +45,7 @@ public class DBHelper {
 	 */
 	public <T> List<T> selectList(String sqlOrID,Class<? extends T> returnClass,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
-		return dataBaseDaoProxy.selectList(null, sqlOrID, returnClass, params);
+		return dataBaseDaoProxy.selectList(sqlOrID, returnClass, params);
 	}
 	public List<Map<String,Object>> selectList(String sqlOrID,Object...params) throws Exception{
 		return this.selectList(sqlOrID, null, params);
@@ -59,7 +59,7 @@ public class DBHelper {
 	 */
 	public int insert(String sqlOrID,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
-		return dataBaseDaoProxy.insert(null, sqlOrID,null, params);
+		return dataBaseDaoProxy.insert(sqlOrID,null, params);
 	}
 	/**
 	 * 插入一个实体数据,请保证数据库创建表名规范，敏感型数据库，表名需要全部小写。
@@ -67,8 +67,9 @@ public class DBHelper {
 	 * @return
 	 * @throws Exception
 	 */
-	public int insert(Object entity) throws Exception{
-		return this.insert(JDBCUtils.getInsertSqlByEntity(entity,dataSource), entity);
+	public int insertEntity(Object entity) throws Exception{
+		SqlContext.getContext().setCurrentDataSource(dataSource);
+		return dataBaseDaoProxy.insertEntity(entity);
 	}
 	/**
 	 * 插入数据并返回主键
@@ -79,29 +80,30 @@ public class DBHelper {
 	 */
 	public Object insertReturnKey(String sqlOrID,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
-		return dataBaseDaoProxy.insertRtnPKKey(null, sqlOrID,null, params);
+		return dataBaseDaoProxy.insertRtnPKKey(sqlOrID,null, params);
 	}
 	public Object insertReturnKey(Object entity) throws Exception{
 		return this.insertReturnKey(JDBCUtils.getInsertSqlByEntity(entity,dataSource), entity);
 	}
 	public int update(String sqlOrID,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
-		return dataBaseDaoProxy.update(null, sqlOrID,null, params);
+		return dataBaseDaoProxy.update(sqlOrID,null, params);
 	}
 	public int updateEntity(Object entity) throws Exception{
-		return this.update(JDBCUtils.getUpdateSqlByEntity(entity,dataSource), entity);
+		SqlContext.getContext().setCurrentDataSource(dataSource);
+		return dataBaseDaoProxy.updateEntity(entity);
 	}
 
 	public int delete(String sqlOrID,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
-		return dataBaseDaoProxy.delete(null, sqlOrID,null, params);
+		return dataBaseDaoProxy.delete(sqlOrID,null, params);
 	}
 	public int deleteEntity(Object entity) throws Exception{
 		return this.delete(JDBCUtils.getDeleteSqlByEntity(entity,dataSource), entity);
 	}
 	public int excuteSQL(String sqlOrID,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
-		return dataBaseDaoProxy.excuteSQL(null, sqlOrID,null, params);
+		return dataBaseDaoProxy.excuteSQL(sqlOrID,null, params);
 	}
 	
 	/**

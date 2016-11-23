@@ -302,7 +302,7 @@ public class JDBCUtils{
 	 * @param str
 	 * @return
 	 */
-	private static String getBeanName(String str){
+	public static String getBeanName(String str){
 		int markIndex = str.lastIndexOf("_");
 		if(markIndex!=-1){
 			String startStr = str.substring(0, markIndex);
@@ -318,7 +318,7 @@ public class JDBCUtils{
 	 * @param str
 	 * @return
 	 */
-	public static String javaBeanToUnderline(String str,Character separatorChar){
+	public static String javaBeanToSeparator(String str,Character separatorChar){
 		if(str==null || str.length()==0){
 			return null;
 		}
@@ -335,29 +335,30 @@ public class JDBCUtils{
 		}
 		return sb.toString().toLowerCase();
 	}
-
+	public static TableInfoBean getTableInfo(String className,DataSource dataSource){
+		String class_tabName = javaBeanToSeparator(className, null);
+		List<TableInfoBean> tabList = CacheCenter.DATABASE_INFO_CACHE.get(dataSource);
+		for (int i = 0; i < tabList.size(); i++) {
+			TableInfoBean tabInfo = tabList.get(i);
+			String tabname = tabList.get(i).getTableName();
+			if(getBeanName(tabname).equalsIgnoreCase(class_tabName)){
+				return tabInfo;
+			}
+		}
+		return null;
+	}
 	public static String getInsertSqlByEntity(Object entity,DataSource dataSource) throws Exception{
 		Class<?> entityClass = entity.getClass();
 		String insertSql = CacheCenter.INSERT_SQL_CACHE.get(entityClass);
 		if(insertSql!=null){
 			return insertSql;
 		}
-		List<TableInfoBean>  tabList = CacheCenter.DATABASE_INFO_CACHE.get(dataSource);
-		String tablename = null;
-		TableInfoBean tabInfo = null;
-		for (int i = 0; i < tabList.size(); i++) {
-			String tabname = tabList.get(i).getTableName();
-			if(getBeanName(tabname).equalsIgnoreCase(getBeanName(entity.getClass().getSimpleName()))){
-				tablename = tabname;
-				tabInfo = tabList.get(i);
-				break;
-			}
-		}
-		if(tablename == null){
+		TableInfoBean tabInfo = getTableInfo(entityClass.getSimpleName(), dataSource);
+		if(tabInfo == null){
 			throw new Exception("table is null");
 		}
 		Field[] fieldArr = entityClass.getDeclaredFields();
-		String sql = "INSERT INTO "+tablename +" (";
+		String sql = "INSERT INTO "+tabInfo.getTableName() +" (";
 		String values = "(";
 		for (int i = 0; i < fieldArr.length; i++) {
 			Field field = fieldArr[i];
@@ -373,7 +374,7 @@ public class JDBCUtils{
 					}
 				}
 				sql = sql + colName + ",";
-	
+
 				values = values+"#{"+fdName+"},";
 			}
 		}
@@ -385,46 +386,34 @@ public class JDBCUtils{
 	public static String getUpdateSqlByEntity(Object entity, DataSource dataSource) throws Exception {
 		Class<?> entityClass = entity.getClass();
 		String cachesql =null;
-		List<TableInfoBean>  tabList = CacheCenter.DATABASE_INFO_CACHE.get(dataSource);
-		String tablename = null;
-		TableInfoBean tabInfo = null;
-		for (int i = 0; i < tabList.size(); i++) {
-			String tabname = tabList.get(i).getTableName();
-			if(getBeanName(tabname).equalsIgnoreCase(getBeanName(entity.getClass().getSimpleName()))){
-				tablename = tabname;
-				tabInfo = tabList.get(i);
-				break;
-			}
-		}
-		if(tablename == null){
+		TableInfoBean tabInfo = getTableInfo(entityClass.getSimpleName(), dataSource);
+		if(tabInfo == null){
 			throw new Exception("table is null");
 		}
 		Field[] fieldArr = entityClass.getDeclaredFields();
-		String sql = "UPDATE "+tablename +" SET ";
+		String sql = "UPDATE "+tabInfo.getTableName() +" SET ";
 		String where = new String();
 
 		for (int i = 0; i < fieldArr.length; i++) {
 			Field field = fieldArr[i];
 			if(!Modifier.isStatic(field.getModifiers())){//去除静态类型字段
 				String fdName = field.getName();
-				String colName = fdName;
+				String colName = null;
 				boolean isPK = false;
-				if(tabInfo!=null){
-					for (int j = 0; j < tabInfo.getColumnList().size(); j++) {
-						ColumnBean col = tabInfo.getColumnList().get(j);
-						if(getBeanName(col.getColumnName()).equals(getBeanName(fdName))){
-							colName = col.getColumnName().toUpperCase();
-							if(col.isPrimaryKey() && where.length()==0){
-								isPK = true;
-								where = " WHERE " + colName+"="+"#{"+fdName+"}";
-							}
+				for (int j = 0; j < tabInfo.getColumnList().size(); j++) {
+					ColumnBean col = tabInfo.getColumnList().get(j);
+					if(getBeanName(col.getColumnName()).equalsIgnoreCase(fdName)){
+						colName = col.getColumnName();
+						if(col.isPrimaryKey() && where.length()==0){
+							isPK = true;
+							where = " WHERE " + colName+"="+"#{"+fdName+"}";
 						}
 					}
 				}
 				if(!isPK){
 					field.setAccessible(true);
 					Object value = field.get(entity);
-					if(value!=null){
+					if(value!=null && colName!=null){
 						sql = sql + colName + "=" +"#{"+fdName+"},";
 					}
 				}
@@ -442,37 +431,25 @@ public class JDBCUtils{
 		if(cachesql!=null){
 			return cachesql;
 		}
-		List<TableInfoBean>  tabList = CacheCenter.DATABASE_INFO_CACHE.get(dataSource);
-		String tablename = null;
-		TableInfoBean tabInfo = null;
-		for (int i = 0; i < tabList.size(); i++) {
-			String tabname = tabList.get(i).getTableName();
-			if(getBeanName(tabname).equalsIgnoreCase(getBeanName(entity.getClass().getSimpleName()))){
-				tablename = tabname;
-				tabInfo = tabList.get(i);
-				break;
-			}
-		}
-		if(tablename == null){
+		TableInfoBean tabInfo = getTableInfo(entityClass.getSimpleName(), dataSource);
+		if(tabInfo == null){
 			throw new Exception("table is null");
 		}
 		Field[] fieldArr = entityClass.getDeclaredFields();
-		String sql = "DELETE FROM "+tablename;
+		String sql = "DELETE FROM "+tabInfo.getTableName();
 		String where = new String();
 
 		for (int i = 0; i < fieldArr.length; i++) {
 			Field field = fieldArr[i];
 			if(!Modifier.isStatic(field.getModifiers())){//去除静态类型字段
+				String colName = null;
 				String fdName = field.getName();
-				String colName = fdName;
-				if(tabInfo!=null){
-					for (int j = 0; j < tabInfo.getColumnList().size(); j++) {
-						ColumnBean col = tabInfo.getColumnList().get(j);
-						if(getBeanName(col.getColumnName()).equals(getBeanName(fdName))){
-							colName = col.getColumnName().toUpperCase();
-							if(col.isPrimaryKey() && where.length()==0){
-								where = " WHERE " + colName+"="+"#{"+fdName+"}";
-							}
+				for (int j = 0; j < tabInfo.getColumnList().size(); j++) {
+					ColumnBean col = tabInfo.getColumnList().get(j);
+					if(getBeanName(col.getColumnName()).equalsIgnoreCase(fdName)){
+						colName = col.getColumnName();
+						if(col.isPrimaryKey() && where.length()==0){
+							where = " WHERE " + colName+"="+"#{"+fdName+"}";
 						}
 					}
 				}
