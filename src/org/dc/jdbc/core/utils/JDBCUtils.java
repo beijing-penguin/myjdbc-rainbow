@@ -335,7 +335,7 @@ public class JDBCUtils{
 		}
 		return sb.toString().toLowerCase();
 	}
-	
+
 	public static String getInsertSqlByEntity(Object entity,DataSource dataSource){
 		Class<?> entityClass = entity.getClass();
 		String insertSql = CacheCenter.INSERT_SQL_CACHE.get(entityClass);
@@ -357,25 +357,28 @@ public class JDBCUtils{
 		String sql = "INSERT INTO "+tabName +" (";
 		String values = "(";
 		for (int i = 0; i < fieldArr.length; i++) {
-			String fdName = fieldArr[i].getName();
-			String colName = fdName;
-			if(tabInfo!=null){
-				for (int j = 0; j < tabInfo.getColumnList().size(); j++) {
-					ColumnBean col = tabInfo.getColumnList().get(j);
-					if(getBeanName(col.getColumnName()).equals(getBeanName(fdName))){
-						colName = col.getColumnName().toUpperCase();
+			Field field = fieldArr[i];
+			if(!Modifier.isStatic(field.getModifiers())){//去除静态类型字段
+				String fdName = field.getName();
+				String colName = fdName;
+				if(tabInfo!=null){
+					for (int j = 0; j < tabInfo.getColumnList().size(); j++) {
+						ColumnBean col = tabInfo.getColumnList().get(j);
+						if(getBeanName(col.getColumnName()).equals(getBeanName(fdName))){
+							colName = col.getColumnName().toUpperCase();
+						}
 					}
 				}
+				sql = sql + colName + ",";
+	
+				values = values+"#{"+fdName+"},";
 			}
-			sql = sql + colName + ",";
-
-			values = values+"#{"+fdName+"},";
 		}
 		insertSql = sql.substring(0, sql.length()-1)+")"+" VALUES "+values.substring(0, values.length()-1)+")";
 		CacheCenter.INSERT_SQL_CACHE.put(entityClass, insertSql);
 		return insertSql;
 	}
-	
+
 	public static String getUpdateSqlByEntity(Object entity, DataSource dataSource) throws Exception {
 		Class<?> entityClass = entity.getClass();
 		String cachesql = CacheCenter.UPDATE_SQL_CACHE.get(entityClass);
@@ -399,26 +402,28 @@ public class JDBCUtils{
 		Field[] fieldArr = entityClass.getDeclaredFields();
 		String sql = "UPDATE "+tablename +" SET ";
 		String where = new String();
-		
+
 		for (int i = 0; i < fieldArr.length; i++) {
-			Field filed = fieldArr[i];
-			String fdName = filed.getName();
-			String colName = fdName;
-			boolean isPK = false;
-			if(tabInfo!=null){
-				for (int j = 0; j < tabInfo.getColumnList().size(); j++) {
-					ColumnBean col = tabInfo.getColumnList().get(j);
-					if(getBeanName(col.getColumnName()).equals(getBeanName(fdName))){
-						colName = col.getColumnName().toUpperCase();
-						if(col.isPrimaryKey() && where.length()==0){
-							isPK = true;
-							where = " WHERE " + colName+"="+"#{"+fdName+"}";
+			Field field = fieldArr[i];
+			if(!Modifier.isStatic(field.getModifiers())){//去除静态类型字段
+				String fdName = field.getName();
+				String colName = fdName;
+				boolean isPK = false;
+				if(tabInfo!=null){
+					for (int j = 0; j < tabInfo.getColumnList().size(); j++) {
+						ColumnBean col = tabInfo.getColumnList().get(j);
+						if(getBeanName(col.getColumnName()).equals(getBeanName(fdName))){
+							colName = col.getColumnName().toUpperCase();
+							if(col.isPrimaryKey() && where.length()==0){
+								isPK = true;
+								where = " WHERE " + colName+"="+"#{"+fdName+"}";
+							}
 						}
 					}
 				}
-			}
-			if(!isPK){
-				sql = sql + colName + "=" +"#{"+fdName+"},";
+				if(!isPK){
+					sql = sql + colName + "=" +"#{"+fdName+"},";
+				}
 			}
 		}
 		if(where.length()==0){
@@ -448,18 +453,20 @@ public class JDBCUtils{
 		Field[] fieldArr = entityClass.getDeclaredFields();
 		String sql = "DELETE FROM "+tablename;
 		String where = new String();
-		
+
 		for (int i = 0; i < fieldArr.length; i++) {
-			Field filed = fieldArr[i];
-			String fdName = filed.getName();
-			String colName = fdName;
-			if(tabInfo!=null){
-				for (int j = 0; j < tabInfo.getColumnList().size(); j++) {
-					ColumnBean col = tabInfo.getColumnList().get(j);
-					if(getBeanName(col.getColumnName()).equals(getBeanName(fdName))){
-						colName = col.getColumnName().toUpperCase();
-						if(col.isPrimaryKey() && where.length()==0){
-							where = " WHERE " + colName+"="+"#{"+fdName+"}";
+			Field field = fieldArr[i];
+			if(!Modifier.isStatic(field.getModifiers())){//去除静态类型字段
+				String fdName = field.getName();
+				String colName = fdName;
+				if(tabInfo!=null){
+					for (int j = 0; j < tabInfo.getColumnList().size(); j++) {
+						ColumnBean col = tabInfo.getColumnList().get(j);
+						if(getBeanName(col.getColumnName()).equals(getBeanName(fdName))){
+							colName = col.getColumnName().toUpperCase();
+							if(col.isPrimaryKey() && where.length()==0){
+								where = " WHERE " + colName+"="+"#{"+fdName+"}";
+							}
 						}
 					}
 				}
