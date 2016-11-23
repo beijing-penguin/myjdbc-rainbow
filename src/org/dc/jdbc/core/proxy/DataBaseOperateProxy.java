@@ -31,7 +31,7 @@ public class DataBaseOperateProxy implements InvocationHandler{
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 		String sqlOrId = args[1].toString();
-		String dosql = sqlOrId.startsWith("$")?CacheCenter.sqlSourceMap.get(sqlOrId):sqlOrId;
+		String dosql = sqlOrId.startsWith("$")?CacheCenter.SQL_SOURCE_MAP.get(sqlOrId):sqlOrId;
 		SqlContext context = SqlCoreHandle.getInstance().handleRequest(dosql, (Object[])args[3]);
 		//打印日志
 		if(JDBCConfig.isPrintSqlLog){

@@ -62,7 +62,7 @@ public class DBHelper {
 		return dataBaseDaoProxy.insert(null, sqlOrID,null, params);
 	}
 	/**
-	 * 插入一个实体数据，表名为Class类型大写（mysql大小写不敏感，oracle只支持大写）
+	 * 插入一个实体数据,请保证数据库创建表名规范，敏感型数据库，表名需要全部小写。
 	 * @param entity
 	 * @return
 	 * @throws Exception
@@ -88,13 +88,17 @@ public class DBHelper {
 		SqlContext.getContext().setCurrentDataSource(dataSource);
 		return dataBaseDaoProxy.update(null, sqlOrID,null, params);
 	}
-
+	public int updateEntity(Object entity) throws Exception{
+		return this.update(JDBCUtils.getUpdateSqlByEntity(entity,dataSource), entity);
+	}
 
 	public int delete(String sqlOrID,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
 		return dataBaseDaoProxy.delete(null, sqlOrID,null, params);
 	}
-	
+	public int deleteEntity(Object entity) throws Exception{
+		return this.delete(JDBCUtils.getDeleteSqlByEntity(entity,dataSource), entity);
+	}
 	public int excuteSQL(String sqlOrID,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
 		return dataBaseDaoProxy.excuteSQL(null, sqlOrID,null, params);
