@@ -111,6 +111,11 @@ public class DataBaseDaoImp implements IDataBaseDao{
 		return JDBCUtils.preparedAndExcuteSQL(SqlContext.getContext().getCurrentConnection(), sql, params);
 	}
 	@Override
+	public int deleteEntity(Object entity) throws Exception {
+		SqlContext sqlContext = SqlContext.getContext();
+		return JDBCUtils.preparedAndExcuteSQL(sqlContext.getCurrentConnection(), sqlContext.getSql(), sqlContext.getParams());
+	}
+	@Override
 	public int excuteSQL(String sql, Class<?> returnClass,Object[] params) throws Exception {
 		return JDBCUtils.preparedAndExcuteSQL(SqlContext.getContext().getCurrentConnection(), sql, params);
 	}
@@ -125,7 +130,7 @@ public class DataBaseDaoImp implements IDataBaseDao{
 		return JDBCUtils.preparedAndExcuteSQL(sqlContext.getCurrentConnection(), sqlContext.getSql(), sqlContext.getParams());
 	}
 	@Override
-	public Object insertRtnPKKey(Object entity) throws Exception {
+	public Object insertEntityRtnPKKey(Object entity) throws Exception {
 		SqlContext sqlContext = SqlContext.getContext();
 		return this.insertRtnPKKey(sqlContext.getSql(), null, sqlContext.getParams());
 	}

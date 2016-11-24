@@ -108,7 +108,7 @@ public class SqlCoreHandle{
 		TableInfoBean tabInfo = getTableInfo(entityClass);
 		List<Field> fieldList = getFieldList(entityClass, tabInfo, true);
 		List<String> colNameList = CacheCenter.CLASS_SQL_COLNAME_CACHE.get(entityClass);
-		
+
 		String sql = "UPDATE "+tabInfo.getTableName() +" SET ";
 		List<Object> paramsList = new ArrayList<Object>();
 		for (int i = 0,len=fieldList.size(); i < len; i++) {
@@ -117,6 +117,9 @@ public class SqlCoreHandle{
 			Object value = field.get(entity);
 			if(i==(len-1)){
 				sql = sql.substring(0,sql.length()-1) + " WHERE "+colNameList.get(i) +"=?";
+				if(value==null){
+					throw new Exception("primary key is null");
+				}
 				paramsList.add(value);
 			}else{
 				if(value!=null){
@@ -125,13 +128,13 @@ public class SqlCoreHandle{
 				}
 			}
 		}
-		
+
 		SqlContext sqlContext = SqlContext.getContext();
 		sqlContext.setSql(sql);
 		sqlContext.setParams(paramsList.toArray());
 		return sqlContext;
 	}
-	
+
 	/**
 	 * 处理update对象请求
 	 * @param entity
@@ -144,12 +147,13 @@ public class SqlCoreHandle{
 		String insertSql = CacheCenter.INSERT_SQL_CACHE.get(entityClass);
 		TableInfoBean tabInfo = getTableInfo(entityClass);
 		List<Field> fieldList = getFieldList(entityClass, tabInfo, false);
-		List<String> colNameList = CacheCenter.CLASS_SQL_COLNAME_CACHE.get(entityClass);
-		
+
 		List<Object> paramsList = new ArrayList<Object>();
 		if(insertSql==null){
 			String sql = "INSERT INTO "+tabInfo.getTableName() +" (";
 			String values = "VALUES(";
+			
+			List<String> colNameList = CacheCenter.CLASS_SQL_COLNAME_CACHE.get(entityClass);
 			for (int i = 0; i < colNameList.size(); i++) {
 				sql = sql + colNameList.get(i) + ",";
 				values = values + "?,";
@@ -166,7 +170,19 @@ public class SqlCoreHandle{
 		sqlContext.setSql(insertSql);
 		return sqlContext;
 	}
-	
+	public static void handleDeleteRequest(Object entity) throws Exception {
+		Class<?> entityClass = entity.getClass();
+		SqlContext sqlContext = SqlContext.getContext();
+		TableInfoBean tabInfo = getTableInfo(entityClass);
+		List<Field> fieldList = getFieldList(entityClass, tabInfo, true);
+		List<String> colNameList = CacheCenter.CLASS_SQL_COLNAME_CACHE.get(entityClass);
+		int endIndex = colNameList.size()-1;
+		String deleteSql = "DELETE FROM "+tabInfo.getTableName()+" WHERE "+colNameList.get(endIndex) +"=?";
+		sqlContext.setSql(deleteSql);
+		Field field = fieldList.get(endIndex);
+		field.setAccessible(true);
+		sqlContext.setParams(new Object[]{field.get(entity)});
+	}
 	public static TableInfoBean getTableInfo(Class<?> entityClass) throws Exception{
 		TableInfoBean tabInfo = CacheCenter.SQL_TABLE_CACHE.get(entityClass);
 		if(tabInfo==null){
@@ -184,7 +200,7 @@ public class SqlCoreHandle{
 		if(fieldList==null){
 			fieldList = new ArrayList<Field>();
 			colNameList = new ArrayList<String>();
-			
+
 			Field[] fieldArr = entityClass.getDeclaredFields();
 			Field pk_field = null;
 			String col_pk_name = null;

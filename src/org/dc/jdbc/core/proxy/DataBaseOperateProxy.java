@@ -35,8 +35,10 @@ public class DataBaseOperateProxy implements InvocationHandler{
 			String methodName = method.getName();
 			if(methodName.equals("updateEntity")){
 				context = SqlCoreHandle.handleUpdateRequest(args[0]);
-			}else if(methodName.equals("insertEntity")){
+			}else if(methodName.equals("insertEntity") || methodName.equals("insertEntityRtnPKKey")){
 				SqlCoreHandle.handleInsertRequest(args[0]);
+			}else if(methodName.equals("deleteEntity")){
+				SqlCoreHandle.handleDeleteRequest(args[0]);
 			}
 		}else{
 			String sqlOrId = args[0].toString();
