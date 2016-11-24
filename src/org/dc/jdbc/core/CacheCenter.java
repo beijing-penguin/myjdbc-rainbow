@@ -8,7 +8,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.dc.jdbc.core.entity.ColumnBean;
 import org.dc.jdbc.core.entity.TableInfoBean;
 
 public class CacheCenter {
