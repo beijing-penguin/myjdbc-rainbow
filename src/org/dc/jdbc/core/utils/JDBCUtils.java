@@ -237,38 +237,37 @@ public class JDBCUtils{
 					String tableName = tablesResultSet.getString("TABLE_NAME");
 					ResultSet colRS = meta.getColumns(conn.getCatalog(), "%", tableName, "%");
 					tableBean.setTableName(tableName);
-					boolean isGetPK = true;
 					while(colRS.next()){
 						ColumnBean colbean = new ColumnBean();
-						if(isGetPK){
-							ResultSet primaryKeyResultSet = meta.getPrimaryKeys(conn.getCatalog(),null,tableName);  
-							while(primaryKeyResultSet.next()){  
-								String primaryKeyColumnName = primaryKeyResultSet.getString("COLUMN_NAME");
+						String colName = colRS.getString("COLUMN_NAME");
+						colbean.setColumnName(colName);
+						tableBean.getColumnList().add(colbean);
+					}
+					//设置主键
+					ResultSet primaryKeyResultSet = meta.getPrimaryKeys(conn.getCatalog(),null,tableName);
+					while(primaryKeyResultSet.next()){
+						String primaryKeyColumnName = primaryKeyResultSet.getString("COLUMN_NAME");
+						for (int i = 0; i < tableBean.getColumnList().size(); i++) {
+							ColumnBean colbean = tableBean.getColumnList().get(i);
+							if(colbean.getColumnName().equals(primaryKeyColumnName)){
 								colbean.setPrimaryKey(true);
-								colbean.setColumnName(primaryKeyColumnName);
-								isGetPK = false;
+								break;
 							}
 						}
-						if(colbean.getColumnName()==null){
-							String colName = colRS.getString("COLUMN_NAME");
-							colbean.setColumnName(colName);
-						}
-
-						//检查字段名规范
-						List<ColumnBean> colList =  tableBean.getColumnList();
-						for (int i = 0; i < colList.size(); i++) {
-							ColumnBean col = colList.get(i);
-							if(getBeanName(col.getColumnName()).equalsIgnoreCase(getBeanName(colbean.getColumnName()))){
+					}
+					//检查字段名规范
+					List<ColumnBean> colList =  tableBean.getColumnList();
+					for (int i = 0; i < colList.size(); i++) {
+						String col_name = colList.get(i).getColumnName();
+						for (int j = i+1; j < colList.size(); j++) {
+							if(getBeanName(colList.get(j).getColumnName()).equalsIgnoreCase(getBeanName(col_name))){
 								try{
-									throw new Exception("field name='"+tableName+"."+col.getColumnName()+"' is not standard");
+									throw new Exception("field name='"+tableName+"."+col_name+"' is not standard");
 								}catch(Exception e ){
 									LOG.error("",e);
 								}
 							}
 						}
-
-						tableBean.getColumnList().add(colbean);
-
 					}
 					//检查表明规范
 					for (int i = 0; i < tabList.size(); i++) {

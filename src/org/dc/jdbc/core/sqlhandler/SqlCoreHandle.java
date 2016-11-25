@@ -116,10 +116,10 @@ public class SqlCoreHandle{
 			field.setAccessible(true);
 			Object value = field.get(entity);
 			if(i==(len-1)){
-				sql = sql.substring(0,sql.length()-1) + " WHERE "+colNameList.get(i) +"=?";
 				if(value==null){
 					throw new Exception("primary key is null");
 				}
+				sql = sql.substring(0,sql.length()-1) + " WHERE "+colNameList.get(i) +"=?";
 				paramsList.add(value);
 			}else{
 				if(value!=null){
@@ -213,6 +213,9 @@ public class SqlCoreHandle{
 						if(JDBCUtils.getBeanName(col.getColumnName()).equalsIgnoreCase(fdName)){
 							if(col.isPrimaryKey()){
 								pk_field = field;
+								if(col_pk_name!=null){
+									throw new Exception("primary key is too many.Make sure there is only one primary key.");
+								}
 								col_pk_name = col.getColumnName();
 								break;
 							}else{
