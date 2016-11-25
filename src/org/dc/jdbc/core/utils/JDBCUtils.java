@@ -258,7 +258,7 @@ public class JDBCUtils{
 						List<ColumnBean> colList =  tableBean.getColumnList();
 						for (int i = 0; i < colList.size(); i++) {
 							ColumnBean col = colList.get(i);
-							if(getBeanName(col.getColumnName()).toUpperCase().equals(getBeanName(colbean.getColumnName()).toUpperCase())){
+							if(getBeanName(col.getColumnName()).equalsIgnoreCase(getBeanName(colbean.getColumnName()))){
 								try{
 									throw new Exception("field name='"+tableName+"."+col.getColumnName()+"' is not standard");
 								}catch(Exception e ){
@@ -272,7 +272,7 @@ public class JDBCUtils{
 					}
 					//检查表明规范
 					for (int i = 0; i < tabList.size(); i++) {
-						if(getBeanName(tabList.get(i).getTableName()).toUpperCase().equals(getBeanName(tableName).toUpperCase())){
+						if(getBeanName(tabList.get(i).getTableName()).equalsIgnoreCase(getBeanName(tableName))){
 							try{
 								throw new Exception("table name= '"+tabList.get(i).getTableName()+"' is not standard");
 							}catch(Exception e ){
