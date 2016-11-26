@@ -179,6 +179,7 @@ public class JDBCUtils{
 					Field field = fieldList.get(j);
 					field.setAccessible(true);
 					field.set(obj_newInsten, cols_value);
+					break;
 				}
 			}
 			/*Field field  = null;
