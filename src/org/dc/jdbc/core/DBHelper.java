@@ -28,6 +28,16 @@ public class DBHelper {
 		this.dataSource = dataSource;
 		JDBCUtils.initDataBaseInfo(dataSource);
 	}
+	/*public Object selectEntity(Object entity) throws Exception{
+		SqlContext.getContext().setCurrentDataSource(dataSource);
+		//return dataBaseDaoProxy.selectOne(sqlOrID, returnClass, params);
+		return null;
+	}
+	public <T> List<T> selectListEntity(Object entity) throws Exception{
+		SqlContext.getContext().setCurrentDataSource(dataSource);
+		//return dataBaseDaoProxy.selectOne(sqlOrID, returnClass, params);
+		return null;
+	}*/
 	public <T> T selectOne(String sqlOrID,Class<? extends T> returnClass,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
 		return dataBaseDaoProxy.selectOne(sqlOrID, returnClass, params);

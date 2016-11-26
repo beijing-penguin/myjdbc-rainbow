@@ -19,6 +19,7 @@ import javax.sql.DataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dc.jdbc.core.CacheCenter;
+import org.dc.jdbc.core.SqlContext;
 import org.dc.jdbc.core.entity.ColumnBean;
 import org.dc.jdbc.core.entity.TableInfoBean;
 /**
@@ -165,10 +166,22 @@ public class JDBCUtils{
 		}
 	}
 	private static Object getObject(ResultSet rs,ResultSetMetaData metaData,Class<?> cls,int cols_len) throws Exception{
+		TableInfoBean tabInfo = JDBCUtils.getTableInfo(cls,SqlContext.getContext().getCurrentDataSource());
+		List<Field> fieldList = JDBCUtils.getFieldList(cls, tabInfo, false);
+		List<ColumnBean> colNameList = CacheCenter.CLASS_SQL_COLNAME_CACHE.get(cls);
 		Object obj_newInsten = cls.newInstance();
 		for(int i = 0; i<cols_len; i++){
-			String field_name = getBeanName(metaData.getColumnLabel(i+1));
-			Field field  = null;
+			//String field_name = getBeanName(metaData.getColumnLabel(i+1));
+			String col_name = metaData.getColumnLabel(i+1);
+			for (int j = 0; j < colNameList.size(); j++) {
+				if(colNameList.get(j).getColumnName().equals(col_name)){
+					Object cols_value =  getValueByObjectType(metaData, rs, i);
+					Field field = fieldList.get(j);
+					field.setAccessible(true);
+					field.set(obj_newInsten, cols_value);
+				}
+			}
+			/*Field field  = null;
 			try{
 				field = obj_newInsten.getClass().getDeclaredField(field_name);
 			}catch (Exception e) {
@@ -178,7 +191,7 @@ public class JDBCUtils{
 
 				field.setAccessible(true);
 				field.set(obj_newInsten, cols_value);
-			}
+			}*/
 		}
 		return obj_newInsten;
 	}
@@ -334,54 +347,71 @@ public class JDBCUtils{
 		}
 		return sb.toString().toLowerCase();
 	}
-	public static TableInfoBean getTableInfo(String className,DataSource dataSource){
-		String class_tabName = javaBeanToSeparator(className, null);
-		List<TableInfoBean> tabList = CacheCenter.DATABASE_INFO_CACHE.get(dataSource);
-		for (int i = 0; i < tabList.size(); i++) {
-			TableInfoBean tabInfo = tabList.get(i);
-			String tabname = tabList.get(i).getTableName();
-			if(tabname.equalsIgnoreCase(class_tabName)){
-				return tabInfo;
+
+	public static TableInfoBean getTableInfo(Class<?> entityClass,DataSource dataSource) throws Exception{
+		TableInfoBean tabInfo = CacheCenter.SQL_TABLE_CACHE.get(entityClass);
+		if(tabInfo==null){
+			String className = entityClass.getSimpleName();
+			String class_tabName = javaBeanToSeparator(className, null);
+			List<TableInfoBean> db_tabList = CacheCenter.DATABASE_INFO_CACHE.get(dataSource);
+			for (int i = 0; i < db_tabList.size(); i++) {
+				TableInfoBean db_tabInfo = db_tabList.get(i);
+				String tabname = db_tabInfo.getTableName();
+				if(tabname.equalsIgnoreCase(class_tabName)){
+					tabInfo =  db_tabInfo;
+					break;
+				}
 			}
+			if(tabInfo == null){
+				throw new Exception("table "+JDBCUtils.javaBeanToSeparator(entityClass.getSimpleName(), null)+" is not exist");
+			}
+			CacheCenter.SQL_TABLE_CACHE.put(entityClass, tabInfo);
 		}
-		return null;
+		return tabInfo;
 	}
+	public static List<Field> getFieldList(Class<?> entityClass,TableInfoBean tabInfo,boolean ischeckPK) throws Exception{
+		List<Field> fieldList =  CacheCenter.CLASS_SQL_FIELD_CACHE.get(entityClass);
+		List<ColumnBean> colNameList = CacheCenter.CLASS_SQL_COLNAME_CACHE.get(entityClass);
+		if(fieldList==null){
+			fieldList = new ArrayList<Field>();
+			colNameList = new ArrayList<ColumnBean>();
 
-	/*public static String getDeleteSqlByEntity(Object entity, DataSource dataSource) throws Exception {
-		Class<?> entityClass = entity.getClass();
-		String cachesql = CacheCenter.DELETE_SQL_CACHE.get(entityClass);
-		if(cachesql!=null){
-			return cachesql;
-		}
-		TableInfoBean tabInfo = getTableInfo(entityClass.getSimpleName(), dataSource);
-		if(tabInfo == null){
-			throw new Exception("table is null");
-		}
-		Field[] fieldArr = entityClass.getDeclaredFields();
-		String sql = "DELETE FROM "+tabInfo.getTableName();
-		String where = new String();
-
-		for (int i = 0; i < fieldArr.length; i++) {
-			Field field = fieldArr[i];
-			if(!Modifier.isStatic(field.getModifiers())){//去除静态类型字段
-				String colName = null;
-				String fdName = field.getName();
-				for (int j = 0; j < tabInfo.getColumnList().size(); j++) {
-					ColumnBean col = tabInfo.getColumnList().get(j);
-					if(getBeanName(col.getColumnName()).equalsIgnoreCase(fdName)){
-						colName = col.getColumnName();
-						if(col.isPrimaryKey() && where.length()==0){
-							where = " WHERE " + colName+"="+"#{"+fdName+"}";
+			Field[] fieldArr = entityClass.getDeclaredFields();
+			Field pk_field = null;
+			ColumnBean col_pk = null;
+			for (int i = 0; i < fieldArr.length; i++) {
+				Field field = fieldArr[i];
+				if(!Modifier.isStatic(field.getModifiers())){//去除静态类型字段
+					String fdName = field.getName();
+					for (int j = 0; j < tabInfo.getColumnList().size(); j++) {
+						ColumnBean col = tabInfo.getColumnList().get(j);
+						if(fdName.equalsIgnoreCase(col.getColumnName()) || JDBCUtils.getBeanName(col.getColumnName()).equalsIgnoreCase(fdName)){
+							if(col.isPrimaryKey()){
+								pk_field = field;
+								if(col_pk!=null){
+									throw new Exception("primary key ="+col_pk.getColumnName()+" is too many.Make sure there is only one primary key.");
+								}
+								col_pk = col;
+								break;
+							}else{
+								colNameList.add(col);
+								fieldList.add(field);
+							}
 						}
 					}
 				}
 			}
+			if(ischeckPK && col_pk==null ){
+				throw new Exception("primary key is not exist");
+			}else{
+				if(col_pk!=null){
+					colNameList.add(col_pk);
+					fieldList.add(pk_field);
+				}
+			}
+			CacheCenter.CLASS_SQL_FIELD_CACHE.put(entityClass, fieldList);
+			CacheCenter.CLASS_SQL_COLNAME_CACHE.put(entityClass, colNameList);
 		}
-		if(where.length()==0){
-			throw new Exception("primary key is null");
-		}
-		cachesql = sql+where;
-		CacheCenter.DELETE_SQL_CACHE.put(entityClass, cachesql);
-		return cachesql;
-	}*/
+		return fieldList;
+	}
 }
