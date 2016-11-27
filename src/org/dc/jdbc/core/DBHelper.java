@@ -12,6 +12,7 @@ import org.dc.jdbc.core.operate.DataBaseDaoImp;
 import org.dc.jdbc.core.operate.IDataBaseDao;
 import org.dc.jdbc.core.proxy.DataBaseOperateProxy;
 import org.dc.jdbc.core.utils.JDBCUtils;
+import org.dc.jdbc.exceptions.TooManyResultsException;
 
 /**
  * 数据持久化操作类
@@ -28,22 +29,32 @@ public class DBHelper {
 		this.dataSource = dataSource;
 		JDBCUtils.initDataBaseInfo(dataSource);
 	}
-	/*public Object selectEntity(Object entity) throws Exception{
-		SqlContext.getContext().setCurrentDataSource(dataSource);
-		//return dataBaseDaoProxy.selectOne(sqlOrID, returnClass, params);
-		return null;
+	public <T> T selectOneEntity(Object entity) throws Exception{
+		List<T> list = this.selectEntity(entity, null);
+		if(list==null){
+			return null;
+		}else if(list.size()>1){
+			throw new TooManyResultsException(list.size());
+		}else{
+			return list.get(0);
+		}
 	}
-	public <T> List<T> selectListEntity(Object entity) throws Exception{
+	public <T> List<T> selectEntity(Object entity) throws Exception{
+		return this.selectEntity(entity, null,new Object[]{});
+	}
+	public <T> List<T> selectEntity(Object entity,String whereSql) throws Exception{
+		return this.selectEntity(entity, whereSql,new Object[]{});
+	}
+	public <T> List<T> selectEntity(Object entity,String whereSql,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
-		//return dataBaseDaoProxy.selectOne(sqlOrID, returnClass, params);
-		return null;
-	}*/
+		return dataBaseDaoProxy.selectList(entity, whereSql, params);
+	}
 	public <T> T selectOne(String sqlOrID,Class<? extends T> returnClass,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
 		return dataBaseDaoProxy.selectOne(sqlOrID, returnClass, params);
 	}
 	public Map<String,Object> selectOne(String sqlOrID,Object...params) throws Exception{
-		return this.selectOne(sqlOrID, null,params);
+		return this.selectOne(sqlOrID, null , params);
 	}
 	/**
 	 * 查询一行数据，超过一行数据会报错，

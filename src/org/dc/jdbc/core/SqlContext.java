@@ -20,7 +20,6 @@ public class SqlContext{
     private Map<DataSource,Connection> dataSourceMap = new HashMap<DataSource,Connection>();
     
     private DataSource currentDataSource;
-    private Connection currentConnection;
     
 	public DataSource getCurrentDataSource() {
 		return currentDataSource;
@@ -57,12 +56,6 @@ public class SqlContext{
 	}
 	public void setReadOnly(boolean readOnly) {
 		this.readOnly = readOnly;
-	}
-	public Connection getCurrentConnection() {
-		return currentConnection;
-	}
-	public void setCurrentConnection(Connection currentConnection) {
-		this.currentConnection = currentConnection;
 	}
 	public static SqlContext getContext(){
 		SqlContext context = sqlContext.get();

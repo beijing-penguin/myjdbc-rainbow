@@ -9,6 +9,7 @@ import java.util.Map;
 
 import org.dc.jdbc.core.CacheCenter;
 import org.dc.jdbc.core.SqlContext;
+import org.dc.jdbc.core.entity.ClassRelation;
 import org.dc.jdbc.core.entity.ColumnBean;
 import org.dc.jdbc.core.entity.TableInfoBean;
 import org.dc.jdbc.core.utils.JDBCUtils;
@@ -46,8 +47,13 @@ public class SqlCoreHandle{
 							allparamMap.put(key, paramMap.get(key));
 						}
 					}
-				}else if(Object[].class.isAssignableFrom(param.getClass()) || Collection.class.isAssignableFrom(param.getClass())){
+				}else if( Collection.class.isAssignableFrom(param.getClass())){
 					allParamList.addAll((Collection<?>) param);
+				}else if(Object[].class.isAssignableFrom(param.getClass())){
+					Object[] p = (Object[]) param;
+					for (int i = 0; i < p.length; i++) {
+						allParamList.add(p[i]);
+					}
 				}else if(param.getClass().getClassLoader()==null){
 					allParamList.add(param);
 				}else { // java对象
@@ -106,34 +112,35 @@ public class SqlCoreHandle{
 		SqlContext sqlContext = SqlContext.getContext();
 		Class<?> entityClass = entity.getClass();
 		TableInfoBean tabInfo = JDBCUtils.getTableInfo(entityClass,sqlContext.getCurrentDataSource());
-		List<Field> fieldList = JDBCUtils.getFieldList(entityClass, tabInfo, true);
-		List<ColumnBean> colNameList = CacheCenter.CLASS_SQL_COLNAME_CACHE.get(entityClass);
+		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(entityClass, tabInfo, true);
 
 		String sql = "UPDATE "+tabInfo.getTableName() +" SET ";
 		List<Object> paramsList = new ArrayList<Object>();
-		for (int i = 0,len=fieldList.size(); i < len; i++) {
-			Field field = fieldList.get(i);
+		int endIndex = classRelationsList.size()-1;
+		for (int i = 0; i < endIndex; i++) {
+			Field field = classRelationsList.get(i).getField();
 			field.setAccessible(true);
 			Object value = field.get(entity);
-			
-			ColumnBean colBean = colNameList.get(i);
-			if(i==(len-1)){
-				if(value==null){
-					throw new Exception("primary key is null");
-				}
-				if(!colBean.isPrimaryKey()){
-					throw new Exception("primary key is not exist");
-				}
-				sql = sql.substring(0,sql.length()-1) + " WHERE "+colBean.getColumnName() +"=?";
+
+			ColumnBean colBean = classRelationsList.get(i).getColumnBean();
+			if(value!=null){
+				sql = sql + colBean.getColumnName() + "=" +"?,";
 				paramsList.add(value);
-			}else{
-				if(value!=null){
-					sql = sql + colBean.getColumnName() + "=" +"?,";
-					paramsList.add(value);
-				}
 			}
 		}
-
+		ColumnBean colBean = classRelationsList.get(endIndex).getColumnBean();
+		if(!colBean.isPrimaryKey()){
+			throw new Exception("primary key '"+colBean.getColumnName()+"' is not exist");
+		}
+		Field field = classRelationsList.get(endIndex).getField();
+		field.setAccessible(true);
+		Object value = field.get(entity);
+		if(value==null){
+			throw new Exception("primary key '"+colBean.getColumnName()+"' is null");
+		}
+		
+		sql = sql.substring(0,sql.length()-1) + " WHERE "+colBean.getColumnName() +"=?";
+		paramsList.add(value);
 		sqlContext.setSql(sql);
 		sqlContext.setParams(paramsList.toArray());
 		return sqlContext;
@@ -149,26 +156,24 @@ public class SqlCoreHandle{
 		Class<?> entityClass = entity.getClass();
 		SqlContext sqlContext = SqlContext.getContext();
 		String insertSql = CacheCenter.INSERT_SQL_CACHE.get(entityClass);
-		TableInfoBean tabInfo = JDBCUtils.getTableInfo(entityClass,sqlContext.getCurrentDataSource());
-		List<Field> fieldList = JDBCUtils.getFieldList(entityClass, tabInfo, false);
-
 		List<Object> paramsList = new ArrayList<Object>();
+		TableInfoBean tabInfo = JDBCUtils.getTableInfo(entityClass,sqlContext.getCurrentDataSource());
+		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(entityClass, tabInfo, false);
 		if(insertSql==null){
 			String sql = "INSERT INTO "+tabInfo.getTableName() +" (";
 			String values = " VALUES(";
-			
-			List<ColumnBean> colNameList = CacheCenter.CLASS_SQL_COLNAME_CACHE.get(entityClass);
-			for (int i = 0; i < colNameList.size(); i++) {
-				sql = sql + colNameList.get(i).getColumnName() + ",";
+
+			for (int i = 0; i < classRelationsList.size(); i++) {
+				sql = sql + classRelationsList.get(i).getColumnBean().getColumnName() + ",";
 				values = values + "?,";
 			}
 			insertSql = sql.substring(0,sql.length()-1) +")" + values.substring(0,values.length()-1) + ")";
 			CacheCenter.INSERT_SQL_CACHE.put(entityClass, insertSql);
 		}
-		for (int i = 0; i < fieldList.size(); i++) {
-			Field field = fieldList.get(i);
+		for (int i = 0; i < classRelationsList.size(); i++) {
+			Field field = classRelationsList.get(i).getField();
 			field.setAccessible(true);
-			paramsList.add(fieldList.get(i).get(entity));
+			paramsList.add(field.get(entity));
 		}
 		sqlContext.setParams(paramsList.toArray());
 		sqlContext.setSql(insertSql);
@@ -178,17 +183,53 @@ public class SqlCoreHandle{
 		Class<?> entityClass = entity.getClass();
 		SqlContext sqlContext = SqlContext.getContext();
 		TableInfoBean tabInfo = JDBCUtils.getTableInfo(entityClass,sqlContext.getCurrentDataSource());
-		List<Field> fieldList = JDBCUtils.getFieldList(entityClass, tabInfo, true);
-		List<ColumnBean> colNameList = CacheCenter.CLASS_SQL_COLNAME_CACHE.get(entityClass);
-		int endIndex = colNameList.size()-1;
-		ColumnBean colBean = colNameList.get(endIndex);
+		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(entityClass, tabInfo, true);
+		int endIndex = classRelationsList.size()-1;
+		ColumnBean colBean = classRelationsList.get(endIndex).getColumnBean();
 		if(!colBean.isPrimaryKey()){
-			throw new Exception("primary key is not exist");
+			throw new Exception("primary key '"+colBean.getColumnName()+"' is not exist");
+		}
+		Field field = classRelationsList.get(endIndex).getField();
+		field.setAccessible(true);
+		Object value = field.get(entity);
+		if(value==null){
+			throw new Exception("primary key '"+colBean.getColumnName()+"' is null");
 		}
 		String deleteSql = "DELETE FROM "+tabInfo.getTableName()+" WHERE "+colBean.getColumnName() +"=?";
 		sqlContext.setSql(deleteSql);
-		Field field = fieldList.get(endIndex);
-		field.setAccessible(true);
 		sqlContext.setParams(new Object[]{field.get(entity)});
+	}
+	public static void handleSelectRequest(Object entity,Object whereSql,Object params) throws Exception {
+		Class<?> entityClass = entity.getClass();
+		SqlContext sqlContext = SqlContext.getContext();
+		TableInfoBean tabInfo = JDBCUtils.getTableInfo(entityClass,sqlContext.getCurrentDataSource());
+		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(entityClass, tabInfo, true);
+		String sql = "SELECT * FROM " + tabInfo.getTableName() +" WHERE 1=1 ";
+		if(whereSql!=null){
+			String tempsql = sql + whereSql;
+			sqlContext = handleRequest(tempsql, params);
+		}
+		List<Object> valuesList = new ArrayList<Object>();
+		for (int i = 0,len = classRelationsList.size(); i < len; i++) {
+			ClassRelation classRelation = classRelationsList.get(i);
+			Field field = classRelation.getField();
+			field.setAccessible(true);
+			Object value = field.get(entity);
+			if(value!=null){
+				sql = sql + " AND "+classRelation.getColumnBean().getColumnName() +"=?";
+				valuesList.add(value);
+			}
+		}
+		if(whereSql!=null){
+			sql = sql + whereSql;
+			Object[] paramArr = sqlContext.getParams();
+			if(paramArr.length>0){
+				for (int i = 0; i < paramArr.length; i++) {
+					valuesList.add(paramArr[i]);
+				}
+			}
+		}
+		sqlContext.setSql(sql);
+		sqlContext.setParams(valuesList.toArray());
 	}
 }

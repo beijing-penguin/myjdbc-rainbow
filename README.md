@@ -1,5 +1,5 @@
 ##轻量级orm持久层操作api，只依赖commons-logging日志架包<br />
-##支持0配置0注解对实体对象的增删改（不支持查）
+##支持0配置0注解对实体对象的增删改查
 ##支持直接传入sql操作数据库
 ##支持MYSQL，兼容其他sql标准的数据<br />
 ##采用低耦合分层软件架构（共2层）：第一层DBHelper---经过DataBaseOperateProxy代理---第二层DataBaseDaoImp。每层总共享SqlContext上下文中的数据<br />

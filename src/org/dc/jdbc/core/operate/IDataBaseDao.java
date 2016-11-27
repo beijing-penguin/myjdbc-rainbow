@@ -15,4 +15,5 @@ public interface IDataBaseDao {
 	public int insertEntity(Object entity) throws Exception;
 	public Object insertEntityRtnPKKey(Object entity) throws Exception;
 	public int deleteEntity(Object entity) throws Exception;
+	public <T> List<T> selectList(Object entity,String whereSql,Object...params) throws Exception;
 }

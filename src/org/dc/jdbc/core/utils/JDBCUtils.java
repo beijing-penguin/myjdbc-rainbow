@@ -20,8 +20,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dc.jdbc.core.CacheCenter;
 import org.dc.jdbc.core.SqlContext;
+import org.dc.jdbc.core.entity.ClassRelation;
 import org.dc.jdbc.core.entity.ColumnBean;
 import org.dc.jdbc.core.entity.TableInfoBean;
+import org.dc.jdbc.exceptions.TooManyResultsException;
 /**
  * jdbc api封装成的工具类
  * @author DC
@@ -128,7 +130,7 @@ public class JDBCUtils{
 		ResultSetMetaData metaData  = rs.getMetaData();
 		int cols_len = metaData.getColumnCount();
 		if(cols_len>1){
-			throw new Exception("The number of returned data columns is too many");
+			throw new TooManyResultsException(cols_len);
 		}
 		while(rs.next()){
 			Object cols_value = getValueByObjectType(metaData, rs, 0);
@@ -167,16 +169,15 @@ public class JDBCUtils{
 	}
 	private static Object getObject(ResultSet rs,ResultSetMetaData metaData,Class<?> cls,int cols_len) throws Exception{
 		TableInfoBean tabInfo = JDBCUtils.getTableInfo(cls,SqlContext.getContext().getCurrentDataSource());
-		List<Field> fieldList = JDBCUtils.getFieldList(cls, tabInfo, false);
-		List<ColumnBean> colNameList = CacheCenter.CLASS_SQL_COLNAME_CACHE.get(cls);
+		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(cls, tabInfo, false);
 		Object obj_newInsten = cls.newInstance();
 		for(int i = 0; i<cols_len; i++){
 			//String field_name = getBeanName(metaData.getColumnLabel(i+1));
 			String col_name = metaData.getColumnLabel(i+1);
-			for (int j = 0; j < colNameList.size(); j++) {
-				if(colNameList.get(j).getColumnName().equals(col_name)){
+			for (int j = 0; j < classRelationsList.size(); j++) {
+				if(classRelationsList.get(j).getColumnBean().getColumnName().equals(col_name)){
 					Object cols_value =  getValueByObjectType(metaData, rs, i);
-					Field field = fieldList.get(j);
+					Field field = classRelationsList.get(j).getField();
 					field.setAccessible(true);
 					field.set(obj_newInsten, cols_value);
 					break;
@@ -370,12 +371,10 @@ public class JDBCUtils{
 		}
 		return tabInfo;
 	}
-	public static List<Field> getFieldList(Class<?> entityClass,TableInfoBean tabInfo,boolean ischeckPK) throws Exception{
-		List<Field> fieldList =  CacheCenter.CLASS_SQL_FIELD_CACHE.get(entityClass);
-		List<ColumnBean> colNameList = CacheCenter.CLASS_SQL_COLNAME_CACHE.get(entityClass);
-		if(fieldList==null){
-			fieldList = new ArrayList<Field>();
-			colNameList = new ArrayList<ColumnBean>();
+	public static List<ClassRelation> getClassRelationList(Class<?> entityClass,TableInfoBean tabInfo,boolean ischeckPK) throws Exception{
+		List<ClassRelation> classRelationsList = CacheCenter.CLASS_REL_FIELD_CACHE.get(entityClass);
+		if(classRelationsList==null){
+			classRelationsList = new ArrayList<ClassRelation>();
 
 			Field[] fieldArr = entityClass.getDeclaredFields();
 			Field pk_field = null;
@@ -395,8 +394,10 @@ public class JDBCUtils{
 								col_pk = col;
 								break;
 							}else{
-								colNameList.add(col);
-								fieldList.add(field);
+								ClassRelation classRelation = new ClassRelation();
+								classRelation.setField(field);
+								classRelation.setColumnBean(col);
+								classRelationsList.add(classRelation);
 							}
 						}
 					}
@@ -406,13 +407,14 @@ public class JDBCUtils{
 				throw new Exception("primary key is not exist");
 			}else{
 				if(col_pk!=null){
-					colNameList.add(col_pk);
-					fieldList.add(pk_field);
+					ClassRelation classRelation = new ClassRelation();
+					classRelation.setField(pk_field);
+					classRelation.setColumnBean(col_pk);
+					classRelationsList.add(classRelation);
 				}
 			}
-			CacheCenter.CLASS_SQL_FIELD_CACHE.put(entityClass, fieldList);
-			CacheCenter.CLASS_SQL_COLNAME_CACHE.put(entityClass, colNameList);
+			CacheCenter.CLASS_REL_FIELD_CACHE.put(entityClass, classRelationsList);
 		}
-		return fieldList;
+		return classRelationsList;
 	}
 }
