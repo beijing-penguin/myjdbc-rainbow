@@ -16,7 +16,7 @@ import org.dc.jdbc.exceptions.TooManyResultsException;
 
 /**
  * 数据持久化操作类
- * sql执行三部曲：1，sql解析，2，获得数据库连接，3，执行核心jdbc操作。
+ * sql执行步骤：1，sql解析，2，获得数据库连接，3，执行核心jdbc操作。
  * @author dc
  * @time 2015-8-17
  */
