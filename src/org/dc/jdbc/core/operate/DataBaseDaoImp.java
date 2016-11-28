@@ -113,7 +113,10 @@ public class DataBaseDaoImp implements IDataBaseDao{
 	@Override
 	public int deleteEntity(Object entity) throws Exception {
 		SqlContext sqlContext = SqlContext.getContext();
-		return JDBCUtils.preparedAndExcuteSQL(ConnectionManager.getConnection(SqlContext.getContext().getCurrentDataSource()), sqlContext.getSql(), sqlContext.getParams());
+		return JDBCUtils.preparedAndExcuteSQL(ConnectionManager.getConnection(
+				sqlContext.getCurrentDataSource()), 
+				sqlContext.getSql(), 
+				sqlContext.getParamList().toArray());
 	}
 	@Override
 	public int excuteSQL(String sql, Class<?> returnClass,Object[] params) throws Exception {
@@ -122,22 +125,22 @@ public class DataBaseDaoImp implements IDataBaseDao{
 	@Override
 	public int updateEntity(Object entity) throws Exception {
 		SqlContext sqlContext = SqlContext.getContext();
-		return JDBCUtils.preparedAndExcuteSQL(ConnectionManager.getConnection(SqlContext.getContext().getCurrentDataSource()), sqlContext.getSql(), sqlContext.getParams());
+		return JDBCUtils.preparedAndExcuteSQL(ConnectionManager.getConnection(sqlContext.getCurrentDataSource()), sqlContext.getSql(), sqlContext.getParamList().toArray());
 	}
 	@Override
 	public int insertEntity(Object entity) throws Exception {
 		SqlContext sqlContext = SqlContext.getContext();
-		return JDBCUtils.preparedAndExcuteSQL(ConnectionManager.getConnection(SqlContext.getContext().getCurrentDataSource()), sqlContext.getSql(), sqlContext.getParams());
+		return JDBCUtils.preparedAndExcuteSQL(ConnectionManager.getConnection(sqlContext.getCurrentDataSource()), sqlContext.getSql(), sqlContext.getParamList().toArray());
 	}
 	@Override
 	public Object insertEntityRtnPKKey(Object entity) throws Exception {
 		SqlContext sqlContext = SqlContext.getContext();
-		return this.insertRtnPKKey(sqlContext.getSql(), null, sqlContext.getParams());
+		return this.insertRtnPKKey(sqlContext.getSql(), null, sqlContext.getParamList().toArray());
 	}
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> List<T> selectList(Object entity, String whereSql, Object... params) throws Exception {
 		SqlContext sqlContext = SqlContext.getContext();
-		return (List<T>) this.selectList(sqlContext.getSql(), entity.getClass(), sqlContext.getParams());
+		return (List<T>) this.selectList(sqlContext.getSql(), entity.getClass(), sqlContext.getParamList().toArray());
 	}
 }

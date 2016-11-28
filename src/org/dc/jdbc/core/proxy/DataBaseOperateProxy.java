@@ -36,7 +36,7 @@ public class DataBaseOperateProxy implements InvocationHandler{
 			String dosql = sqlOrId.startsWith("$")?CacheCenter.SQL_SOURCE_MAP.get(sqlOrId):sqlOrId;
 			context = SqlCoreHandle.handleRequest(dosql, (Object[])args[2]);
 			args[0] = context.getSql();
-			args[2] = context.getParams();
+			args[2] = context.getParamList().toArray();
 		}else{//entity操作
 			String methodName = method.getName();
 			if(methodName.equals("updateEntity")){
@@ -51,7 +51,7 @@ public class DataBaseOperateProxy implements InvocationHandler{
 		}
 		//打印日志
 		if(JDBCConfig.isPrintSqlLog){
-			PrintSqlLogHandler.getInstance().handleRequest(context.getSql() , context.getParams());
+			PrintSqlLogHandler.getInstance().handleRequest(context.getSql() , context.getParamList().toArray());
 		}
 		Object rt = method.invoke(target, args);
 		

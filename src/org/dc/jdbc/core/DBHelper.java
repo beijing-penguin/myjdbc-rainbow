@@ -49,6 +49,12 @@ public class DBHelper {
 		SqlContext.getContext().setCurrentDataSource(dataSource);
 		return dataBaseDaoProxy.selectList(entity, whereSql, params);
 	}
+	public long selectCount(String sqlOrID) throws Exception{
+		return this.selectCount("SELECT COUNT(*) FROM ("+sqlOrID+") t",new Object[]{});
+	}
+	public long selectCount(String sqlOrID,Object...params) throws Exception{
+		return this.selectOne("SELECT COUNT(*) FROM ("+sqlOrID+") t", Long.class, params);
+	}
 	public <T> T selectOne(String sqlOrID,Class<? extends T> returnClass,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
 		return dataBaseDaoProxy.selectOne(sqlOrID, returnClass, params);

@@ -99,7 +99,7 @@ public class SqlCoreHandle{
 		}
 		SqlContext sqlContext = SqlContext.getContext();
 		sqlContext.setSql(sql.toString());
-		sqlContext.setParams(returnList.toArray());
+		sqlContext.setParamList(returnList);
 		return sqlContext;
 	}
 	/**
@@ -142,7 +142,7 @@ public class SqlCoreHandle{
 		sql = sql.substring(0,sql.length()-1) + " WHERE "+colBean.getColumnName() +"=?";
 		paramsList.add(value);
 		sqlContext.setSql(sql);
-		sqlContext.setParams(paramsList.toArray());
+		sqlContext.setParamList(paramsList);
 		return sqlContext;
 	}
 
@@ -175,7 +175,7 @@ public class SqlCoreHandle{
 			field.setAccessible(true);
 			paramsList.add(field.get(entity));
 		}
-		sqlContext.setParams(paramsList.toArray());
+		sqlContext.setParamList(paramsList);
 		sqlContext.setSql(insertSql);
 		return sqlContext;
 	}
@@ -197,9 +197,11 @@ public class SqlCoreHandle{
 		}
 		String deleteSql = "DELETE FROM "+tabInfo.getTableName()+" WHERE "+colBean.getColumnName() +"=?";
 		sqlContext.setSql(deleteSql);
-		sqlContext.setParams(new Object[]{field.get(entity)});
+		List<Object> list = new ArrayList<Object>();
+		list.add(value);
+		sqlContext.setParamList(list);
 	}
-	public static void handleSelectRequest(Object entity,Object whereSql,Object params) throws Exception {
+	public static SqlContext handleSelectRequest(Object entity,Object whereSql,Object params) throws Exception {
 		Class<?> entityClass = entity.getClass();
 		SqlContext sqlContext = SqlContext.getContext();
 		TableInfoBean tabInfo = JDBCUtils.getTableInfo(entityClass,sqlContext.getCurrentDataSource());
@@ -222,14 +224,10 @@ public class SqlCoreHandle{
 		}
 		if(whereSql!=null){
 			sql = sql + whereSql;
-			Object[] paramArr = sqlContext.getParams();
-			if(paramArr.length>0){
-				for (int i = 0; i < paramArr.length; i++) {
-					valuesList.add(paramArr[i]);
-				}
-			}
+			valuesList.addAll(sqlContext.getParamList());
 		}
 		sqlContext.setSql(sql);
-		sqlContext.setParams(valuesList.toArray());
+		sqlContext.setParamList(valuesList);
+		return sqlContext;
 	}
 }

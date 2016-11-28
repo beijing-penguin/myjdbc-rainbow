@@ -2,6 +2,7 @@ package org.dc.jdbc.core;
 
 import java.sql.Connection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.sql.DataSource;
@@ -14,7 +15,7 @@ public class SqlContext{
 	private static final ThreadLocal<SqlContext> sqlContext = new ThreadLocal<SqlContext>();
 	
 	private String sql;
-    private Object[] params;
+    private List<Object> paramList;
     private boolean transaction = false;
     private boolean readOnly = false;
     private Map<DataSource,Connection> dataSourceMap = new HashMap<DataSource,Connection>();
@@ -45,12 +46,12 @@ public class SqlContext{
     public void setSql(String sql) {
         this.sql = sql;
     }
-    public Object[] getParams() {
-        return params;
-    }
-    public void setParams(Object[] params) {
-        this.params = params;
-    }
+	public List<Object> getParamList() {
+		return paramList;
+	}
+	public void setParamList(List<Object> paramList) {
+		this.paramList = paramList;
+	}
 	public boolean getReadOnly() {
 		return readOnly;
 	}
