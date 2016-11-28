@@ -2,6 +2,7 @@ package org.dc.jdbc.core.entity;
 
 public class ColumnBean {
 	private String columnName;
+	private int columnType;
 	private boolean isPrimaryKey;
     private String columnComment; 
     
@@ -23,5 +24,10 @@ public class ColumnBean {
 	public void setPrimaryKey(boolean isPrimaryKey) {
 		this.isPrimaryKey = isPrimaryKey;
 	}
-	
+	public int getColumnType() {
+		return columnType;
+	}
+	public void setColumnType(int columnType) {
+		this.columnType = columnType;
+	}
 }

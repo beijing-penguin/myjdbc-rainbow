@@ -239,11 +239,12 @@ public class JDBCUtils{
 		}
 		return return_obj;
 	}
-	public static void initDataBaseInfo(DataSource dataSource){
-		if(!CacheCenter.DATABASE_INFO_CACHE.containsKey(dataSource)){
+	public static List<TableInfoBean> initDataBaseInfo(DataSource dataSource){
+		List<TableInfoBean> tabList = CacheCenter.DATABASE_INFO_CACHE.get(dataSource);
+		if(tabList==null){
 			Connection conn = null;
 			try {
-				List<TableInfoBean> tabList = new ArrayList<TableInfoBean>();
+				tabList = new ArrayList<TableInfoBean>();
 				conn = dataSource.getConnection();
 				DatabaseMetaData meta = conn.getMetaData(); 
 				ResultSet tablesResultSet = meta.getTables(conn.getCatalog(), null, "%",new String[] { "TABLE" });  
@@ -255,6 +256,7 @@ public class JDBCUtils{
 					while(colRS.next()){
 						ColumnBean colbean = new ColumnBean();
 						String colName = colRS.getString("COLUMN_NAME");
+						colbean.setColumnType(colRS.getInt("DATA_TYPE"));
 						colbean.setColumnName(colName);
 						tableBean.getColumnList().add(colbean);
 					}
@@ -310,6 +312,7 @@ public class JDBCUtils{
 				}
 			}
 		}
+		return tabList;
 	}
 	/**
 	 * 将字符串转化为java bean驼峰命名规范
@@ -324,7 +327,7 @@ public class JDBCUtils{
 			String newStr = startStr + endStr.substring(1, 2).toUpperCase()+endStr.substring(2);
 			return getBeanName(newStr);
 		}else{
-			return str;
+			return str.substring(0,1).toLowerCase()+str.substring(1);
 		}
 	}
 	/**
@@ -355,7 +358,7 @@ public class JDBCUtils{
 		if(tabInfo==null){
 			String className = entityClass.getSimpleName();
 			String class_tabName = javaBeanToSeparator(className, null);
-			List<TableInfoBean> db_tabList = CacheCenter.DATABASE_INFO_CACHE.get(dataSource);
+			List<TableInfoBean> db_tabList = initDataBaseInfo(dataSource);
 			for (int i = 0; i < db_tabList.size(); i++) {
 				TableInfoBean db_tabInfo = db_tabList.get(i);
 				String tabname = db_tabInfo.getTableName();
