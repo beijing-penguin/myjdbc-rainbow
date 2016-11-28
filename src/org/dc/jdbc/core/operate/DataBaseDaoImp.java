@@ -6,8 +6,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
 import org.dc.jdbc.core.ConnectionManager;
 import org.dc.jdbc.core.SqlContext;
 import org.dc.jdbc.core.utils.JDBCUtils;
