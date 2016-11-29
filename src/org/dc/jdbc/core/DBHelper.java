@@ -30,7 +30,10 @@ public class DBHelper {
 		JDBCUtils.initDataBaseInfo(dataSource);
 	}
 	public <T> T selectOneEntity(Object entity) throws Exception{
-		List<T> list = this.selectEntity(entity, null);
+		return this.selectOneEntity(entity,null,new Object[]{});
+	}
+	public <T> T selectOneEntity(Object entity,String whereSql,Object...params) throws Exception{
+		List<T> list = this.selectEntity(entity, whereSql,params);
 		if(list==null){
 			return null;
 		}else if(list.size()>1){
