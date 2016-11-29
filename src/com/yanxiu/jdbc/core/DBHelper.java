@@ -32,6 +32,9 @@ public class DBHelper {
 	public <T> T selectOneEntity(Object entity) throws Exception{
 		return this.selectOneEntity(entity,null,new Object[]{});
 	}
+	public <T> T selectOneEntity(Object entity,String whereSql) throws Exception{
+		return this.selectOneEntity(entity,whereSql,new Object[]{});
+	}
 	public <T> T selectOneEntity(Object entity,String whereSql,Object...params) throws Exception{
 		List<T> list = this.selectEntity(entity, whereSql,params);
 		if(list==null){

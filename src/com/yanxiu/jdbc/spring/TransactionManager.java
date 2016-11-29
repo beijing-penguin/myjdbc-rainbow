@@ -1,14 +1,14 @@
-1,编写事务管理类，加上@Component，保证该类在spring初始化的时候能作为bean加载到spring内核
+package com.yanxiu.jdbc.spring;
 
 import java.lang.reflect.Method;
+
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.reflect.MethodSignature;
-import com.yanxiu.jdbc.core.ConnectionManager;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-@Component
+import com.yanxiu.jdbc.core.ConnectionManager;
+
 public class TransactionManager {
 	//用来做环绕通知的方法可以第一个参数定义为org.aspectj.lang.ProceedingJoinPoint类型  
 	public Object doAround(ProceedingJoinPoint call) throws Throwable {
@@ -47,15 +47,3 @@ public class TransactionManager {
 		return invokeObj;
 	}
 }
-2，spring.xml添加如下配置，相关扫描路径，记得修改成自己的架包路径
-<!-- 第1步： AOP的配置 -->  
-    <aop:config>  
-        <!-- 第2步：配置一个切面 -->  
-        <aop:aspect id="transactionAspect" ref="transactionManager">  
-            <!-- 第3步：定义切入点,指定切入点表达式 -->  
-            <aop:pointcut id="allMethod" expression="execution(* com.user.manage.web.*.*.service.*.*(..))"/>
-            <!-- 第4步：应用环绕通知 -->  
-            <aop:around method="doAround" pointcut-ref="allMethod" /> 
-               
-        </aop:aspect>  
-    </aop:config>

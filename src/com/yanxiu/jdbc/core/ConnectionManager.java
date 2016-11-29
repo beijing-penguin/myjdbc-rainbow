@@ -18,14 +18,14 @@ public class ConnectionManager {
 	private static final Log LOG = LogFactory.getLog(ConnectionManager.class);
 
 	//设置事物
-	public static void startTransaction(){
+	public static void setTransaction(boolean startTransaction){
 		SqlContext sqlContext = SqlContext.getContext();
-		sqlContext.setTransaction(true);
+		sqlContext.setTransaction(startTransaction);
 	}
 	//设置只读
-	public static void setReadOnly(){
+	public static void setReadOnly(boolean readOnly){
 		SqlContext sqlContext = SqlContext.getContext();
-		sqlContext.setReadOnly(true);
+		sqlContext.setReadOnly(readOnly);
 	}
 	public static Connection getConnection(DataSource dataSource) throws Exception{
 		SqlContext sqlContext = SqlContext.getContext();
