@@ -56,6 +56,7 @@ public class ConnectionManager {
 				LOG.error("",e);
 			}
 		}
+		SqlContext.closeSqlContext();
 	}
 	/**
 	 * 回滚所有数据源的操作，正常的数据库能够回滚，回滚异常也不用管，继续回滚下一个数据库，直到回滚操作结束

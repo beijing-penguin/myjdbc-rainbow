@@ -66,4 +66,7 @@ public class SqlContext{
 		}
 		return context;
 	}
+	public static void closeSqlContext(){
+		sqlContext.remove();
+	}
 }
