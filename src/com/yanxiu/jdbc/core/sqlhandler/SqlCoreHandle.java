@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.yanxiu.jdbc.core.CacheCenter;
 import com.yanxiu.jdbc.core.SqlContext;
 import com.yanxiu.jdbc.core.entity.ClassRelation;
 import com.yanxiu.jdbc.core.entity.ColumnBean;
@@ -155,26 +154,26 @@ public class SqlCoreHandle{
 	public static SqlContext handleInsertRequest(Object entity) throws Exception{
 		Class<?> entityClass = entity.getClass();
 		SqlContext sqlContext = SqlContext.getContext();
-		String insertSql = CacheCenter.INSERT_SQL_CACHE.get(entityClass);
 		List<Object> paramsList = new ArrayList<Object>();
 		TableInfoBean tabInfo = JDBCUtils.getTableInfo(entityClass,sqlContext.getCurrentDataSource());
 		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(entityClass, tabInfo, false);
-		if(insertSql==null){
-			String sql = "INSERT INTO "+tabInfo.getTableName() +" (";
-			String values = " VALUES(";
-
-			for (int i = 0; i < classRelationsList.size(); i++) {
-				sql = sql + classRelationsList.get(i).getColumnBean().getColumnName() + ",";
-				values = values + "?,";
-			}
-			insertSql = sql.substring(0,sql.length()-1) +")" + values.substring(0,values.length()-1) + ")";
-			CacheCenter.INSERT_SQL_CACHE.put(entityClass, insertSql);
-		}
-		for (int i = 0; i < classRelationsList.size(); i++) {
+		String insertSql = "INSERT INTO "+tabInfo.getTableName() +" (";
+		String sql_values = " VALUES(";
+		for (int i = 0,len=classRelationsList.size(); i < len; i++) {
 			Field field = classRelationsList.get(i).getField();
 			field.setAccessible(true);
-			paramsList.add(field.get(entity));
+			Object obj_value = field.get(entity);
+			if(obj_value!=null){
+				insertSql = insertSql + classRelationsList.get(i).getColumnBean().getColumnName() + ",";
+				sql_values = sql_values + "?,";
+				paramsList.add(obj_value);
+			}
 		}
+		if(paramsList.size()==0){
+			throw new Exception("insert condition is null");
+		}
+		insertSql = insertSql.substring(0,insertSql.length()-1) +")" + sql_values.substring(0,sql_values.length()-1) + ")";
+		
 		sqlContext.setParamList(paramsList);
 		sqlContext.setSql(insertSql);
 		return sqlContext;
