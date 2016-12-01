@@ -343,11 +343,14 @@ public class JDBCUtils{
 			separatorChar = '_';
 		}
 		StringBuilder sb =new StringBuilder(str);
+		int index=0;
 		for (int i = 1; i < str.length(); i++) {
 			char c = str.charAt(i);
 			if(Character.isUpperCase(c)){
-				sb.replace(i, i+1, String.valueOf(c).toLowerCase());
-				sb.insert(i, separatorChar);
+				
+				sb.replace(i+index, i+1+index, String.valueOf(c).toLowerCase());
+				sb.insert(i+index, separatorChar);
+				index++;
 			}
 		}
 		return sb.toString().toLowerCase();
