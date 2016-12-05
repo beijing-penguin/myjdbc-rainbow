@@ -91,7 +91,7 @@ public class App {
 ```
 ##③spring配置方式使用（dbhelper支持非常方便的多数据源操作，所以这里可以配置多个dbhelper，但是Myjdbc框架并没有实现强一致性事务，所以建议某个事务方法内只是用一个数据源的操作即可）
 ##dbhelper也支持到处使用的基本思想，即到处new，到处用，可嵌入性很高
-、、、xml
+```xml
  	<bean id="ucenterDBHelper" class="org.dc.jdbc.core.DBHelper">
     	<constructor-arg name="dataSource" ref="ucenterDataSource" />
     </bean>
@@ -107,9 +107,9 @@ public class App {
     <bean id="frameworkDBHelper" class="org.dc.jdbc.core.DBHelper">
     	<constructor-arg name="dataSource" ref="frameworkDataSource" />
     </bean>
-、、、
+```
 ##下面是在service层中的使用案例(PS：如果项目没必要的情况下，建议去掉dao层的概念与设计，因为dbhelper已经为您封装好了很多操作，无需dao层，就可以满足一般的业务系统，并且本人实战过程中，也发现维护起来很方便^_^)
-、、、java
+```java
 @Service
 public class DataHandleService {
 
@@ -150,11 +150,11 @@ public class DataHandleService {
 	}
 
 }
-、、、
+```
 ##上面的案例中，如果您讨厌把sql写在业务层，也可以把sql保存在其他地方，至于保存在那个地方，dbhelper不提供方案，请您自行设计，下面是我的保存在xml中
 ##原理说明：下面xml中的sql数据，会在程序启动时，预先加到CenterCahce.java中的SQL_SOURCE_MAP的map中，这里的key是"文件名.id" 如user.updateUser，
 ##使用时 这可以用dbhelper.update("$user.updateUser",user)即可。dbhelper底层会默认识别如果第一个参数的第一个字符带有$符号，则会去SQL_SOURCE_MAP中找出sql
-、、、xml
+```xml
 <mysql>
 	<sql id="updateUser">
 		<![CDATA[
@@ -171,9 +171,9 @@ public class DataHandleService {
 		]]>
 	</sql>
 </mysql>
-、、、
+```
 
-、、、java
+```java
 @Service
 public class SystemService {
 	@Autowired
@@ -183,7 +183,7 @@ public class SystemService {
 		return manageDBHelper.selectList("$system.getTreeInfo",NavTree.class);
 	}
 }
-、、、
+```
 
 ##事务配置请参考另外一份SpringConfig.txt aop配置说明
 ##Myjdbc是一个轻量级orm持久层操作api，只依赖commons-logging日志架包<br />
