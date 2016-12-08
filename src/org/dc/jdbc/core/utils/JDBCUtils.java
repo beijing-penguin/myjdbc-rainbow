@@ -19,7 +19,6 @@ import javax.sql.DataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dc.jdbc.core.CacheCenter;
-import org.dc.jdbc.core.SqlContext;
 import org.dc.jdbc.core.entity.ClassRelation;
 import org.dc.jdbc.core.entity.ColumnBean;
 import org.dc.jdbc.core.entity.TableInfoBean;
@@ -168,12 +167,12 @@ public class JDBCUtils{
 		}
 	}
 	private static Object getObject(ResultSet rs,ResultSetMetaData metaData,Class<?> cls,int cols_len) throws Exception{
-		TableInfoBean tabInfo = JDBCUtils.getTableInfo(cls,SqlContext.getContext().getCurrentDataSource());
-		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(cls, tabInfo, false);
+		//TableInfoBean tabInfo = JDBCUtils.getTableInfo(cls,SqlContext.getContext().getCurrentDataSource());
+		//List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(cls, tabInfo, false);
 		Object obj_newInsten = cls.newInstance();
 		for(int i = 0; i<cols_len; i++){
-			//String field_name = getBeanName(metaData.getColumnLabel(i+1));
 			String col_name = metaData.getColumnLabel(i+1);
+			/*String col_name = metaData.getColumnLabel(i+1);
 			for (int j = 0; j < classRelationsList.size(); j++) {
 				if(classRelationsList.get(j).getColumnBean().getColumnName().equals(col_name)){
 					Object cols_value =  getValueByObjectType(metaData, rs, i);
@@ -182,18 +181,22 @@ public class JDBCUtils{
 					field.set(obj_newInsten, cols_value);
 					break;
 				}
-			}
-			/*Field field  = null;
+			}*/
+			Field field  = null;
 			try{
-				field = obj_newInsten.getClass().getDeclaredField(field_name);
+				field = obj_newInsten.getClass().getDeclaredField(col_name);
 			}catch (Exception e) {
+				try{
+					field = obj_newInsten.getClass().getDeclaredField(JDBCUtils.getBeanName(col_name));
+				}catch (Exception e1) {
+				}
 			}
 			if(field!=null && !Modifier.isStatic(field.getModifiers())){
 				Object cols_value =  getValueByObjectType(metaData, rs, i);
 
 				field.setAccessible(true);
 				field.set(obj_newInsten, cols_value);
-			}*/
+			}
 		}
 		return obj_newInsten;
 	}
@@ -239,7 +242,7 @@ public class JDBCUtils{
 		}
 		return return_obj;
 	}
-	public static List<TableInfoBean> initDataBaseInfo(DataSource dataSource){
+	public static List<TableInfoBean> initDataBaseInfo(final DataSource dataSource){
 		List<TableInfoBean> tabList = CacheCenter.DATABASE_INFO_CACHE.get(dataSource);
 		if(tabList==null){
 			Connection conn = null;
@@ -347,7 +350,7 @@ public class JDBCUtils{
 		for (int i = 1; i < str.length(); i++) {
 			char c = str.charAt(i);
 			if(Character.isUpperCase(c)){
-				
+
 				sb.replace(i+index, i+1+index, String.valueOf(c).toLowerCase());
 				sb.insert(i+index, separatorChar);
 				index++;
