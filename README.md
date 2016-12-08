@@ -91,7 +91,7 @@ public class App {
 }
 ```
 ##③spring配置方式使用（dbhelper支持非常方便的多数据源操作，所以这里可以配置多个dbhelper，但是Myjdbc框架并没有实现强一致性事务，所以建议某个事务方法内只是用一个数据源的操作即可）
-##dbhelper也支持到处使用的基本思想，即到处new，到处用，可嵌入性很高
+##dbhelper 完美的可嵌入性，可以随处new，随处使用。
 ```xml
  	<bean id="ucenterDBHelper" class="org.dc.jdbc.core.DBHelper">
     	<constructor-arg name="dataSource" ref="ucenterDataSource" />
