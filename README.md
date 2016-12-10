@@ -1,6 +1,6 @@
 #快速入门
-##①定义实体，实体中的字段基本和数据库字段保持一致即可，也就是说，自行定义的实体，只要有需要操作的数据库的字段有对应即可，字段可多可少且一个对象类的字段和数据库的字段不会有冲突，也可以没有字段（废话了），只要类名能匹配表名就行。而类名的定义也遵循驼峰命名法则，例如数据库表名user_table_system，那么类名则可以是User_table_system，也可以是UserTableSystem，所以Myjdbc系统要求你的命名尽可能的规范，才能在0配置0注解的情况下完美的使用对象。
-##同理字段匹配规则，可以强行匹配，如数据库字段是sys_user_name 那么对象字段可以是sys_user_name 同时也可以是sysUserName（当然建议用这种，java程序编写起来才看着舒服点）
+##①定义实体，首先类名得对应表名（只在非selectEntity操作时有强制类型和表名保持一致的要求），实体中的字段基本和数据库字段保持一致即可，实体中只要有数据库的字段有对应即可，字段可多可少。实体对象的字段和对象名遵循驼峰命名法。例如数据库表名user_table_system，那么类名则可以是User_table_system，也可以是UserTableSystem
+##对象字段匹配规则，可以强行匹配，如数据库字段是sys_user_name 那么对象字段可以是sys_user_name 同时也可以是sysUserName（当然建议用这种）
 ```java
 
 public class User {
@@ -69,15 +69,15 @@ public class App {
 			
 			//纯sql操作,改操方法api最多有3个参数，第一个entity（Object类型） 第二个wheresql(String主要是where条件),第三个sql语句对应的参数(对象，list，map，数组)
 			//目前只支持?和#匹配符，如果有朋友建议或需要的可以加上:或者其他通配符
-			User u2 = dbHelper.selectOne("select * from user where sex = #{sex} name=#{name}",User.class, user);
-			User u3 = dbHelper.selectOne("select * from user where sex = ? name=?",User.class, 23,"张三");
+			User u2 = dbHelper.selectOne("select * from user where sex = #{sex} and name=#{name}",User.class, user);
+			User u3 = dbHelper.selectOne("select * from user where sex = ? and name=?",User.class, 23,"张三");
 			//===>上一步等价于:
-			User u4 = dbHelper.selectOne("select * from user where sex = ? name=?",User.class,new Object[]{23,"张三"});
+			User u4 = dbHelper.selectOne("select * from user where sex = ? and name=?",User.class,new Object[]{23,"张三"});
 			//===>上一步等价于:
 			List<Object> paramList = new ArrayList<Object>();
 			paramList.add(23);
 			paramList.add("张三");
-			User u5 = dbHelper.selectOne("select * from user where sex = ? name=?",User.class,paramList);
+			User u5 = dbHelper.selectOne("select * from user where sex = ? and name=?",User.class,paramList);
 			
 			//返回集合查询,这个传参方式跟使用selectOne一模一样，不过多举例。
 			List<User> u6List = dbHelper.selectList("select * from user where sex = ? name=?",User.class,paramList);
@@ -109,7 +109,7 @@ public class App {
     	<constructor-arg name="dataSource" ref="frameworkDataSource" />
     </bean>
 ```
-##下面是在service层中的使用案例(PS：如果项目没必要的情况下，建议去掉dao层的概念与设计，因为dbhelper已经为您封装好了很多操作，无需dao层，就可以满足一般的业务系统，并且本人实战过程中，也发现维护起来很方便^_^)
+##下面是在service层中的使用案例(PS：如果项目没必要的情况下，建议去掉dao层的概念与设计，因为dbhelper已经为您封装好了很多操作，无需dao层，就可以满足一般的业务系统)
 ```java
 @Service
 public class DataHandleService {
@@ -152,9 +152,9 @@ public class DataHandleService {
 
 }
 ```
-##上面的案例中，如果您讨厌把sql写在业务层，也可以把sql保存在其他地方，至于保存在那个地方，dbhelper不提供方案，请您自行设计，下面是我的保存在xml中
-##原理说明：下面xml中的sql数据，会在程序启动时，预先加到CenterCahce.java中的SQL_SOURCE_MAP的map中，这里的key是"文件名.id" 如user.updateUser，
-##使用时 这可以用dbhelper.update("$user.updateUser",user)即可。dbhelper底层会默认识别如果第一个参数的第一个字符带有$符号，则会去SQL_SOURCE_MAP中找出sql
+##上面的案例中，如果讨厌把sql写在业务层，可以把sql保存在其他地方，至于保存在哪个地方，myjdbc不提供方案，请自行设计，例如下面是保存在xml中
+##原理说明：会在程序启动时，预先加载xml中的id_key和sql加到CenterCahce.java中的SQL_SOURCE_MAP的map中，这里的key是"$文件名.id" 如$user.updateUser，
+##使用时 这可以用dbhelper.update("$user.updateUser")即可。dbhelper底层会默认识别如果第一个参数的第一个字符带有$符号，则会去SQL_SOURCE_MAP中找出sql
 ```xml
 <mysql>
 	<sql id="updateUser">
@@ -190,7 +190,7 @@ public class SystemService {
 
 ##Myjdbc是一个轻量级orm持久层操作api，只依赖commons-logging日志架包<br />
 ##支持0配置0注解对实体对象的增删改查，也支持直接传入sql操作数据库
-##支持MYSQL，兼容其他以jdbc为驱动的数据库<br />
+##主要支持MYSQL，兼容其他以jdbc为驱动的数据库<br />
 ##采用低耦合分层软件架构（共2层）：第一层DBHelper---经过DataBaseOperateProxy代理---第二层DataBaseDaoImp。每层总共享SqlContext上下文中的数据<br />
 ##支持完整的sql日志打印与日志是否输出动态控制
 ##支持多数据源操作
