@@ -129,23 +129,15 @@ public class DataHandleService {
 		if(StringUtils.isNotBlank(user.getMobile())){
 			//更新密码
 			zgjyDBHelper.update("update Service_.UserAccount_1 set password = ?,role=? where name=? limit 1", user.getPassword(),user.getRole(),user.getMobile());
-			zgjyDBHelper.update("update Service_.UserAccount_2 set password = ?,role=? where name=? limit 1", user.getPassword(),user.getRole(),user.getMobile());
-			zgjyDBHelper.update("update Service_.UserAccount_3 set password = ?,role=? where name=? limit 1", user.getPassword(),user.getRole(),user.getMobile());
 			//更新省市县
 			if(user.getProvinceCode()!=0){
 				zgjyDBHelper.update("update Service_.UserInfo_1 set sheng = #{provinceCode} where name=#{mobile} limit 1", user);
-				zgjyDBHelper.update("update Service_.UserInfo_2 set sheng = #{provinceCode} where name=#{mobile} limit 1", user);
-				zgjyDBHelper.update("update Service_.UserInfo_3 set sheng = #{provinceCode} where name=#{mobile} limit 1", user);
 			}
 			if(user.getCityCode()!=0){
 				zgjyDBHelper.update("update Service_.UserInfo_1 set shi = #{cityCode} where name=#{mobile} limit 1", user);
-				zgjyDBHelper.update("update Service_.UserInfo_2 set shi = #{cityCode} where name=#{mobile} limit 1", user);
-				zgjyDBHelper.update("update Service_.UserInfo_3 set shi = #{cityCode} where name=#{mobile} limit 1", user);
 			}
 			if(user.getAreaCode()!=0){
 				zgjyDBHelper.update("update Service_.UserInfo_1 set quxian = #{areaCode} where name=#{mobile} limit 1", user);
-				zgjyDBHelper.update("update Service_.UserInfo_2 set quxian = #{areaCode} where name=#{mobile} limit 1", user);
-				zgjyDBHelper.update("update Service_.UserInfo_3 set quxian = #{areaCode} where name=#{mobile} limit 1", user);
 			}
 		}
 	}
@@ -185,7 +177,6 @@ public class SystemService {
 	}
 }
 ```
-
 ##事务配置请参考另外一份SpringConfig.txt aop配置说明
 
 ##Myjdbc是一个轻量级orm持久层操作api，只依赖commons-logging日志架包<br />
