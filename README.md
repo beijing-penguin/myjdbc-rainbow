@@ -49,7 +49,7 @@ public class App {
 			Integer id = Integer.parseInt(dbHelper.insertEntityRtnPKKey(user).toString());
 			user.setId(id);
 			
-			//更新一个对象，注意只能根据主键更新一个对象
+			//更新一个对象，注意只能根据主键更新一个对象,只更新有值的字段，没有值的字段不会被更新，这点比hibernate要友好很多。
 			//dbhelper能够自动检查对象User的字段中是否包含主键，如果没有主键，会抛出异常。
 			//检查主键原理是根据User.java的类名确定是那张表，再确定对象中字段和数据库中的字段一一匹配，并完成主键匹配。
 			//实现原理请关注new DBHelper时的JDBCUtils.initDataBaseInfo(dataSource);和执行对象操作时的SqlCoreHandle.java的相关操作即可
