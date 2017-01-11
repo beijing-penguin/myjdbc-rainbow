@@ -11,7 +11,6 @@ import org.apache.commons.logging.LogFactory;
 import org.dc.jdbc.core.operate.DataBaseDaoImp;
 import org.dc.jdbc.core.operate.IDataBaseDao;
 import org.dc.jdbc.core.proxy.DataBaseOperateProxy;
-import org.dc.jdbc.core.utils.JDBCUtils;
 import org.dc.jdbc.exceptions.TooManyResultsException;
 
 /**
@@ -27,7 +26,7 @@ public class DBHelper {
 	private static final IDataBaseDao dataBaseDaoProxy = (IDataBaseDao) new DataBaseOperateProxy(DataBaseDaoImp.getInstance()).getProxy();
 	public DBHelper(DataSource dataSource){
 		this.dataSource = dataSource;
-		JDBCUtils.initDataBaseInfo(dataSource);
+		//JDBCUtils.initDataBaseInfo(dataSource);
 	}
 	public <T> T selectOneEntity(Object entity) throws Exception{
 		return this.selectOneEntity(entity,null,new Object[]{});

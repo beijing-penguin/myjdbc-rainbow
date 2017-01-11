@@ -187,7 +187,7 @@ public class JDBCUtils{
 				field = obj_newInsten.getClass().getDeclaredField(col_name);
 			}catch (Exception e) {
 				try{
-					field = obj_newInsten.getClass().getDeclaredField(JDBCUtils.getBeanName(col_name));
+					field = obj_newInsten.getClass().getDeclaredField(JDBCUtils.getBeanName(col_name.toLowerCase()));
 				}catch (Exception e1) {
 				}
 			}
