@@ -117,32 +117,38 @@ public class SqlCoreHandle{
 		List<Object> paramsList = new ArrayList<Object>();
 		List<Object> paramsPKList = new ArrayList<Object>();
 		String wheresql = null;
+		int pk_num = 0;
 		for (int i = 0,len=classRelationsList.size(); i < len; i++) {
 			ColumnBean colBean = classRelationsList.get(i).getColumnBean();
 			Field field = classRelationsList.get(i).getField();
 			field.setAccessible(true);
 			Object value = field.get(entity);
-			if(value!=null){
-				if(!colBean.isPrimaryKey()){
-					sql = sql + colBean.getColumnName() + "=" +"?,";
+
+			if(!colBean.isPrimaryKey()){
+				sql = sql + colBean.getColumnName() + "=" +"?,";
+				if(value!=null){
 					paramsList.add(value);
+				}
+
+			}else{
+				pk_num++;
+				if(wheresql==null){
+					wheresql = new String(" WHERE "+colBean.getColumnName()+"=?");
 				}else{
-					if(wheresql==null){
-						wheresql = new String(" WHERE "+colBean.getColumnName()+"=?");
-					}else{
-						wheresql = wheresql + " AND "+colBean.getColumnName()+"=?";
-					}
+					wheresql = wheresql + " AND "+colBean.getColumnName()+"=?";
+				}
+				if(value!=null){
 					paramsPKList.add(value);
 				}
 			}
 		}
-		if(paramsPKList.size()==0){
-			throw new Exception("primary key's value is empty");
+		if(paramsPKList.size()==0 || pk_num!=paramsPKList.size()){
+			throw new Exception("primary key set error");
 		}
 		sqlContext.setSql(sql.substring(0,sql.length()-1)+wheresql);
 		paramsList.add(paramsPKList);
 		sqlContext.setParamList(paramsList);
-		
+
 		return sqlContext;
 	}
 
@@ -186,11 +192,12 @@ public class SqlCoreHandle{
 		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(entityClass, tabInfo);
 
 		String wheresql = null;
-
+		int pk_num = 0;
 		List<Object> paramList = new ArrayList<Object>();
 		for (int i = 0,len=classRelationsList.size(); i < len; i++) {
 			ClassRelation classRel = classRelationsList.get(i);
 			if(classRel.getColumnBean().isPrimaryKey()){
+				pk_num++;
 				if(wheresql==null){
 					wheresql = new String(" WHERE "+classRel.getColumnBean().getColumnName()+"=?");
 				}else{
@@ -205,8 +212,8 @@ public class SqlCoreHandle{
 				}
 			}
 		}
-		if(paramList.size()==0){
-			throw new Exception("primary key's value is empty");
+		if(paramList.size()==0 || pk_num!= paramList.size()){
+			throw new Exception("primary key set error");
 		}
 		sqlContext.setSql("DELETE FROM "+tabInfo.getTableName()+wheresql);
 		sqlContext.setParamList(paramList);
