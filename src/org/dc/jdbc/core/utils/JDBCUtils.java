@@ -19,6 +19,7 @@ import javax.sql.DataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dc.jdbc.core.CacheCenter;
+import org.dc.jdbc.core.SqlContext;
 import org.dc.jdbc.core.entity.ClassRelation;
 import org.dc.jdbc.core.entity.ColumnBean;
 import org.dc.jdbc.core.entity.TableInfoBean;
@@ -242,7 +243,7 @@ public class JDBCUtils{
 		}
 		return return_obj;
 	}
-	public static List<TableInfoBean> initDataBaseInfo(final DataSource dataSource){
+	public static List<TableInfoBean> getDataBaseInfo(final DataSource dataSource){
 		List<TableInfoBean> tabList = CacheCenter.DATABASE_INFO_CACHE.get(dataSource);
 		if(tabList==null){
 			Connection conn = null;
@@ -276,7 +277,7 @@ public class JDBCUtils{
 						}
 					}
 					//检查字段名规范
-					List<ColumnBean> colList =  tableBean.getColumnList();
+					/*List<ColumnBean> colList =  tableBean.getColumnList();
 					for (int i = 0; i < colList.size(); i++) {
 						String col_name = colList.get(i).getColumnName();
 						for (int j = i+1; j < colList.size(); j++) {
@@ -288,9 +289,9 @@ public class JDBCUtils{
 								}
 							}
 						}
-					}
+					}*/
 					//检查表明规范
-					for (int i = 0; i < tabList.size(); i++) {
+					/*for (int i = 0; i < tabList.size(); i++) {
 						if(getBeanName(tabList.get(i).getTableName()).equalsIgnoreCase(getBeanName(tableName))){
 							try{
 								throw new Exception("table name= '"+tabList.get(i).getTableName()+"' is not standard");
@@ -298,7 +299,7 @@ public class JDBCUtils{
 								LOG.error("",e);
 							}
 						}
-					}
+					}*/
 
 					tabList.add(tableBean);
 				}
@@ -359,71 +360,75 @@ public class JDBCUtils{
 		return sb.toString().toLowerCase();
 	}
 
-	public static TableInfoBean getTableInfo(Class<?> entityClass,DataSource dataSource) throws Exception{
-		TableInfoBean tabInfo = CacheCenter.SQL_TABLE_CACHE.get(entityClass);
-		if(tabInfo==null){
-			String className = entityClass.getSimpleName();
-			String class_tabName = javaBeanToSeparator(className, null);
-			List<TableInfoBean> db_tabList = initDataBaseInfo(dataSource);
-			for (int i = 0; i < db_tabList.size(); i++) {
-				TableInfoBean db_tabInfo = db_tabList.get(i);
-				String tabname = db_tabInfo.getTableName();
-				if(tabname.equalsIgnoreCase(class_tabName)){
-					tabInfo =  db_tabInfo;
-					break;
-				}
-			}
-			if(tabInfo == null){
-				throw new Exception("table "+JDBCUtils.javaBeanToSeparator(entityClass.getSimpleName(), null)+" is not exist");
-			}
-			CacheCenter.SQL_TABLE_CACHE.put(entityClass, tabInfo);
-		}
-		return tabInfo;
-	}
-	public static List<ClassRelation> getClassRelationList(Class<?> entityClass,TableInfoBean tabInfo,boolean ischeckPK) throws Exception{
+	public static List<ClassRelation> getClassRelationList(Class<?> entityClass,TableInfoBean tabInfo) throws Exception{
 		List<ClassRelation> classRelationsList = CacheCenter.CLASS_REL_FIELD_CACHE.get(entityClass);
-		if(classRelationsList==null){
-			classRelationsList = new ArrayList<ClassRelation>();
-
+		if(CacheCenter.CLASS_REL_FIELD_CACHE.containsKey(entityClass)){
+			return CacheCenter.CLASS_REL_FIELD_CACHE.get(entityClass);
+		}else{
+			List<ColumnBean> colList = tabInfo.getColumnList();
 			Field[] fieldArr = entityClass.getDeclaredFields();
-			Field pk_field = null;
-			ColumnBean col_pk = null;
-			for (int i = 0; i < fieldArr.length; i++) {
+
+			classRelationsList = new ArrayList<ClassRelation>();
+			for (int i = 0,len=fieldArr.length; i < len; i++) {
 				Field field = fieldArr[i];
 				if(!Modifier.isStatic(field.getModifiers())){//去除静态类型字段
 					String fdName = field.getName();
-					for (int j = 0; j < tabInfo.getColumnList().size(); j++) {
-						ColumnBean col = tabInfo.getColumnList().get(j);
-						if(fdName.equalsIgnoreCase(col.getColumnName()) || JDBCUtils.getBeanName(col.getColumnName()).equalsIgnoreCase(fdName)){
-							if(col.isPrimaryKey()){
-								pk_field = field;
-								if(col_pk!=null){
-									throw new Exception("primary key ="+col_pk.getColumnName()+" is too many.Make sure there is only one primary key.");
-								}
-								col_pk = col;
+					ClassRelation cr = null;
+					for (int j = 0,lenn=colList.size(); j < lenn; j++) {
+						ColumnBean colbean = colList.get(j);
+						if(fdName.equalsIgnoreCase(colbean.getColumnName())){
+							cr = new ClassRelation();
+							cr.setColumnBean(colbean);
+							cr.setField(field);
+							break;
+						}
+					}
+
+					if(cr==null){
+						for (int j = 0,lenn=colList.size(); j < lenn; j++) {
+							ColumnBean colbean = colList.get(j);
+							if(fdName.equalsIgnoreCase(JDBCUtils.getBeanName(colbean.getColumnName()))){
+								cr = new ClassRelation();
+								cr.setColumnBean(colbean);
+								cr.setField(field);
 								break;
-							}else{
-								ClassRelation classRelation = new ClassRelation();
-								classRelation.setField(field);
-								classRelation.setColumnBean(col);
-								classRelationsList.add(classRelation);
 							}
 						}
 					}
-				}
-			}
-			if(ischeckPK && col_pk==null ){
-				throw new Exception("primary key is not exist");
-			}else{
-				if(col_pk!=null){
-					ClassRelation classRelation = new ClassRelation();
-					classRelation.setField(pk_field);
-					classRelation.setColumnBean(col_pk);
-					classRelationsList.add(classRelation);
+
+					if(cr!=null){
+						classRelationsList.add(cr);
+					}
 				}
 			}
 			CacheCenter.CLASS_REL_FIELD_CACHE.put(entityClass, classRelationsList);
+			return classRelationsList;
 		}
-		return classRelationsList;
+	}
+	public static TableInfoBean getTableInfoByClass(Class<?> entityClass) {
+		if(CacheCenter.SQL_TABLE_CACHE.containsKey(entityClass)){
+			return CacheCenter.SQL_TABLE_CACHE.get(entityClass);
+		}else{
+			TableInfoBean tabInfo = null;
+			List<TableInfoBean> tableList  = getDataBaseInfo(SqlContext.getContext().getCurrentDataSource());
+
+			String entityName = entityClass.getSimpleName();
+			for (int i = 0,len = tableList.size(); i < len; i++) {
+				TableInfoBean tableBean = tableList.get(i);
+				if(entityName.equalsIgnoreCase(tableBean.getTableName())){
+					tabInfo = tableBean;
+					break;
+				}
+			}
+			for (int i = 0,len = tableList.size(); i < len; i++) {
+				TableInfoBean tableBean = tableList.get(i);
+				if(entityName.equalsIgnoreCase(JDBCUtils.getBeanName(tableBean.getTableName()))){
+					tabInfo = tableBean;
+					break;
+				}
+			}
+			CacheCenter.SQL_TABLE_CACHE.put(entityClass, tabInfo);
+			return tabInfo;
+		}
 	}
 }

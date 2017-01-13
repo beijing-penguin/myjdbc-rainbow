@@ -5,6 +5,8 @@ import java.lang.reflect.Field;
 public class ClassRelation {
 	private Field field;
 	private ColumnBean columnBean;
+	
+	
 	public Field getField() {
 		return field;
 	}

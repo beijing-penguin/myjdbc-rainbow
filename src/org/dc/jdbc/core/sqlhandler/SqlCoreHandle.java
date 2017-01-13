@@ -110,38 +110,39 @@ public class SqlCoreHandle{
 	public static SqlContext handleUpdateRequest(Object entity) throws Exception{
 		SqlContext sqlContext = SqlContext.getContext();
 		Class<?> entityClass = entity.getClass();
-		TableInfoBean tabInfo = JDBCUtils.getTableInfo(entityClass,sqlContext.getCurrentDataSource());
-		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(entityClass, tabInfo, true);
+		TableInfoBean tabInfo = JDBCUtils.getTableInfoByClass(entityClass);
+		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(entityClass, tabInfo);
 
 		String sql = "UPDATE "+tabInfo.getTableName() +" SET ";
 		List<Object> paramsList = new ArrayList<Object>();
-		int endIndex = classRelationsList.size()-1;
-		for (int i = 0; i < endIndex; i++) {
+		List<Object> paramsPKList = new ArrayList<Object>();
+		String wheresql = null;
+		for (int i = 0,len=classRelationsList.size(); i < len; i++) {
+			ColumnBean colBean = classRelationsList.get(i).getColumnBean();
 			Field field = classRelationsList.get(i).getField();
 			field.setAccessible(true);
 			Object value = field.get(entity);
-
-			ColumnBean colBean = classRelationsList.get(i).getColumnBean();
 			if(value!=null){
-				sql = sql + colBean.getColumnName() + "=" +"?,";
-				paramsList.add(value);
+				if(!colBean.isPrimaryKey()){
+					sql = sql + colBean.getColumnName() + "=" +"?,";
+					paramsList.add(value);
+				}else{
+					if(wheresql==null){
+						wheresql = new String(" WHERE "+colBean.getColumnName()+"=?");
+					}else{
+						wheresql = wheresql + " AND "+colBean.getColumnName()+"=?";
+					}
+					paramsPKList.add(value);
+				}
 			}
 		}
-		ColumnBean colBean = classRelationsList.get(endIndex).getColumnBean();
-		if(!colBean.isPrimaryKey()){
-			throw new Exception("primary key '"+colBean.getColumnName()+"' is not exist");
+		if(paramsPKList.size()==0){
+			throw new Exception("primary key's value is empty");
 		}
-		Field field = classRelationsList.get(endIndex).getField();
-		field.setAccessible(true);
-		Object value = field.get(entity);
-		if(value==null){
-			throw new Exception("primary key '"+colBean.getColumnName()+"' is null");
-		}
-		
-		sql = sql.substring(0,sql.length()-1) + " WHERE "+colBean.getColumnName() +"=?";
-		paramsList.add(value);
-		sqlContext.setSql(sql);
+		sqlContext.setSql(sql.substring(0,sql.length()-1)+wheresql);
+		paramsList.add(paramsPKList);
 		sqlContext.setParamList(paramsList);
+		
 		return sqlContext;
 	}
 
@@ -155,8 +156,8 @@ public class SqlCoreHandle{
 		Class<?> entityClass = entity.getClass();
 		SqlContext sqlContext = SqlContext.getContext();
 		List<Object> paramsList = new ArrayList<Object>();
-		TableInfoBean tabInfo = JDBCUtils.getTableInfo(entityClass,sqlContext.getCurrentDataSource());
-		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(entityClass, tabInfo, false);
+		TableInfoBean tabInfo = JDBCUtils.getTableInfoByClass(entityClass);
+		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(entityClass, tabInfo);
 		String insertSql = "INSERT INTO "+tabInfo.getTableName() +" (";
 		String sql_values = " VALUES(";
 		for (int i = 0,len=classRelationsList.size(); i < len; i++) {
@@ -170,10 +171,10 @@ public class SqlCoreHandle{
 			}
 		}
 		if(paramsList.size()==0){
-			throw new Exception("insert condition is null");
+			throw new Exception("insert condition is empty");
 		}
 		insertSql = insertSql.substring(0,insertSql.length()-1) +")" + sql_values.substring(0,sql_values.length()-1) + ")";
-		
+
 		sqlContext.setParamList(paramsList);
 		sqlContext.setSql(insertSql);
 		return sqlContext;
@@ -181,30 +182,42 @@ public class SqlCoreHandle{
 	public static void handleDeleteRequest(Object entity) throws Exception {
 		Class<?> entityClass = entity.getClass();
 		SqlContext sqlContext = SqlContext.getContext();
-		TableInfoBean tabInfo = JDBCUtils.getTableInfo(entityClass,sqlContext.getCurrentDataSource());
-		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(entityClass, tabInfo, true);
-		int endIndex = classRelationsList.size()-1;
-		ColumnBean colBean = classRelationsList.get(endIndex).getColumnBean();
-		if(!colBean.isPrimaryKey()){
-			throw new Exception("primary key '"+colBean.getColumnName()+"' is not exist");
+		TableInfoBean tabInfo = JDBCUtils.getTableInfoByClass(entityClass);
+		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(entityClass, tabInfo);
+
+		String wheresql = null;
+
+		List<Object> paramList = new ArrayList<Object>();
+		for (int i = 0,len=classRelationsList.size(); i < len; i++) {
+			ClassRelation classRel = classRelationsList.get(i);
+			if(classRel.getColumnBean().isPrimaryKey()){
+				if(wheresql==null){
+					wheresql = new String(" WHERE "+classRel.getColumnBean().getColumnName()+"=?");
+				}else{
+					wheresql = wheresql + " AND "+classRel.getColumnBean().getColumnName()+"=?";
+				}
+
+				Field field = classRel.getField();
+				field.setAccessible(true);
+				Object value = field.get(entity);
+				if(value!=null){
+					paramList.add(value);
+				}
+			}
 		}
-		Field field = classRelationsList.get(endIndex).getField();
-		field.setAccessible(true);
-		Object value = field.get(entity);
-		if(value==null){
-			throw new Exception("primary key '"+colBean.getColumnName()+"' is null");
+		if(paramList.size()==0){
+			throw new Exception("primary key's value is empty");
 		}
-		String deleteSql = "DELETE FROM "+tabInfo.getTableName()+" WHERE "+colBean.getColumnName() +"=?";
-		sqlContext.setSql(deleteSql);
-		List<Object> list = new ArrayList<Object>();
-		list.add(value);
-		sqlContext.setParamList(list);
+		sqlContext.setSql("DELETE FROM "+tabInfo.getTableName()+wheresql);
+		sqlContext.setParamList(paramList);
+
 	}
 	public static SqlContext handleSelectRequest(Object entity,Object whereSql,Object params) throws Exception {
 		Class<?> entityClass = entity.getClass();
 		SqlContext sqlContext = SqlContext.getContext();
-		TableInfoBean tabInfo = JDBCUtils.getTableInfo(entityClass,sqlContext.getCurrentDataSource());
-		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(entityClass, tabInfo, true);
+		TableInfoBean tabInfo = JDBCUtils.getTableInfoByClass(entityClass);
+
+		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(entityClass, tabInfo);
 		String sql = "SELECT * FROM " + tabInfo.getTableName() +" WHERE 1=1 ";
 		if(whereSql!=null){
 			String tempsql = sql + whereSql;
