@@ -168,21 +168,21 @@ public class JDBCUtils{
 		}
 	}
 	private static Object getObject(ResultSet rs,ResultSetMetaData metaData,Class<?> cls,int cols_len) throws Exception{
-		//TableInfoBean tabInfo = JDBCUtils.getTableInfo(cls,SqlContext.getContext().getCurrentDataSource());
-		//List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(cls, tabInfo, false);
+		/*TableInfoBean tabInfo = JDBCUtils.getTableInfoByClass(cls);
+		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(cls, tabInfo);
+		Object obj_newInsten = cls.newInstance();
+		for (int i = 0,len=classRelationsList.size(); i < len; i++) {
+			ClassRelation classRelation = classRelationsList.get(i);
+			Field field = classRelation.getField();
+			Object cols_value = getValueByObjectType(metaData, rs, classRelation.getColumnBean().getColumnPosition());
+
+			field.setAccessible(true);
+			field.set(obj_newInsten, cols_value);
+		}
+		return obj_newInsten;*/
 		Object obj_newInsten = cls.newInstance();
 		for(int i = 0; i<cols_len; i++){
 			String col_name = metaData.getColumnLabel(i+1);
-			/*String col_name = metaData.getColumnLabel(i+1);
-			for (int j = 0; j < classRelationsList.size(); j++) {
-				if(classRelationsList.get(j).getColumnBean().getColumnName().equals(col_name)){
-					Object cols_value =  getValueByObjectType(metaData, rs, i);
-					Field field = classRelationsList.get(j).getField();
-					field.setAccessible(true);
-					field.set(obj_newInsten, cols_value);
-					break;
-				}
-			}*/
 			Field field  = null;
 			try{
 				field = obj_newInsten.getClass().getDeclaredField(col_name);
@@ -245,10 +245,12 @@ public class JDBCUtils{
 	}
 	public static List<TableInfoBean> getDataBaseInfo(final DataSource dataSource){
 		List<TableInfoBean> tabList = CacheCenter.DATABASE_INFO_CACHE.get(dataSource);
-		if(tabList==null){
+		if(tabList!=null){
+			return tabList;
+		}else{
 			Connection conn = null;
+			tabList = new ArrayList<TableInfoBean>();
 			try {
-				tabList = new ArrayList<TableInfoBean>();
 				conn = dataSource.getConnection();
 				DatabaseMetaData meta = conn.getMetaData(); 
 				ResultSet tablesResultSet = meta.getTables(conn.getCatalog(), null, "%",new String[] { "TABLE" });  
@@ -262,6 +264,7 @@ public class JDBCUtils{
 						String colName = colRS.getString("COLUMN_NAME");
 						colbean.setColumnType(colRS.getInt("DATA_TYPE"));
 						colbean.setColumnName(colName);
+						colbean.setColumnPosition(colRS.getInt("ORDINAL_POSITION"));
 						tableBean.getColumnList().add(colbean);
 					}
 					//设置主键
@@ -303,20 +306,20 @@ public class JDBCUtils{
 
 					tabList.add(tableBean);
 				}
-				CacheCenter.DATABASE_INFO_CACHE.put(dataSource, tabList);
 			} catch (Exception e) {
-				LOG.info("",e);
+				LOG.error("",e);
 			}finally{
 				try {
 					if(conn!=null && !conn.isClosed()){
 						conn.close();
 					}
 				} catch (SQLException e) {
-					LOG.info("",e);
+					LOG.error("",e);
 				}
 			}
+			CacheCenter.DATABASE_INFO_CACHE.put(dataSource, tabList);
+			return tabList;
 		}
-		return tabList;
 	}
 	/**
 	 * 将字符串转化为java bean驼峰命名规范
@@ -334,11 +337,11 @@ public class JDBCUtils{
 			return str.substring(0,1).toLowerCase()+str.substring(1);
 		}
 	}
-	/**
+	/*/**
 	 * 将驼峰命名的java字符串转下划线或者其他分隔符(默认分隔符为下划线)
 	 * @param str
 	 * @return
-	 */
+	 *
 	public static String javaBeanToSeparator(String str,Character separatorChar){
 		if(str==null || str.length()==0){
 			return null;
@@ -358,14 +361,14 @@ public class JDBCUtils{
 			}
 		}
 		return sb.toString().toLowerCase();
-	}
+	}*/
 
-	public static List<ClassRelation> getClassRelationList(Class<?> entityClass,TableInfoBean tabInfo) throws Exception{
+	public static List<ClassRelation> getClassRelationList(Class<?> entityClass,TableInfoBean tableInfo) throws Exception{
 		List<ClassRelation> classRelationsList = CacheCenter.CLASS_REL_FIELD_CACHE.get(entityClass);
-		if(CacheCenter.CLASS_REL_FIELD_CACHE.containsKey(entityClass)){
-			return CacheCenter.CLASS_REL_FIELD_CACHE.get(entityClass);
+		if(classRelationsList!=null){
+			return classRelationsList;
 		}else{
-			List<ColumnBean> colList = tabInfo.getColumnList();
+			List<ColumnBean> colList = tableInfo.getColumnList();
 			Field[] fieldArr = entityClass.getDeclaredFields();
 
 			classRelationsList = new ArrayList<ClassRelation>();
@@ -405,30 +408,36 @@ public class JDBCUtils{
 			return classRelationsList;
 		}
 	}
-	public static TableInfoBean getTableInfoByClass(Class<?> entityClass) {
-		if(CacheCenter.SQL_TABLE_CACHE.containsKey(entityClass)){
-			return CacheCenter.SQL_TABLE_CACHE.get(entityClass);
+	public static TableInfoBean getTableInfoByClass(Class<?> entityClass) throws Exception {
+		TableInfoBean tableInfo = CacheCenter.SQL_TABLE_CACHE.get(entityClass);
+		if(tableInfo!=null){
+			return tableInfo;
 		}else{
-			TableInfoBean tabInfo = null;
-			List<TableInfoBean> tableList  = getDataBaseInfo(SqlContext.getContext().getCurrentDataSource());
+			List<TableInfoBean> tableList  = JDBCUtils.getDataBaseInfo(SqlContext.getContext().getCurrentDataSource());
 
 			String entityName = entityClass.getSimpleName();
 			for (int i = 0,len = tableList.size(); i < len; i++) {
 				TableInfoBean tableBean = tableList.get(i);
 				if(entityName.equalsIgnoreCase(tableBean.getTableName())){
-					tabInfo = tableBean;
+					tableInfo = tableBean;
 					break;
 				}
 			}
-			for (int i = 0,len = tableList.size(); i < len; i++) {
-				TableInfoBean tableBean = tableList.get(i);
-				if(entityName.equalsIgnoreCase(JDBCUtils.getBeanName(tableBean.getTableName()))){
-					tabInfo = tableBean;
-					break;
+			if(tableInfo==null){
+				for (int i = 0,len = tableList.size(); i < len; i++) {
+					TableInfoBean tableBean = tableList.get(i);
+					if(entityName.equalsIgnoreCase(JDBCUtils.getBeanName(tableBean.getTableName()))){
+						tableInfo = tableBean;
+						break;
+					}
 				}
 			}
-			CacheCenter.SQL_TABLE_CACHE.put(entityClass, tabInfo);
-			return tabInfo;
+			if(tableInfo==null){
+				throw new Exception("table is not exist");
+			}else{
+				CacheCenter.SQL_TABLE_CACHE.put(entityClass, tableInfo);
+				return tableInfo;
+			}
 		}
 	}
 }

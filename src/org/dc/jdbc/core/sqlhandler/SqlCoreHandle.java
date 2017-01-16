@@ -224,7 +224,7 @@ public class SqlCoreHandle{
 		SqlContext sqlContext = SqlContext.getContext();
 		TableInfoBean tabInfo = JDBCUtils.getTableInfoByClass(entityClass);
 
-		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(entityClass, tabInfo);
+		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(entityClass,tabInfo);
 		String sql = "SELECT * FROM " + tabInfo.getTableName() +" WHERE 1=1 ";
 		if(whereSql!=null){
 			String tempsql = sql + whereSql;
