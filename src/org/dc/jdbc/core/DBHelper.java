@@ -26,7 +26,6 @@ public class DBHelper {
 	private static final IDataBaseDao dataBaseDaoProxy = (IDataBaseDao) new DataBaseOperateProxy(DataBaseDaoImp.getInstance()).getProxy();
 	public DBHelper(DataSource dataSource){
 		this.dataSource = dataSource;
-		//JDBCUtils.initDataBaseInfo(dataSource);
 	}
 	public <T> T selectOneEntity(Object entity) throws Exception{
 		return this.selectOneEntity(entity,null,new Object[]{});
@@ -61,6 +60,14 @@ public class DBHelper {
 		String dosql = sqlOrID.startsWith("$")?CacheCenter.SQL_SOURCE_MAP.get(sqlOrID):sqlOrID;
 		return this.selectOne("SELECT COUNT(*) FROM ("+dosql+") t", Long.class, params);
 	}
+	/**
+	 * 查询一行数据，超过一行数据会报错，
+	 * @param sqlOrID 直接传入sql脚本或者是以$符号开头的引用key，如果使用key，则具体源sql集合保存位置固定为为CacheCenter.SQL_SOURCE_MAP中寻找目标sql
+	 * @param returnClass 返回值类型
+	 * @param params 传入参数，如果sql以?匹配参数，则可以传入数组或者list集合，如果是以#{key}匹配，则传入map或者一个实体对象
+	 * @return
+	 * @throws Exception
+	 */
 	public <T> T selectOne(String sqlOrID,Class<? extends T> returnClass,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
 		return dataBaseDaoProxy.selectOne(sqlOrID, returnClass, params);
@@ -68,14 +75,6 @@ public class DBHelper {
 	public Map<String,Object> selectOne(String sqlOrID,Object...params) throws Exception{
 		return this.selectOne(sqlOrID, null , params);
 	}
-	/**
-	 * 查询一行数据，超过一行数据会报错，
-	 * @param sqlOrID 直接传入sql脚本或者是以$符号开头的引用key，如果使用key，则具体源sql集合保存位置固定为为CacheCenter.sqlSourceMap中
-	 * @param returnClass 返回值类型
-	 * @param params 传入参数，如果sql以?匹配参数，则可以传入数组或者list集合，如果是以#{key}匹配，则传入map或者一个实体对象（传入对象，程序会自动根据字段名匹配#{key}）
-	 * @return
-	 * @throws Exception
-	 */
 	public <T> List<T> selectList(String sqlOrID,Class<? extends T> returnClass,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
 		return dataBaseDaoProxy.selectList(sqlOrID, returnClass, params);
