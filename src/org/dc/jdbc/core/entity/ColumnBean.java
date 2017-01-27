@@ -5,7 +5,14 @@ public class ColumnBean {
 	private int columnType;
 	private boolean isPrimaryKey;
     private String columnComment; 
+    private int columnPosition;
     
+	public int getColumnPosition() {
+		return columnPosition;
+	}
+	public void setColumnPosition(int columnPosition) {
+		this.columnPosition = columnPosition;
+	}
 	public String getColumnName() {
 		return columnName;
 	}

@@ -146,12 +146,11 @@ public class DBHelper {
 		SqlContext.getContext().setCurrentDataSource(dataSource);
 		return dataBaseDaoProxy.excuteSQL(sqlOrID,null, params);
 	}
-	
 	/**
 	 * 仅仅只回滚当前连接
 	 * @throws Exception
 	 */
-	public void rollback() throws Exception{
+	public void rollback() {
 		try{
 			Map<DataSource,Connection> connMap = SqlContext.getContext().getDataSourceMap();
 			Connection conn = connMap.get(dataSource);
