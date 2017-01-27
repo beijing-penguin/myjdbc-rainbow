@@ -1,5 +1,6 @@
 package org.dc.jdbc.core.operate;
 
+import java.math.BigInteger;
 import java.util.List;
 
 public interface IDataBaseDao {
@@ -13,7 +14,8 @@ public interface IDataBaseDao {
 	
 	public int updateEntity(Object entity) throws Exception;
 	public int insertEntity(Object entity) throws Exception;
-	public Object insertEntityRtnPKKey(Object entity) throws Exception;
+	public <T> T insertEntityRtnPKKey(Object entity) throws Exception;
 	public int deleteEntity(Object entity) throws Exception;
 	public <T> List<T> selectList(Object entity,String whereSql,Object...params) throws Exception;
+	public BigInteger insertBatch(String sqlOrID, Object object, Object[] params)throws Exception;
 }

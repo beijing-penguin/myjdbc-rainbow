@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -23,7 +24,95 @@ import org.dc.jdbc.sqlparse.Token;
 public class SqlCoreHandle{
 	private SqlCoreHandle(){}
 	/**
-	 * 处理方法，调用此方法处理请求
+	 * 批量处理方法，调用此方法处理请求
+	 */
+	public static SqlContext handleBatchRequest(String doSql,Object[] params) throws Exception{
+		StringBuilder sql = new StringBuilder(doSql);
+		LinkedList<String> keyList = new LinkedList<String>();
+		Lexer lexer = new Lexer(sql.toString());
+		int varType = 0;//1?   2#
+		int lastCharLen = 0;
+		while(true){
+			lexer.nextToken();
+			Token tok = lexer.token();
+			if (tok == Token.EOF) {
+				break;
+			}
+			String str = lexer.stringVal();
+			int curpos = lexer.pos();
+			if(tok.name == null && tok == Token.VARIANT){//异类匹配，这里的异类只有#号，sql编写规范的情况下，不需要判断str.contains("#")
+				String key = str.substring(2, str.length()-1);
+				keyList.add(key);
+				sql.replace(curpos-str.length()-lastCharLen, curpos-lastCharLen, "?");
+				lastCharLen = lastCharLen+str.length()-1;
+
+				varType =2;
+			}else if(tok == Token.QUES){
+				varType = 1;
+				break;
+			}
+		}
+		List<Object>  returnList = new ArrayList<Object>();
+		if(params!=null && params.length>0){
+			
+			switch (varType) {
+			case 1:
+				for (int i = 0; i < params.length; i++) {
+					Object p = params[i];
+					if( Collection.class.isAssignableFrom(p.getClass())){
+						returnList.add(((Collection<?>) p).toArray());
+					}else if(Object[].class.isAssignableFrom(p.getClass())){
+						returnList.add(p);
+					}
+				}
+				break;
+			case 2:
+				for (int i = 0; i < params.length; i++) {
+					Object p = params[i];
+					Map<Object,Object> tempMap = new HashMap<Object,Object>();
+					if(Map.class.isAssignableFrom(p.getClass())){
+						Map<?,?> paramMap = (Map<?, ?>) p;
+						for (Object key : paramMap.keySet()) {
+							tempMap.put(key, paramMap.get(key));
+						}
+					}else { // java对象
+						Field[] fields = p.getClass().getDeclaredFields();
+						for (Field field : fields) {
+							field.setAccessible(true);
+							Object value = field.get(p);
+							String key = field.getName();
+							if(tempMap.containsKey(key)){
+								throw new Exception("key="+key+" is already repeated");
+							}else{
+								tempMap.put(key, value);
+							}
+						}
+					}
+					
+					Object[] pp = new Object[keyList.size()];
+					for (int j = 0; j < keyList.size(); j++) {
+						String key = keyList.get(j);
+						if(!tempMap.containsKey(key)){
+							throw new Exception("sqlhandle analysis error! parameters \""+key+"\" do not match to!");
+						}else{
+							pp[j] = tempMap.get(key);
+						}
+					}
+					
+					returnList.add(pp);
+				}
+				break;
+			default:
+				break;
+			}
+		}
+		SqlContext sqlContext = SqlContext.getContext();
+		sqlContext.setSql(sql.toString());
+		sqlContext.setParamList(returnList);
+		return sqlContext;
+	}
+	/**
+	 * 一般处理方法，调用此方法处理请求
 	 */
 	public static SqlContext handleRequest(String doSql,Object...params) throws Exception{
 		List<Object> returnList = new ArrayList<Object>();
@@ -110,7 +199,7 @@ public class SqlCoreHandle{
 	public static SqlContext handleUpdateRequest(Object entity) throws Exception{
 		SqlContext sqlContext = SqlContext.getContext();
 		Class<?> entityClass = entity.getClass();
-		TableInfoBean tabInfo = JDBCUtils.getTableInfoByClass(entityClass);
+		TableInfoBean tabInfo = JDBCUtils.getTableInfoByClass(entityClass,sqlContext.getCurrentDataSource());
 		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(entityClass, tabInfo);
 
 		String sql = "UPDATE "+tabInfo.getTableName() +" SET ";
@@ -162,7 +251,7 @@ public class SqlCoreHandle{
 		Class<?> entityClass = entity.getClass();
 		SqlContext sqlContext = SqlContext.getContext();
 		List<Object> paramsList = new ArrayList<Object>();
-		TableInfoBean tabInfo = JDBCUtils.getTableInfoByClass(entityClass);
+		TableInfoBean tabInfo = JDBCUtils.getTableInfoByClass(entityClass,sqlContext.getCurrentDataSource());
 		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(entityClass, tabInfo);
 		String insertSql = "INSERT INTO "+tabInfo.getTableName() +" (";
 		String sql_values = " VALUES(";
@@ -188,7 +277,7 @@ public class SqlCoreHandle{
 	public static void handleDeleteRequest(Object entity) throws Exception {
 		Class<?> entityClass = entity.getClass();
 		SqlContext sqlContext = SqlContext.getContext();
-		TableInfoBean tabInfo = JDBCUtils.getTableInfoByClass(entityClass);
+		TableInfoBean tabInfo = JDBCUtils.getTableInfoByClass(entityClass,sqlContext.getCurrentDataSource());
 		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(entityClass, tabInfo);
 
 		String wheresql = null;
@@ -222,7 +311,7 @@ public class SqlCoreHandle{
 	public static SqlContext handleSelectRequest(Object entity,Object whereSql,Object params) throws Exception {
 		Class<?> entityClass = entity.getClass();
 		SqlContext sqlContext = SqlContext.getContext();
-		TableInfoBean tabInfo = JDBCUtils.getTableInfoByClass(entityClass);
+		TableInfoBean tabInfo = JDBCUtils.getTableInfoByClass(entityClass,sqlContext.getCurrentDataSource());
 
 		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(entityClass, tabInfo);
 		String sql = "SELECT * FROM " + tabInfo.getTableName() +" WHERE 1=1 ";

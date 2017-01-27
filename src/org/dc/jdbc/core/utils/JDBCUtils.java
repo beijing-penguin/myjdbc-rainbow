@@ -19,7 +19,6 @@ import javax.sql.DataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dc.jdbc.core.CacheCenter;
-import org.dc.jdbc.core.SqlContext;
 import org.dc.jdbc.core.entity.ClassRelation;
 import org.dc.jdbc.core.entity.ColumnBean;
 import org.dc.jdbc.core.entity.TableInfoBean;
@@ -405,12 +404,12 @@ public class JDBCUtils{
 			return classRelationsList;
 		}
 	}
-	public static TableInfoBean getTableInfoByClass(Class<?> entityClass) {
+	public static TableInfoBean getTableInfoByClass(Class<?> entityClass,DataSource dataSource) {
 		if(CacheCenter.SQL_TABLE_CACHE.containsKey(entityClass)){
 			return CacheCenter.SQL_TABLE_CACHE.get(entityClass);
 		}else{
 			TableInfoBean tabInfo = null;
-			List<TableInfoBean> tableList  = getDataBaseInfo(SqlContext.getContext().getCurrentDataSource());
+			List<TableInfoBean> tableList  = getDataBaseInfo(dataSource);
 
 			String entityName = entityClass.getSimpleName();
 			for (int i = 0,len = tableList.size(); i < len; i++) {

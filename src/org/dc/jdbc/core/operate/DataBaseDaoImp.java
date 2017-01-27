@@ -1,10 +1,11 @@
 package org.dc.jdbc.core.operate;
 
+import java.math.BigInteger;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.dc.jdbc.core.ConnectionManager;
@@ -13,7 +14,7 @@ import org.dc.jdbc.core.utils.JDBCUtils;
 
 public class DataBaseDaoImp implements IDataBaseDao{
 	private DataBaseDaoImp(){}
-	
+
 	private static final DataBaseDaoImp INSTANCE = new DataBaseDaoImp();
 	public static DataBaseDaoImp getInstance(){
 		return INSTANCE;
@@ -44,7 +45,7 @@ public class DataBaseDaoImp implements IDataBaseDao{
 			JDBCUtils.close(rs,ps);
 		}
 	}
-	
+
 	@Override
 	public int update(String sql,Class<?> returnClass, Object[] params) throws Exception {
 		return JDBCUtils.preparedAndExcuteSQL(ConnectionManager.getConnection(SqlContext.getContext().getCurrentDataSource()), sql, params);
@@ -84,20 +85,17 @@ public class DataBaseDaoImp implements IDataBaseDao{
 			int rowNum = ps.executeUpdate();
 			if(rowNum>0){
 				rs = ps.getGeneratedKeys();
-				List<Object> list = new ArrayList<Object>();
 				ResultSetMetaData metaData  = rs.getMetaData();
+				int num = 0;
+				T rt = null;
 				while(rs.next()){
-					Object cols_value = JDBCUtils.getValueByObjectType(metaData, rs, 0);
-					list.add(cols_value);
+					if(num>0){
+						throw new Exception("the insert too many");
+					}
+					num++;
+					rt = (T) JDBCUtils.getValueByObjectType(metaData, rs, 0);
 				}
-				if(list.size()==0){
-					return null;
-				}
-				if(list.size()==1){
-					return (T) list.get(0);
-				}else{
-					return (T) list;
-				}
+				return rt;
 			}
 		} catch (Exception e) {
 			throw e;
@@ -134,7 +132,7 @@ public class DataBaseDaoImp implements IDataBaseDao{
 		return JDBCUtils.preparedAndExcuteSQL(ConnectionManager.getConnection(sqlContext.getCurrentDataSource()), sqlContext.getSql(), sqlContext.getParamList().toArray());
 	}
 	@Override
-	public Object insertEntityRtnPKKey(Object entity) throws Exception {
+	public <T> T insertEntityRtnPKKey(Object entity) throws Exception {
 		SqlContext sqlContext = SqlContext.getContext();
 		return this.insertRtnPKKey(sqlContext.getSql(), null, sqlContext.getParamList().toArray());
 	}
@@ -143,5 +141,39 @@ public class DataBaseDaoImp implements IDataBaseDao{
 	public <T> List<T> selectList(Object entity, String whereSql, Object... params) throws Exception {
 		SqlContext sqlContext = SqlContext.getContext();
 		return (List<T>) this.selectList(sqlContext.getSql(), entity.getClass(), sqlContext.getParamList().toArray());
+	}
+	@Override
+	public BigInteger insertBatch(String sql, Object object, Object[] params) throws Exception {
+		PreparedStatement ps = null;
+		try{
+			Connection connection = ConnectionManager.getConnection(SqlContext.getContext().getCurrentDataSource());
+			ps = connection.prepareStatement(sql);
+			int count = 0;
+			BigInteger bigInteger = BigInteger.ZERO;
+			for (Object param: params) {
+				Object[] setParamsArr = (Object[]) param;
+				for (int i = 0; i < setParamsArr.length; i++) {
+					ps.setObject(i+1, setParamsArr[i]);
+				}
+				ps.addBatch();
+				if(++count%1000 == 0) {//分批提交，防止内存占用时间太长导致OutOfMemoryError
+					count = 0;
+					int[] batchArr = ps.executeBatch();
+					for (int i = 0; i < batchArr.length; i++) {
+						bigInteger = bigInteger.add(new BigInteger(String.valueOf(batchArr[i])));
+					}
+				}
+			}
+			int[] batchArr = ps.executeBatch(); // insert remaining records
+			
+			for (int i = 0; i < batchArr.length; i++) {
+				bigInteger = bigInteger.add(new BigInteger(String.valueOf(batchArr[i])));
+			}
+			return bigInteger;
+		}catch (Exception e) {
+			throw e;
+		}finally {
+			JDBCUtils.close(ps);
+		}
 	}
 }

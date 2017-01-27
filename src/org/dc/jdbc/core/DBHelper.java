@@ -1,5 +1,6 @@
 package org.dc.jdbc.core;
 
+import java.math.BigInteger;
 import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
@@ -87,7 +88,7 @@ public class DBHelper {
 	 * 返回受影响的行数
 	 * @param sqlOrID
 	 * @param params
-	 * @return
+	 * @return 插入行数
 	 * @throws Exception
 	 */
 	public int insert(String sqlOrID,Object...params) throws Exception{
@@ -95,9 +96,9 @@ public class DBHelper {
 		return dataBaseDaoProxy.insert(sqlOrID,null, params);
 	}
 	/**
-	 * 插入一个实体数据,请保证数据库创建表名规范，敏感型数据库，表名需要全部小写。
+	 * 插入一个实体对象
 	 * @param entity
-	 * @return
+	 * @return 插入行数
 	 * @throws Exception
 	 */
 	public int insertEntity(Object entity) throws Exception{
@@ -105,19 +106,24 @@ public class DBHelper {
 		return dataBaseDaoProxy.insertEntity(entity);
 	}
 	/**
-	 * 插入数据并返回主键
+	 * 插入数据并返回自增后的主键
 	 * @param sqlOrID
 	 * @param params
-	 * @return 返回值有一个为基本类型，为多个就是List集合类型
+	 * @return 主键
 	 * @throws Exception
 	 */
-	public Object insertReturnKey(String sqlOrID,Object...params) throws Exception{
+	public <T> T insertReturnKey(String sqlOrID,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
 		return dataBaseDaoProxy.insertRtnPKKey(sqlOrID,null, params);
 	}
-	public Object insertEntityRtnPKKey(Object entity) throws Exception{
+	public <T> T insertEntityRtnPKKey(Object entity) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
 		return dataBaseDaoProxy.insertEntityRtnPKKey(entity);
+	}
+	//批量插入
+	public BigInteger insertBatch(String sqlOrID,Object[] params) throws Exception{
+		SqlContext.getContext().setCurrentDataSource(dataSource);
+		return dataBaseDaoProxy.insertBatch(sqlOrID,null,params);
 	}
 	public int update(String sqlOrID,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);

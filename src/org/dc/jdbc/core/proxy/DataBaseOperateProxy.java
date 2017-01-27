@@ -31,14 +31,19 @@ public class DataBaseOperateProxy implements InvocationHandler{
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 		SqlContext context = SqlContext.getContext();
+		String methodName = method.getName();
 		if(args[0] instanceof String){//sql操作
 			String sqlOrId = args[0].toString();
 			String dosql = sqlOrId.startsWith("$")?CacheCenter.SQL_SOURCE_MAP.get(sqlOrId):sqlOrId;
-			context = SqlCoreHandle.handleRequest(dosql, (Object[])args[2]);
+			if(methodName.equals("insertBatch")){
+				context = SqlCoreHandle.handleBatchRequest(dosql, (Object[])args[2]);
+			}else{
+				context = SqlCoreHandle.handleRequest(dosql, (Object[])args[2]);
+			}
 			args[0] = context.getSql();
 			args[2] = context.getParamList().toArray();
 		}else{//entity操作
-			String methodName = method.getName();
+			
 			if(methodName.equals("updateEntity")){
 				context = SqlCoreHandle.handleUpdateRequest(args[0]);
 			}else if(methodName.equals("insertEntity") || methodName.equals("insertEntityRtnPKKey")){
