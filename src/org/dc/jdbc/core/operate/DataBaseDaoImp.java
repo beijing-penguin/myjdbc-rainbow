@@ -76,33 +76,28 @@ public class DataBaseDaoImp implements IDataBaseDao{
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T insertRtnPKKey(String sql,Class<?> returnClass, Object[] params) throws Exception {
+	public <T> T insertReturnPK(String sql,Class<?> returnClass, Object[] params) throws Exception {
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 		try {
 			ps = ConnectionManager.getConnection(SqlContext.getContext().getCurrentDataSource()).prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 			JDBCUtils.setParams(ps, params);
 			int rowNum = ps.executeUpdate();
-			if(rowNum>0){
-				rs = ps.getGeneratedKeys();
-				ResultSetMetaData metaData  = rs.getMetaData();
-				int num = 0;
-				T rt = null;
-				while(rs.next()){
-					if(num>0){
-						throw new Exception("the insert too many");
-					}
-					num++;
-					rt = (T) JDBCUtils.getValueByObjectType(metaData, rs, 0);
-				}
-				return rt;
+			if(rowNum>1){
+				throw new Exception("the insert too many");
 			}
+			rs = ps.getGeneratedKeys();
+			ResultSetMetaData metaData  = rs.getMetaData();
+			T rt = null;
+			while(rs.next()){
+				rt = (T) JDBCUtils.getValueByObjectType(metaData, rs, 0);
+			}
+			return rt;
 		} catch (Exception e) {
 			throw e;
 		}finally{
 			JDBCUtils.close(rs,ps);
 		}
-		return null;
 	}
 
 	@Override
@@ -132,18 +127,18 @@ public class DataBaseDaoImp implements IDataBaseDao{
 		return JDBCUtils.preparedAndExcuteSQL(ConnectionManager.getConnection(sqlContext.getCurrentDataSource()), sqlContext.getSql(), sqlContext.getParamList().toArray());
 	}
 	@Override
-	public <T> T insertEntityRtnPKKey(Object entity) throws Exception {
+	public <T> T insertEntityRtnPK(Object entity) throws Exception {
 		SqlContext sqlContext = SqlContext.getContext();
-		return this.insertRtnPKKey(sqlContext.getSql(), null, sqlContext.getParamList().toArray());
+		return this.insertReturnPK(sqlContext.getSql(), null, sqlContext.getParamList().toArray());
 	}
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> List<T> selectList(Object entity, String whereSql, Object... params) throws Exception {
+	public <T> List<T> selectList(Object entity, String whereSql, Object[] params) throws Exception {
 		SqlContext sqlContext = SqlContext.getContext();
 		return (List<T>) this.selectList(sqlContext.getSql(), entity.getClass(), sqlContext.getParamList().toArray());
 	}
 	@Override
-	public BigInteger insertBatch(String sql, Object object, Object[] params) throws Exception {
+	public BigInteger insertBatch(String sql,Class<?> returnClass, Object[] params) throws Exception {
 		PreparedStatement ps = null;
 		try{
 			Connection connection = ConnectionManager.getConnection(SqlContext.getContext().getCurrentDataSource());
@@ -165,7 +160,7 @@ public class DataBaseDaoImp implements IDataBaseDao{
 				}
 			}
 			int[] batchArr = ps.executeBatch(); // insert remaining records
-			
+
 			for (int i = 0; i < batchArr.length; i++) {
 				bigInteger = bigInteger.add(new BigInteger(String.valueOf(batchArr[i])));
 			}

@@ -26,7 +26,7 @@ public class DataBaseOperateProxy implements InvocationHandler{
 	public DataBaseOperateProxy(Object target) {  
 		super();  
 		this.target = target;
-	}  
+	}
 
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -46,7 +46,7 @@ public class DataBaseOperateProxy implements InvocationHandler{
 			
 			if(methodName.equals("updateEntity")){
 				context = SqlCoreHandle.handleUpdateRequest(args[0]);
-			}else if(methodName.equals("insertEntity") || methodName.equals("insertEntityRtnPKKey")){
+			}else if(methodName.equals("insertEntity") || methodName.equals("insertEntityRtnPK")){
 				SqlCoreHandle.handleInsertRequest(args[0]);
 			}else if(methodName.equals("deleteEntity")){
 				SqlCoreHandle.handleDeleteRequest(args[0]);

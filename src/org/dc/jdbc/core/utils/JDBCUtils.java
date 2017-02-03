@@ -419,11 +419,13 @@ public class JDBCUtils{
 					break;
 				}
 			}
-			for (int i = 0,len = tableList.size(); i < len; i++) {
-				TableInfoBean tableBean = tableList.get(i);
-				if(entityName.equalsIgnoreCase(JDBCUtils.getBeanName(tableBean.getTableName()))){
-					tabInfo = tableBean;
-					break;
+			if(tabInfo==null){
+				for (int i = 0,len = tableList.size(); i < len; i++) {
+					TableInfoBean tableBean = tableList.get(i);
+					if(entityName.equalsIgnoreCase(JDBCUtils.getBeanName(tableBean.getTableName()))){
+						tabInfo = tableBean;
+						break;
+					}
 				}
 			}
 			CacheCenter.SQL_TABLE_CACHE.put(entityClass, tabInfo);
