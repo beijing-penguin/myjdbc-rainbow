@@ -1,6 +1,5 @@
 package org.dc.jdbc.core.operate;
 
-import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

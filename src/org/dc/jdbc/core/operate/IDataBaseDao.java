@@ -1,6 +1,5 @@
 package org.dc.jdbc.core.operate;
 
-import java.math.BigInteger;
 import java.util.List;
 
 public interface IDataBaseDao {
