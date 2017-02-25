@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.dc.jdbc.core.ConnectionManager;
@@ -138,13 +139,13 @@ public class DataBaseDaoImp implements IDataBaseDao{
 		return (List<T>) this.selectList(sqlContext.getSql(), entity.getClass(), sqlContext.getParamList().toArray());
 	}
 	@Override
-	public BigInteger insertBatch(String sql,Class<?> returnClass, Object[] params) throws Exception {
+	public List<Integer> insertBatch(String sql,Class<?> returnClass, Object[] params) throws Exception {
 		PreparedStatement ps = null;
 		try{
 			Connection connection = ConnectionManager.getConnection(SqlContext.getContext().getCurrentDataSource());
 			ps = connection.prepareStatement(sql);
 			int count = 0;
-			BigInteger bigInteger = BigInteger.ZERO;
+			List<Integer> rtnList = new ArrayList<>(params.length);
 			for (Object param: params) {
 				Object[] setParamsArr = (Object[]) param;
 				for (int i = 0; i < setParamsArr.length; i++) {
@@ -155,16 +156,16 @@ public class DataBaseDaoImp implements IDataBaseDao{
 					count = 0;
 					int[] batchArr = ps.executeBatch();
 					for (int i = 0; i < batchArr.length; i++) {
-						bigInteger = bigInteger.add(new BigInteger(String.valueOf(batchArr[i])));
+						rtnList.add(batchArr[i]);
 					}
 				}
 			}
 			int[] batchArr = ps.executeBatch(); // insert remaining records
 
 			for (int i = 0; i < batchArr.length; i++) {
-				bigInteger = bigInteger.add(new BigInteger(String.valueOf(batchArr[i])));
+				rtnList.add(batchArr[i]);
 			}
-			return bigInteger;
+			return rtnList;
 		}catch (Exception e) {
 			throw e;
 		}finally {

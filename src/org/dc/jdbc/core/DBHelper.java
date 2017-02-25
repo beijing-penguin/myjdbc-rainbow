@@ -1,12 +1,9 @@
 package org.dc.jdbc.core;
 
-import java.math.BigInteger;
 import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
-
 import javax.sql.DataSource;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dc.jdbc.core.operate.DataBaseDaoImp;
@@ -29,7 +26,10 @@ public class DBHelper {
 		this.dataSource = dataSource;
 	}
 	public <T> T selectOneEntity(Object entity) throws Exception{
-		return this.selectOneEntity(entity,null);
+		return this.selectOneEntity(entity,null,new Object[]{});
+	}
+	public <T> T selectOneEntity(Object entity,String whereSql) throws Exception{
+		return this.selectOneEntity(entity,whereSql,new Object[]{});
 	}
 	public <T> T selectOneEntity(Object entity,String whereSql,Object...params) throws Exception{
 		List<T> list = this.selectEntity(entity, whereSql,params);
@@ -42,11 +42,17 @@ public class DBHelper {
 		}
 	}
 	public <T> List<T> selectEntity(Object entity) throws Exception{
-		return this.selectEntity(entity, null);
+		return this.selectEntity(entity, null,new Object[]{});
+	}
+	public <T> List<T> selectEntity(Object entity,String whereSql) throws Exception{
+		return this.selectEntity(entity, whereSql,new Object[]{});
 	}
 	public <T> List<T> selectEntity(Object entity,String whereSql,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
 		return dataBaseDaoProxy.selectList(entity, whereSql, params);
+	}
+	public long selectCount(String sqlOrID) throws Exception{
+		return this.selectCount(sqlOrID,new Object[]{});
 	}
 	public long selectCount(String sqlOrID,Object...params) throws Exception{
 		String dosql = sqlOrID.startsWith("$")?CacheCenter.SQL_SOURCE_MAP.get(sqlOrID):sqlOrID;
@@ -96,7 +102,7 @@ public class DBHelper {
 		return dataBaseDaoProxy.insertEntity(entity);
 	}
 	/**
-	 * 该方法已过期，请使用insertReturnPK方法
+	 * 插入数据并返回自增后的主键
 	 * @param sqlOrID
 	 * @param params
 	 * @return 主键
@@ -107,6 +113,13 @@ public class DBHelper {
 		SqlContext.getContext().setCurrentDataSource(dataSource);
 		return dataBaseDaoProxy.insertReturnPK(sqlOrID,null, params);
 	}
+	/**
+	 * 插入数据并返回自增后的主键
+	 * @param sqlOrID
+	 * @param params
+	 * @return 主键
+	 * @throws Exception
+	 */
 	public <T> T insertReturnPK(String sqlOrID,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
 		return dataBaseDaoProxy.insertReturnPK(sqlOrID,null, params);
@@ -115,8 +128,14 @@ public class DBHelper {
 		SqlContext.getContext().setCurrentDataSource(dataSource);
 		return dataBaseDaoProxy.insertEntityRtnPK(entity);
 	}
-	//批量插入
-	public BigInteger insertBatch(String sqlOrID,Object[] params) throws Exception{
+	/**
+	 * 批量插入
+	 * @param sqlOrID
+	 * @param params
+	 * @return 返回每条插入语句受影响的行数
+	 * @throws Exception
+	 */
+	public List<Integer> insertBatch(String sqlOrID,Object[] params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
 		return dataBaseDaoProxy.insertBatch(sqlOrID,null,params);
 	}
