@@ -204,9 +204,9 @@ public class SqlCoreHandle{
 
 		String sql = "UPDATE "+tabInfo.getTableName() +" SET ";
 		List<Object> paramsList = new ArrayList<Object>();
-		List<Object> paramsPKList = new ArrayList<Object>();
+		List<Object> paramsPKList = new ArrayList<Object>(3);
 		String wheresql = null;
-		int pk_num = 0;
+		int set_param = 0;
 		for (int i = 0,len=classRelationsList.size(); i < len; i++) {
 			ColumnBean colBean = classRelationsList.get(i).getColumnBean();
 			Field field = classRelationsList.get(i).getField();
@@ -214,13 +214,13 @@ public class SqlCoreHandle{
 			Object value = field.get(entity);
 
 			if(!colBean.isPrimaryKey()){
-				sql = sql + colBean.getColumnName() + "=" +"?,";
 				if(value!=null){
+					set_param++;
+					sql = sql + colBean.getColumnName() + "=" +"?,";
 					paramsList.add(value);
 				}
 
 			}else{
-				pk_num++;
 				if(wheresql==null){
 					wheresql = new String(" WHERE "+colBean.getColumnName()+"=?");
 				}else{
@@ -231,11 +231,14 @@ public class SqlCoreHandle{
 				}
 			}
 		}
-		if(paramsPKList.size()==0 || pk_num!=paramsPKList.size()){
-			throw new Exception("primary key set error");
+		if(paramsPKList.size()==0 ){
+			throw new Exception("primary key is not exist");
+		}
+		if(set_param==0){
+			throw new Exception("param is not exist");
 		}
 		sqlContext.setSql(sql.substring(0,sql.length()-1)+wheresql);
-		paramsList.add(paramsPKList);
+		paramsList.addAll(paramsPKList);
 		sqlContext.setParamList(paramsList);
 
 		return sqlContext;
