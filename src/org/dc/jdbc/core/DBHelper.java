@@ -18,6 +18,8 @@ import org.dc.jdbc.exceptions.TooManyResultsException;
  * @time 2015-8-17
  */
 public class DBHelper {
+	private final static Object[] nullArgs = new Object[0];
+
 	private volatile DataSource dataSource;
 
 	private static final Log LOG = LogFactory.getLog(DBHelper.class);
@@ -26,10 +28,10 @@ public class DBHelper {
 		this.dataSource = dataSource;
 	}
 	public <T> T selectOneEntity(Object entity) throws Exception{
-		return this.selectOneEntity(entity,null,new Object[]{});
+		return this.selectOneEntity(entity,null,nullArgs);
 	}
 	public <T> T selectOneEntity(Object entity,String whereSql) throws Exception{
-		return this.selectOneEntity(entity,whereSql,new Object[]{});
+		return this.selectOneEntity(entity,whereSql,nullArgs);
 	}
 	public <T> T selectOneEntity(Object entity,String whereSql,Object...params) throws Exception{
 		List<T> list = this.selectEntity(entity, whereSql,params);
@@ -42,17 +44,17 @@ public class DBHelper {
 		}
 	}
 	public <T> List<T> selectEntity(Object entity) throws Exception{
-		return this.selectEntity(entity, null,new Object[]{});
+		return this.selectEntity(entity, null,nullArgs);
 	}
 	public <T> List<T> selectEntity(Object entity,String whereSql) throws Exception{
-		return this.selectEntity(entity, whereSql,new Object[]{});
+		return this.selectEntity(entity, whereSql,nullArgs);
 	}
 	public <T> List<T> selectEntity(Object entity,String whereSql,Object...params) throws Exception{
 		SqlContext.getContext().setCurrentDataSource(dataSource);
 		return dataBaseDaoProxy.selectList(entity, whereSql, params);
 	}
 	public long selectCount(String sqlOrID) throws Exception{
-		return this.selectCount(sqlOrID,new Object[]{});
+		return this.selectCount(sqlOrID,nullArgs);
 	}
 	public long selectCount(String sqlOrID,Object...params) throws Exception{
 		String dosql = sqlOrID.startsWith("$")?CacheCenter.SQL_SOURCE_MAP.get(sqlOrID):sqlOrID;
