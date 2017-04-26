@@ -4,7 +4,6 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
-import org.dc.jdbc.config.JDBCConfig;
 import org.dc.jdbc.core.ConnectionManager;
 import org.dc.jdbc.core.CacheCenter;
 import org.dc.jdbc.core.SqlContext;
