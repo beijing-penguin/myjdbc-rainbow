@@ -74,8 +74,8 @@ public class DBHelper {
 		return this.selectOne(sqlOrID, null , params);
 	}
 	/**
-	 * 查询一行数据，超过一行数据会报错，
-	 * @param sqlOrID 直接传入sql脚本或者是以$符号开头的引用key，如果使用key，则具体源sql集合保存位置固定为为CacheCenter.sqlSourceMap中
+	 * 查询
+	 * @param sqlOrID 直接传入sql脚本或者是以$符号开头的引用key，具体位置保存在CacheCenter.SQL_SOURCE_MAP中
 	 * @param returnClass 返回值类型
 	 * @param params 传入参数，如果sql以?匹配参数，则可以传入数组或者list集合，如果是以#{key}匹配，则传入map或者一个实体对象（传入对象，程序会自动根据字段名匹配#{key}）
 	 * @return

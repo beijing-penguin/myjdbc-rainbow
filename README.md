@@ -1,6 +1,6 @@
-#快速入门
-##入口类DBHelper.java，new出来就能用。
-##②main方式简单使用，确保引入myjdbc源码jar 包，或者引用了pom.xml，或者直接 copy源代码到src下。引入druid，HikariDataSource，或者你习惯使用的任何一种数据源jar包，main方法查询test数据库中的数据集合如下
+# 快速入门
+## 入口类DBHelper.java，new出来就能用。
+## ②main方式简单使用，确保引入myjdbc源码jar 包，或者引用了pom.xml，或者直接 copy源代码到src下。引入druid，HikariDataSource，或者你习惯使用的任何一种数据源jar包，main方法查询test数据库中的数据集合如下
 ```java
 public class App {
 	public static void main( String[] args ) {
@@ -61,11 +61,11 @@ public class App {
 	}
 }
 ```
-##支持事务，配置请参考另外一份SpringConfig.txt aop配置说明
-##Myjdbc是一个轻量级orm持久层操作api，只依赖commons-logging日志架包<br />
-##支持0配置0注解对实体对象的增删改查，也支持直接传入sql操作数据库
-##主要支持MYSQL，兼容其他以jdbc为驱动的数据库<br />
-##本框架采用低耦合分层软件架构（共2层）：第一层DBHelper---经过DataBaseOperateProxy代理---第二层DataBaseDaoImp。每层总共享SqlContext上下文中的数据<br />
-##支持完整的sql日志打印与日志是否输出动态控制
-##支持业务上常见的跨库操作+自带弱事务支持
-##支持无缝对接当当开源的分库分表sharding-jdbc
+## 支持事务，配置请参考另外一份SpringConfig.txt aop配置说明
+## Myjdbc是一个轻量级orm持久层操作api，只依赖commons-logging日志架包<br />
+## 支持0配置0注解对实体对象的增删改查，也支持直接传入sql操作数据库
+## 主要支持MYSQL，兼容其他以jdbc为驱动的数据库<br />
+## 本框架采用低耦合分层软件架构（共2层）：第一层DBHelper---经过DataBaseOperateProxy代理---第二层DataBaseDaoImp。每层总共享SqlContext上下文中的数据<br />
+## 支持完整的sql日志打印与日志是否输出动态控制
+## 支持业务上常见的跨库操作+自带弱事务支持
+## 支持无缝对接当当开源的分库分表sharding-jdbc
