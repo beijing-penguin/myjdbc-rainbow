@@ -31,6 +31,7 @@ public class DBHelper {
 	}
 	public DBHelper(DataSource dataSource,boolean isPrintSqlLog){
 		this.dataSource = dataSource;
+		this.isPrintSqlLog = isPrintSqlLog;
 	}
 	public <T> T selectOneEntity(Object entity) throws Exception{
 		return this.selectOneEntity(entity,null,nullArgs);
