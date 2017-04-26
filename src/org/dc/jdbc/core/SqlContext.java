@@ -21,12 +21,21 @@ public class SqlContext{
     private Map<DataSource,Connection> dataSourceMap = new HashMap<DataSource,Connection>();
     
     private DataSource currentDataSource;
+    private boolean isPrintSqlLog;
     
+    
+	public boolean isPrintSqlLog() {
+		return isPrintSqlLog;
+	}
+	public void setPrintSqlLog(boolean isPrintSqlLog) {
+		this.isPrintSqlLog = isPrintSqlLog;
+	}
 	public DataSource getCurrentDataSource() {
 		return currentDataSource;
 	}
-	public void setCurrentDataSource(DataSource currentDataSource) {
+	public SqlContext setCurrentDataSource(DataSource currentDataSource) {
 		this.currentDataSource = currentDataSource;
+		return this;
 	}
 	public Map<DataSource, Connection> getDataSourceMap() {
 		return dataSourceMap;

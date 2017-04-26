@@ -6,6 +6,7 @@ import java.util.Map;
 import javax.sql.DataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.dc.jdbc.config.JDBCConfig;
 import org.dc.jdbc.core.operate.DataBaseDaoImp;
 import org.dc.jdbc.core.operate.IDataBaseDao;
 import org.dc.jdbc.core.proxy.DataBaseOperateProxy;
@@ -21,10 +22,14 @@ public class DBHelper {
 	private final static Object[] nullArgs = new Object[0];
 
 	private volatile DataSource dataSource;
+	private volatile boolean isPrintSqlLog=JDBCConfig.isPrintSqlLog;
 
 	private static final Log LOG = LogFactory.getLog(DBHelper.class);
 	private static final IDataBaseDao dataBaseDaoProxy = (IDataBaseDao) new DataBaseOperateProxy(DataBaseDaoImp.getInstance()).getProxy();
 	public DBHelper(DataSource dataSource){
+		this.dataSource = dataSource;
+	}
+	public DBHelper(DataSource dataSource,boolean isPrintSqlLog){
 		this.dataSource = dataSource;
 	}
 	public <T> T selectOneEntity(Object entity) throws Exception{
@@ -50,7 +55,7 @@ public class DBHelper {
 		return this.selectEntity(entity, whereSql,nullArgs);
 	}
 	public <T> List<T> selectEntity(Object entity,String whereSql,Object...params) throws Exception{
-		SqlContext.getContext().setCurrentDataSource(dataSource);
+		SqlContext.getContext().setCurrentDataSource(dataSource).setPrintSqlLog(isPrintSqlLog);
 		return dataBaseDaoProxy.selectList(entity, whereSql, params);
 	}
 	public long selectCount(String sqlOrID) throws Exception{
@@ -61,7 +66,7 @@ public class DBHelper {
 		return this.selectOne("SELECT COUNT(*) FROM ("+dosql+") t", Long.class, params);
 	}
 	public <T> T selectOne(String sqlOrID,Class<? extends T> returnClass,Object...params) throws Exception{
-		SqlContext.getContext().setCurrentDataSource(dataSource);
+		SqlContext.getContext().setCurrentDataSource(dataSource).setPrintSqlLog(isPrintSqlLog);
 		return dataBaseDaoProxy.selectOne(sqlOrID, returnClass, params);
 	}
 	public Map<String,Object> selectOne(String sqlOrID,Object...params) throws Exception{
@@ -76,7 +81,7 @@ public class DBHelper {
 	 * @throws Exception
 	 */
 	public <T> List<T> selectList(String sqlOrID,Class<? extends T> returnClass,Object...params) throws Exception{
-		SqlContext.getContext().setCurrentDataSource(dataSource);
+		SqlContext.getContext().setCurrentDataSource(dataSource).setPrintSqlLog(isPrintSqlLog);
 		return dataBaseDaoProxy.selectList(sqlOrID, returnClass, params);
 	}
 	public List<Map<String,Object>> selectList(String sqlOrID,Object...params) throws Exception{
@@ -90,7 +95,7 @@ public class DBHelper {
 	 * @throws Exception
 	 */
 	public int insert(String sqlOrID,Object...params) throws Exception{
-		SqlContext.getContext().setCurrentDataSource(dataSource);
+		SqlContext.getContext().setCurrentDataSource(dataSource).setPrintSqlLog(isPrintSqlLog);
 		return dataBaseDaoProxy.insert(sqlOrID,null, params);
 	}
 	/**
@@ -100,7 +105,7 @@ public class DBHelper {
 	 * @throws Exception
 	 */
 	public int insertEntity(Object entity) throws Exception{
-		SqlContext.getContext().setCurrentDataSource(dataSource);
+		SqlContext.getContext().setCurrentDataSource(dataSource).setPrintSqlLog(isPrintSqlLog);
 		return dataBaseDaoProxy.insertEntity(entity);
 	}
 	/**
@@ -112,7 +117,7 @@ public class DBHelper {
 	 */
 	@Deprecated
 	public <T> T insertReturnKey(String sqlOrID,Object...params) throws Exception{
-		SqlContext.getContext().setCurrentDataSource(dataSource);
+		SqlContext.getContext().setCurrentDataSource(dataSource).setPrintSqlLog(isPrintSqlLog);
 		return dataBaseDaoProxy.insertReturnPK(sqlOrID,null, params);
 	}
 	/**
@@ -123,11 +128,11 @@ public class DBHelper {
 	 * @throws Exception
 	 */
 	public <T> T insertReturnPK(String sqlOrID,Object...params) throws Exception{
-		SqlContext.getContext().setCurrentDataSource(dataSource);
+		SqlContext.getContext().setCurrentDataSource(dataSource).setPrintSqlLog(isPrintSqlLog);
 		return dataBaseDaoProxy.insertReturnPK(sqlOrID,null, params);
 	}
 	public <T> T insertEntityRtnPK(Object entity) throws Exception{
-		SqlContext.getContext().setCurrentDataSource(dataSource);
+		SqlContext.getContext().setCurrentDataSource(dataSource).setPrintSqlLog(isPrintSqlLog);
 		return dataBaseDaoProxy.insertEntityRtnPK(entity);
 	}
 	/**
@@ -138,28 +143,28 @@ public class DBHelper {
 	 * @throws Exception
 	 */
 	public List<Integer> insertBatch(String sqlOrID,Object[] params) throws Exception{
-		SqlContext.getContext().setCurrentDataSource(dataSource);
+		SqlContext.getContext().setCurrentDataSource(dataSource).setPrintSqlLog(isPrintSqlLog);
 		return dataBaseDaoProxy.insertBatch(sqlOrID,null,params);
 	}
 	public int update(String sqlOrID,Object...params) throws Exception{
-		SqlContext.getContext().setCurrentDataSource(dataSource);
+		SqlContext.getContext().setCurrentDataSource(dataSource).setPrintSqlLog(isPrintSqlLog);
 		return dataBaseDaoProxy.update(sqlOrID,null, params);
 	}
 	public int updateEntity(Object entity) throws Exception{
-		SqlContext.getContext().setCurrentDataSource(dataSource);
+		SqlContext.getContext().setCurrentDataSource(dataSource).setPrintSqlLog(isPrintSqlLog);
 		return dataBaseDaoProxy.updateEntity(entity);
 	}
 
 	public int delete(String sqlOrID,Object...params) throws Exception{
-		SqlContext.getContext().setCurrentDataSource(dataSource);
+		SqlContext.getContext().setCurrentDataSource(dataSource).setPrintSqlLog(isPrintSqlLog);
 		return dataBaseDaoProxy.delete(sqlOrID,null, params);
 	}
 	public int deleteEntity(Object entity) throws Exception{
-		SqlContext.getContext().setCurrentDataSource(dataSource);
+		SqlContext.getContext().setCurrentDataSource(dataSource).setPrintSqlLog(isPrintSqlLog);
 		return dataBaseDaoProxy.deleteEntity(entity);
 	}
 	public int excuteSQL(String sqlOrID,Object...params) throws Exception{
-		SqlContext.getContext().setCurrentDataSource(dataSource);
+		SqlContext.getContext().setCurrentDataSource(dataSource).setPrintSqlLog(isPrintSqlLog);
 		return dataBaseDaoProxy.excuteSQL(sqlOrID,null, params);
 	}
 	/**
