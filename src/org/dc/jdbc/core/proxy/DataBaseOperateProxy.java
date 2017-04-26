@@ -55,7 +55,7 @@ public class DataBaseOperateProxy implements InvocationHandler{
 			}
 		}
 		//打印日志
-		if(JDBCConfig.isPrintSqlLog){
+		if(context.isPrintSqlLog()){
 			PrintSqlLogHandler.getInstance().handleRequest(context.getSql() , context.getParamList().toArray());
 		}
 		Object rt = method.invoke(target, args);
