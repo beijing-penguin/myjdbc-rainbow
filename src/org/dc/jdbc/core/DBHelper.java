@@ -243,7 +243,7 @@ public class DBHelper {
 	public void rollback() {
 		try {
 			Map<DataSource, Connection> connMap = SqlContext.getContext().getDataSourceMap();
-			Connection conn = connMap.get(dataSource);
+			Connection conn = connMap.get(SqlContext.getContext().getCurrentDataSource());
 			conn.rollback();
 		} catch (Exception e) {
 			LOG.error("", e);
@@ -257,7 +257,7 @@ public class DBHelper {
 	 */
 	public void commit() throws Exception {
 		Map<DataSource, Connection> connMap = SqlContext.getContext().getDataSourceMap();
-		Connection conn = connMap.get(dataSource);
+		Connection conn = connMap.get(SqlContext.getContext().getCurrentDataSource());
 		conn.commit();
 	}
 
@@ -269,7 +269,7 @@ public class DBHelper {
 	public void close() {
 		try {
 			Map<DataSource, Connection> connMap = SqlContext.getContext().getDataSourceMap();
-			Connection conn = connMap.get(dataSource);
+			Connection conn = connMap.get(SqlContext.getContext().getCurrentDataSource());
 			conn.close();
 		} catch (Exception e) {
 			LOG.error("", e);
