@@ -18,21 +18,24 @@ import org.dc.jdbc.sqlparse.Token;
 
 /**
  * sql核心解析器
+ * 
  * @author DC
  *
  */
-public class SqlCoreHandle{
-	private SqlCoreHandle(){}
+public class SqlCoreHandle {
+	private SqlCoreHandle() {
+	}
+
 	/**
 	 * 批量处理方法，调用此方法处理请求
 	 */
-	public static SqlContext handleBatchRequest(String doSql,Object[] params) throws Exception{
+	public static SqlContext handleBatchRequest(String doSql, Object[] params) throws Exception {
 		StringBuilder sql = new StringBuilder(doSql);
 		LinkedList<String> keyList = new LinkedList<String>();
 		Lexer lexer = new Lexer(sql.toString());
-		int varType = 0;//1?   2#
+		int varType = 0;// 1? 2#
 		int lastCharLen = 0;
-		while(true){
+		while (true) {
 			lexer.nextToken();
 			Token tok = lexer.token();
 			if (tok == Token.EOF) {
@@ -40,28 +43,28 @@ public class SqlCoreHandle{
 			}
 			String str = lexer.stringVal();
 			int curpos = lexer.pos();
-			if(tok.name == null && tok == Token.VARIANT){//异类匹配，这里的异类只有#号，sql编写规范的情况下，不需要判断str.contains("#")
-				String key = str.substring(2, str.length()-1);
+			if (tok.name == null && tok == Token.VARIANT) {// 异类匹配，这里的异类只有#号，sql编写规范的情况下，不需要判断str.contains("#")
+				String key = str.substring(2, str.length() - 1);
 				keyList.add(key);
-				sql.replace(curpos-str.length()-lastCharLen, curpos-lastCharLen, "?");
-				lastCharLen = lastCharLen+str.length()-1;
+				sql.replace(curpos - str.length() - lastCharLen, curpos - lastCharLen, "?");
+				lastCharLen = lastCharLen + str.length() - 1;
 
-				varType =2;
-			}else if(tok == Token.QUES){
+				varType = 2;
+			} else if (tok == Token.QUES) {
 				varType = 1;
 				break;
 			}
 		}
-		List<Object>  returnList = new ArrayList<Object>();
-		if(params!=null && params.length>0){
-			
+		List<Object> returnList = new ArrayList<Object>();
+		if (params != null && params.length > 0) {
+
 			switch (varType) {
 			case 1:
 				for (int i = 0; i < params.length; i++) {
 					Object p = params[i];
-					if( Collection.class.isAssignableFrom(p.getClass())){
+					if (Collection.class.isAssignableFrom(p.getClass())) {
 						returnList.add(((Collection<?>) p).toArray());
-					}else if(Object[].class.isAssignableFrom(p.getClass())){
+					} else if (Object[].class.isAssignableFrom(p.getClass())) {
 						returnList.add(p);
 					}
 				}
@@ -69,36 +72,37 @@ public class SqlCoreHandle{
 			case 2:
 				for (int i = 0; i < params.length; i++) {
 					Object p = params[i];
-					Map<Object,Object> tempMap = new HashMap<Object,Object>();
-					if(Map.class.isAssignableFrom(p.getClass())){
-						Map<?,?> paramMap = (Map<?, ?>) p;
+					Map<Object, Object> tempMap = new HashMap<Object, Object>();
+					if (Map.class.isAssignableFrom(p.getClass())) {
+						Map<?, ?> paramMap = (Map<?, ?>) p;
 						for (Object key : paramMap.keySet()) {
 							tempMap.put(key, paramMap.get(key));
 						}
-					}else { // java对象
+					} else { // java对象
 						Field[] fields = p.getClass().getDeclaredFields();
 						for (Field field : fields) {
 							field.setAccessible(true);
 							Object value = field.get(p);
 							String key = field.getName();
-							if(tempMap.containsKey(key)){
-								throw new Exception("key="+key+" is already repeated");
-							}else{
+							if (tempMap.containsKey(key)) {
+								throw new Exception("key=" + key + " is already repeated");
+							} else {
 								tempMap.put(key, value);
 							}
 						}
 					}
-					
+
 					Object[] pp = new Object[keyList.size()];
 					for (int j = 0; j < keyList.size(); j++) {
 						String key = keyList.get(j);
-						if(!tempMap.containsKey(key)){
-							throw new Exception("sqlhandle analysis error! parameters \""+key+"\" do not match to!");
-						}else{
+						if (!tempMap.containsKey(key)) {
+							throw new Exception(
+									"sqlhandle analysis error! parameters \"" + key + "\" do not match to!");
+						} else {
 							pp[j] = tempMap.get(key);
 						}
 					}
-					
+
 					returnList.add(pp);
 				}
 				break;
@@ -111,48 +115,49 @@ public class SqlCoreHandle{
 		sqlContext.setParamList(returnList);
 		return sqlContext;
 	}
+
 	/**
 	 * 一般处理方法，调用此方法处理请求
 	 */
-	public static SqlContext handleRequest(String doSql,Object...params) throws Exception{
+	public static SqlContext handleRequest(String doSql, Object... params) throws Exception {
 		List<Object> returnList = new ArrayList<Object>();
 		StringBuilder sql = new StringBuilder(doSql);
 
-		Map<Object,Object> allparamMap = null;
-		List<Object>  allParamList = null;
-		if(params!=null && params.length>0){
-			allparamMap = new HashMap<Object,Object>();
+		Map<Object, Object> allparamMap = null;
+		List<Object> allParamList = null;
+		if (params != null && params.length > 0) {
+			allparamMap = new HashMap<Object, Object>();
 			allParamList = new ArrayList<Object>();
 			for (Object param : params) {
-				if(param==null){
+				if (param == null) {
 					allParamList.add(param);
-				}else if(Map.class.isAssignableFrom(param.getClass())){
-					Map<?,?> paramMap = (Map<?, ?>) param;
+				} else if (Map.class.isAssignableFrom(param.getClass())) {
+					Map<?, ?> paramMap = (Map<?, ?>) param;
 					for (Object key : paramMap.keySet()) {
-						if(allparamMap.containsKey(key)){
-							throw new Exception("key="+key+" is already repeated");
-						}else{
+						if (allparamMap.containsKey(key)) {
+							throw new Exception("key=" + key + " is already repeated");
+						} else {
 							allparamMap.put(key, paramMap.get(key));
 						}
 					}
-				}else if( Collection.class.isAssignableFrom(param.getClass())){
+				} else if (Collection.class.isAssignableFrom(param.getClass())) {
 					allParamList.addAll((Collection<?>) param);
-				}else if(Object[].class.isAssignableFrom(param.getClass())){
+				} else if (Object[].class.isAssignableFrom(param.getClass())) {
 					Object[] p = (Object[]) param;
 					for (int i = 0; i < p.length; i++) {
 						allParamList.add(p[i]);
 					}
-				}else if(param.getClass().getClassLoader()==null){
+				} else if (param.getClass().getClassLoader() == null) {
 					allParamList.add(param);
-				}else { // java对象
+				} else { // java对象
 					Field[] fields = param.getClass().getDeclaredFields();
 					for (Field field : fields) {
 						field.setAccessible(true);
 						Object value = field.get(param);
 						String key = field.getName();
-						if(allparamMap.containsKey(key)){
-							throw new Exception("key="+key+" is already repeated");
-						}else{
+						if (allparamMap.containsKey(key)) {
+							throw new Exception("key=" + key + " is already repeated");
+						} else {
 							allparamMap.put(key, value);
 						}
 					}
@@ -161,7 +166,7 @@ public class SqlCoreHandle{
 		}
 		Lexer lexer = new Lexer(sql.toString());
 		int lastCharLen = 0;
-		while(true){
+		while (true) {
 			lexer.nextToken();
 			Token tok = lexer.token();
 			if (tok == Token.EOF) {
@@ -169,17 +174,17 @@ public class SqlCoreHandle{
 			}
 			String str = lexer.stringVal();
 			int curpos = lexer.pos();
-			if(tok.name == null && tok == Token.VARIANT){//异类匹配，这里的异类只有#号，sql编写规范的情况下，不需要判断str.contains("#")
-				String key = str.substring(2, str.length()-1);
-				if(allparamMap!=null && !allparamMap.containsKey(key)){
-					throw new Exception("sqlhandle analysis error! parameters \""+key+"\" do not match to!");
+			if (tok.name == null && tok == Token.VARIANT) {// 异类匹配，这里的异类只有#号，sql编写规范的情况下，不需要判断str.contains("#")
+				String key = str.substring(2, str.length() - 1);
+				if (allparamMap != null && !allparamMap.containsKey(key)) {
+					throw new Exception("sqlhandle analysis error! parameters \"" + key + "\" do not match to!");
 				}
 				Object value = allparamMap.get(key);
 				returnList.add(value);
-				sql.replace(curpos-str.length()-lastCharLen, curpos-lastCharLen, "?");
-				lastCharLen = lastCharLen+str.length()-1;
-			}else if(tok == Token.QUES){
-				if(allParamList!=null){
+				sql.replace(curpos - str.length() - lastCharLen, curpos - lastCharLen, "?");
+				lastCharLen = lastCharLen + str.length() - 1;
+			} else if (tok == Token.QUES) {
+				if (allParamList != null) {
 					returnList = allParamList;
 				}
 				break;
@@ -190,54 +195,56 @@ public class SqlCoreHandle{
 		sqlContext.setParamList(returnList);
 		return sqlContext;
 	}
+
 	/**
 	 * 处理update对象请求
+	 * 
 	 * @param entity
 	 * @return
 	 * @throws Exception
 	 */
-	public static SqlContext handleUpdateRequest(Object entity) throws Exception{
+	public static SqlContext handleUpdateRequest(Object entity) throws Exception {
 		SqlContext sqlContext = SqlContext.getContext();
 		Class<?> entityClass = entity.getClass();
-		TableInfoBean tabInfo = JDBCUtils.getTableInfoByClass(entityClass,sqlContext.getCurrentDataSource());
+		TableInfoBean tabInfo = JDBCUtils.getTableInfoByClass(entityClass, sqlContext.getCurrentDataSource());
 		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(entityClass, tabInfo);
 
-		String sql = "UPDATE "+tabInfo.getTableName() +" SET ";
+		String sql = "UPDATE " + tabInfo.getTableName() + " SET ";
 		List<Object> paramsList = new ArrayList<Object>();
 		List<Object> paramsPKList = new ArrayList<Object>(3);
 		String wheresql = null;
 		int set_param = 0;
-		for (int i = 0,len=classRelationsList.size(); i < len; i++) {
+		for (int i = 0, len = classRelationsList.size(); i < len; i++) {
 			ColumnBean colBean = classRelationsList.get(i).getColumnBean();
 			Field field = classRelationsList.get(i).getField();
 			field.setAccessible(true);
 			Object value = field.get(entity);
 
-			if(!colBean.isPrimaryKey()){
-				if(value!=null){
+			if (!colBean.isPrimaryKey()) {
+				if (value != null) {
 					set_param++;
-					sql = sql + colBean.getColumnName() + "=" +"?,";
+					sql = sql + colBean.getColumnName() + "=" + "?,";
 					paramsList.add(value);
 				}
 
-			}else{
-				if(wheresql==null){
-					wheresql = new String(" WHERE "+colBean.getColumnName()+"=?");
-				}else{
-					wheresql = wheresql + " AND "+colBean.getColumnName()+"=?";
+			} else {
+				if (wheresql == null) {
+					wheresql = new String(" WHERE " + colBean.getColumnName() + "=?");
+				} else {
+					wheresql = wheresql + " AND " + colBean.getColumnName() + "=?";
 				}
-				if(value!=null){
+				if (value != null) {
 					paramsPKList.add(value);
 				}
 			}
 		}
-		if(paramsPKList.size()==0 ){
+		if (paramsPKList.size() == 0) {
 			throw new Exception("primary key is not exist");
 		}
-		if(set_param==0){
+		if (set_param == 0) {
 			throw new Exception("param is not exist");
 		}
-		sqlContext.setSql(sql.substring(0,sql.length()-1)+wheresql);
+		sqlContext.setSql(sql.substring(0, sql.length() - 1) + wheresql);
 		paramsList.addAll(paramsPKList);
 		sqlContext.setParamList(paramsList);
 
@@ -246,94 +253,98 @@ public class SqlCoreHandle{
 
 	/**
 	 * 处理update对象请求
+	 * 
 	 * @param entity
 	 * @return
 	 * @throws Exception
 	 */
-	public static SqlContext handleInsertRequest(Object entity) throws Exception{
+	public static SqlContext handleInsertRequest(Object entity) throws Exception {
 		Class<?> entityClass = entity.getClass();
 		SqlContext sqlContext = SqlContext.getContext();
 		List<Object> paramsList = new ArrayList<Object>();
-		TableInfoBean tabInfo = JDBCUtils.getTableInfoByClass(entityClass,sqlContext.getCurrentDataSource());
+		TableInfoBean tabInfo = JDBCUtils.getTableInfoByClass(entityClass, sqlContext.getCurrentDataSource());
 		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(entityClass, tabInfo);
-		String insertSql = "INSERT INTO "+tabInfo.getTableName() +" (";
+		String insertSql = "INSERT INTO " + tabInfo.getTableName() + " (";
 		String sql_values = " VALUES(";
-		for (int i = 0,len=classRelationsList.size(); i < len; i++) {
+		for (int i = 0, len = classRelationsList.size(); i < len; i++) {
 			Field field = classRelationsList.get(i).getField();
 			field.setAccessible(true);
 			Object obj_value = field.get(entity);
-			if(obj_value!=null){
+			if (obj_value != null) {
 				insertSql = insertSql + classRelationsList.get(i).getColumnBean().getColumnName() + ",";
 				sql_values = sql_values + "?,";
 				paramsList.add(obj_value);
 			}
 		}
-		if(paramsList.size()==0){
+		if (paramsList.size() == 0) {
 			throw new Exception("insert condition is empty");
 		}
-		insertSql = insertSql.substring(0,insertSql.length()-1) +")" + sql_values.substring(0,sql_values.length()-1) + ")";
+		insertSql = insertSql.substring(0, insertSql.length() - 1) + ")"
+				+ sql_values.substring(0, sql_values.length() - 1) + ")";
 
 		sqlContext.setParamList(paramsList);
 		sqlContext.setSql(insertSql);
 		return sqlContext;
 	}
+
 	public static void handleDeleteRequest(Object entity) throws Exception {
 		Class<?> entityClass = entity.getClass();
 		SqlContext sqlContext = SqlContext.getContext();
-		TableInfoBean tabInfo = JDBCUtils.getTableInfoByClass(entityClass,sqlContext.getCurrentDataSource());
+		TableInfoBean tabInfo = JDBCUtils.getTableInfoByClass(entityClass, sqlContext.getCurrentDataSource());
 		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(entityClass, tabInfo);
 
 		String wheresql = null;
 		int pk_num = 0;
 		List<Object> paramList = new ArrayList<Object>();
-		for (int i = 0,len=classRelationsList.size(); i < len; i++) {
+		for (int i = 0, len = classRelationsList.size(); i < len; i++) {
 			ClassRelation classRel = classRelationsList.get(i);
-			if(classRel.getColumnBean().isPrimaryKey()){
+			if (classRel.getColumnBean().isPrimaryKey()) {
 				pk_num++;
-				if(wheresql==null){
-					wheresql = new String(" WHERE "+classRel.getColumnBean().getColumnName()+"=?");
-				}else{
-					wheresql = wheresql + " AND "+classRel.getColumnBean().getColumnName()+"=?";
+				if (wheresql == null) {
+					wheresql = new String(" WHERE " + classRel.getColumnBean().getColumnName() + "=?");
+				} else {
+					wheresql = wheresql + " AND " + classRel.getColumnBean().getColumnName() + "=?";
 				}
 
 				Field field = classRel.getField();
 				field.setAccessible(true);
 				Object value = field.get(entity);
-				if(value!=null){
+				if (value != null) {
 					paramList.add(value);
 				}
 			}
 		}
-		if(paramList.size()==0 || pk_num!= paramList.size()){
+		if (paramList.size() == 0 || pk_num != paramList.size()) {
 			throw new Exception("primary key set error");
 		}
-		sqlContext.setSql("DELETE FROM "+tabInfo.getTableName()+wheresql);
+		sqlContext.setSql("DELETE FROM " + tabInfo.getTableName() + wheresql);
 		sqlContext.setParamList(paramList);
 
 	}
-	public static SqlContext handleSelectRequest(Object entity,Object whereSql,Object params) throws Exception {
+
+	public static SqlContext handleSelectRequest(Object entity, Object whereSql, Object params) throws Exception {
 		Class<?> entityClass = entity.getClass();
 		SqlContext sqlContext = SqlContext.getContext();
-		TableInfoBean tabInfo = JDBCUtils.getTableInfoByClass(entityClass,sqlContext.getCurrentDataSource());
+		TableInfoBean tabInfo = JDBCUtils.getTableInfoByClass(entityClass, sqlContext.getCurrentDataSource());
 
 		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(entityClass, tabInfo);
-		String sql = "SELECT * FROM " + tabInfo.getTableName() +" WHERE 1=1 ";
-		if(whereSql!=null){
+		String sql = "SELECT * FROM " + tabInfo.getTableName() + " WHERE 1=1 ";
+		if (whereSql != null) {
 			String tempsql = sql + whereSql;
 			sqlContext = handleRequest(tempsql, params);
 		}
 		List<Object> valuesList = new ArrayList<Object>();
-		for (int i = 0,len = classRelationsList.size(); i < len; i++) {
+		for (int i = 0, len = classRelationsList.size(); i < len; i++) {
 			ClassRelation classRelation = classRelationsList.get(i);
 			Field field = classRelation.getField();
 			field.setAccessible(true);
 			Object value = field.get(entity);
-			if(value!=null){
-				sql = sql + " AND "+classRelation.getColumnBean().getColumnName() +"=?";
+			if (value != null) {
+				sql = sql + " AND " + classRelation.getColumnBean().getColumnName() + "=?";
 				valuesList.add(value);
 			}
 		}
-		if(whereSql!=null){
+		if (whereSql != null) {
 			sql = sql + whereSql;
 			valuesList.addAll(sqlContext.getParamList());
 		}
