@@ -231,7 +231,7 @@ public class DBHelper {
 	}
 
 	public int excuteSQL(String sqlOrID, Object... params) throws Exception {
-		SqlContext.getContext().setCurrentDataSource(dataSource).setPrintSqlLog(isPrintSqlLog);
+		SqlContext.getContext().setCurrentDataSource(this.getFinalDataSource(SqlType.DELETE, masterDataSource, slaveDataSource, dataSource)).setPrintSqlLog(isPrintSqlLog);
 		return dataBaseDaoProxy.excuteSQL(sqlOrID, null, params);
 	}
 
