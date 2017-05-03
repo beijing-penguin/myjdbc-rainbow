@@ -62,10 +62,10 @@ public class DBHelper {
 			return dataSource;
 		}
 		if(slaveDataSource!=null && SqlType.SELECT==sqlType){
-			return slaveDataSource[slaveIndex.getAndIncrement()%(slaveDataSource.length-1)];
+			return slaveDataSource[slaveIndex.getAndIncrement()%slaveDataSource.length];
 		}
 		if(masterDataSource!=null) {
-			return masterDataSource[masterIndex.getAndIncrement()%(masterDataSource.length-1)];
+			return masterDataSource[masterIndex.getAndIncrement()%masterDataSource.length];
 		}
 		return null;
 	}
