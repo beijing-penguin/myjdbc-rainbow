@@ -33,14 +33,14 @@ import org.dc.jdbc.exceptions.TooManyResultsException;
 public class JDBCUtils {
 	private static final Log LOG = LogFactory.getLog(JDBCUtils.class);
 
-	public static void close(AutoCloseable... ac) {
+	public static void close(AutoCloseable... ac) throws Exception {
 		for (int i = 0; i < ac.length; i++) {
 			AutoCloseable autoClose = ac[i];
-			if (autoClose != null) {
-				try {
+			if(autoClose!=null){
+				try{
 					autoClose.close();
-				} catch (Exception e) {
-					LOG.error("", e);
+				}catch (Exception e) {
+					LOG.error("",e);
 				}
 			}
 		}
@@ -55,7 +55,7 @@ public class JDBCUtils {
 	 * @return 返回结果集对象
 	 * @throws Exception
 	 */
-	public static ResultSet preparedSQLReturnRS(PreparedStatement ps, String sql, Object[] params) throws Exception {
+	public static ResultSet setParamsReturnRS(PreparedStatement ps, Object[] params) throws Exception {
 		setParams(ps, params);
 		return ps.executeQuery();
 	}

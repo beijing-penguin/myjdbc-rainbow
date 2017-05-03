@@ -11,6 +11,7 @@ import java.util.List;
 import org.dc.jdbc.core.ConnectionManager;
 import org.dc.jdbc.core.SqlContext;
 import org.dc.jdbc.core.utils.JDBCUtils;
+import org.dc.jdbc.exceptions.TooManyResultsException;
 
 public class DataBaseDaoImp implements IDataBaseDao {
 	private DataBaseDaoImp() {
@@ -29,7 +30,7 @@ public class DataBaseDaoImp implements IDataBaseDao {
 			return null;
 		}
 		if (list.size() > 1) {
-			throw new Exception("Query results too much!");
+			throw new TooManyResultsException(list.size());
 		}
 		return list.get(0);
 	}
@@ -40,7 +41,7 @@ public class DataBaseDaoImp implements IDataBaseDao {
 		PreparedStatement ps = null;
 		try {
 			ps = ConnectionManager.getConnection(SqlContext.getContext().getCurrentDataSource()).prepareStatement(sql);
-			rs = JDBCUtils.preparedSQLReturnRS(ps, sql, params);
+			rs = JDBCUtils.setParamsReturnRS(ps, params);
 
 			return JDBCUtils.parseSqlResultList(rs, cls);
 		} catch (Exception e) {
