@@ -34,10 +34,6 @@ public class DBHelper {
 	public DBHelper(DataSource dataSource) {
 		this.dataSource = dataSource;
 	}
-
-	public DBHelper(DataSource dataSource, boolean isPrintSqlLog) {
-		this.dataSource = dataSource;
-	}
 	public DBHelper(DataSource[] masterDataSource,DataSource[] slaveDataSource) {
 		this.masterDataSource = masterDataSource;
 		this.slaveDataSource = slaveDataSource;
@@ -196,7 +192,6 @@ public class DBHelper {
 		context.setCurrentDataSource(curDataSource);
 		return ConnectionManager.getConnection(curDataSource);
 	}
-	
 	/**
 	 * 仅仅只回滚当前连接
 	 * 

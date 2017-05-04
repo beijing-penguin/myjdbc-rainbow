@@ -26,7 +26,7 @@ public class SqlContext {
 	private List<Object> paramList;
 	private boolean transaction = false;
 	private boolean readOnly = false;
-	private Map<DataSource, Connection> dataSourceMap = new HashMap<DataSource, Connection>();
+	private Map<DataSource, Connection> dataSourceMap = new HashMap<DataSource, Connection>(8);
 
 	private DataSource currentDataSource;
 	private boolean isPrintSqlLog = JDBCConfig.isPrintSqlLog;
