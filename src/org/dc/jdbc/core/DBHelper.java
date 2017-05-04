@@ -21,7 +21,6 @@ import org.dc.jdbc.core.utils.JDBCUtils;
  * @time 2015-8-17
  */
 public class DBHelper {
-	private final static Object[] nullArgs = new Object[0];
 	private volatile AtomicInteger masterIndex = new AtomicInteger(0);
 	private volatile AtomicInteger slaveIndex = new AtomicInteger(0);
 	private volatile DataSource[] masterDataSource;
@@ -40,10 +39,6 @@ public class DBHelper {
 	}
 	public DBHelper(DataSource[] masterDataSource) {
 		this.masterDataSource = masterDataSource;
-	}
-
-	public long selectCount(String sqlOrID) throws Exception {
-		return this.selectCount(sqlOrID, nullArgs);
 	}
 
 	public long selectCount(String sqlOrID, Object... params) throws Exception {
