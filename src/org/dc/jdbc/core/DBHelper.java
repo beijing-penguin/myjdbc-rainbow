@@ -1,6 +1,5 @@
 package org.dc.jdbc.core;
 
-import java.nio.channels.Selector;
 import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
@@ -52,14 +51,14 @@ public class DBHelper {
 	}
 
 	public long selectCount(String sqlOrID, Object... params) throws Exception {
-		String dosql = sqlOrID.startsWith("$") ? CacheCenter.SQL_SOURCE_MAP.get(sqlOrID) : sqlOrID;
+		String dosql = JDBCUtils.getFinalSql(sqlOrID);
 		return this.selectOne("SELECT COUNT(*) FROM (" + dosql + ") t", Long.class, params);
 	}
 
 	public <T> T selectOne(String sqlOrID, Class<? extends T> returnClass, Object... params) throws Exception {
 		String doSql = JDBCUtils.getFinalSql(sqlOrID);
 		SqlContext context = SqlCoreHandle.handleRequest(doSql, params).printSqlLog();
-		return baseOperate.selectOne(getFinalConnection(), doSql, returnClass, context.getParamList().toArray()).afterBindEvent().getData();
+		return baseOperate.selectOne(getFinalConnection(SqlType.SELECT), doSql, returnClass, context.getParamList().toArray()).afterBindEvent().getData();
 	}
 
 	public Map<String, Object> selectOne(String sqlOrID, Object... params) throws Exception {
@@ -81,7 +80,7 @@ public class DBHelper {
 	public <T> List<T> selectList(String sqlOrID, Class<? extends T> returnClass, Object... params) throws Exception {
 		String doSql = JDBCUtils.getFinalSql(sqlOrID);
 		SqlContext context = SqlCoreHandle.handleRequest(doSql, params).printSqlLog();
-		return baseOperate.selectList(getFinalConnection(), doSql, returnClass, context.getParamList().toArray()).afterBindEvent().getData();
+		return baseOperate.selectList(getFinalConnection(SqlType.SELECT), doSql, returnClass, context.getParamList().toArray()).afterBindEvent().getData();
 	}
 
 	public List<Map<String, Object>> selectList(String sqlOrID, Object... params) throws Exception {
@@ -99,7 +98,7 @@ public class DBHelper {
 	public int insert(String sqlOrID, Object... params) throws Exception {
 		String doSql = JDBCUtils.getFinalSql(sqlOrID);
 		SqlContext context = SqlCoreHandle.handleRequest(doSql,params).printSqlLog();
-		return baseOperate.excuteSQL(getFinalConnection(), context.getSql(), null, context.getParamList().toArray()).afterBindEvent().getData();
+		return baseOperate.excuteSQL(getFinalConnection(), context.getSql(), context.getParamList().toArray()).afterBindEvent().getData();
 	}
 
 	/**
@@ -112,7 +111,7 @@ public class DBHelper {
 	public int insertEntity(Object entity) throws Exception {
 		Connection conn = getFinalConnection();
 		SqlContext context = SqlCoreHandle.handleInsertRequest(entity).printSqlLog();
-		return  baseOperate.excuteSQL(conn, context.getSql(), null, context.getParamList().toArray()).afterBindEvent().getData();
+		return  baseOperate.excuteSQL(conn, context.getSql(), context.getParamList().toArray()).afterBindEvent().getData();
 	}
 
 
@@ -153,53 +152,48 @@ public class DBHelper {
 	public int update(String sqlOrID, Object... params) throws Exception {
 		String doSql = JDBCUtils.getFinalSql(sqlOrID);
 		SqlContext context = SqlCoreHandle.handleRequest(doSql,params).printSqlLog();
-		return baseOperate.excuteSQL(getFinalConnection(), context.getSql(), null, context.getParamList().toArray()).afterBindEvent().getData();
+		return baseOperate.excuteSQL(getFinalConnection(), context.getSql(), context.getParamList().toArray()).afterBindEvent().getData();
 	}
 
 	public int updateEntity(Object entity) throws Exception {
 		Connection conn = getFinalConnection();
 		SqlContext context = SqlCoreHandle.handleUpdateRequest(entity).printSqlLog();
-		return baseOperate.excuteSQL(conn, context.getSql(), null, context.getParamList().toArray()).afterBindEvent().getData();
+		return baseOperate.excuteSQL(conn, context.getSql(), context.getParamList().toArray()).afterBindEvent().getData();
 	}
 
 	public int delete(String sqlOrID, Object... params) throws Exception {
 		String doSql = JDBCUtils.getFinalSql(sqlOrID);
 		SqlContext context = SqlCoreHandle.handleRequest(doSql,params).printSqlLog();
-		return baseOperate.excuteSQL(getFinalConnection(), context.getSql(), null, context.getParamList().toArray()).afterBindEvent().getData();
+		return baseOperate.excuteSQL(getFinalConnection(), context.getSql(), context.getParamList().toArray()).afterBindEvent().getData();
 	}
 
 	public int deleteEntity(Object entity) throws Exception {
 		Connection conn = getFinalConnection();
 		SqlContext context = SqlCoreHandle.handleDeleteRequest(entity).printSqlLog();
-		return (int) baseOperate.excuteSQL(conn, context.getSql(), null, context.getParamList().toArray()).afterBindEvent().getData();
+		return (int) baseOperate.excuteSQL(conn, context.getSql(), context.getParamList().toArray()).afterBindEvent().getData();
 	}
 
 	public int excuteSQL(String sqlOrID, Object... params) throws Exception {
 		String doSql = JDBCUtils.getFinalSql(sqlOrID);
-		return baseOperate.excuteSQL(getFinalConnection(), doSql, null, params).afterBindEvent().getData();
+		return baseOperate.excuteSQL(getFinalConnection(), doSql, params).afterBindEvent().getData();
 	}
 	
 	
-	public Connection getFinalConnection() throws Exception{
+	public Connection getFinalConnection(SqlType... sqlType) throws Exception{
 		SqlContext context = SqlContext.getContext();
 		DataSource curDataSource = null;
-		DataSource dataSource = context.getDbHelper().getDataSource();
 		if(dataSource!=null){
 			curDataSource = dataSource;
 		}else{
-			DataSource[] slaveDataSource = context.getDbHelper().getSlaveDataSource();
-			if(slaveDataSource!=null && SqlType.SELECT==context.getSqlType()){
-				curDataSource = slaveDataSource[SqlContext.getContext().getDbHelper().getSlaveIndex().getAndIncrement()%slaveDataSource.length];
+			if(slaveDataSource!=null && SqlType.SELECT==sqlType[0]){
+				curDataSource = slaveDataSource[slaveIndex.getAndIncrement()%slaveDataSource.length];
 			}else{
-				DataSource[] masterDataSource = context.getDbHelper().getMasterDataSource();
 				if(masterDataSource!=null) {
-					curDataSource = masterDataSource[SqlContext.getContext().getDbHelper().getMasterIndex().getAndIncrement()%masterDataSource.length];
+					curDataSource = masterDataSource[masterIndex.getAndIncrement()%masterDataSource.length];
 				}
 			}
 		}
 		context.setCurrentDataSource(curDataSource);
-		
-		
 		return ConnectionManager.getConnection(curDataSource);
 	}
 	

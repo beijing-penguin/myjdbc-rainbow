@@ -10,8 +10,6 @@ import javax.sql.DataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dc.jdbc.config.JDBCConfig;
-import org.dc.jdbc.core.entity.OperateType;
-import org.dc.jdbc.core.entity.SqlType;
 import org.dc.jdbc.core.sqlhandler.PrintSqlLogHandler;
 
 /**
@@ -33,10 +31,6 @@ public class SqlContext {
 	private DataSource currentDataSource;
 	private boolean isPrintSqlLog = JDBCConfig.isPrintSqlLog;
 
-	private SqlType sqlType;
-	private OperateType operateType;
-	private DBHelper dbHelper;
-	
 	
 	public SqlContext printSqlLog(){
 		if(isPrintSqlLog){
@@ -49,29 +43,6 @@ public class SqlContext {
 		return this;
 	}
 	
-	public OperateType getOperateType() {
-		return operateType;
-	}
-
-
-	public void setOperateType(OperateType operateType) {
-		this.operateType = operateType;
-	}
-
-
-	public DBHelper getDbHelper() {
-		return dbHelper;
-	}
-
-	
-	public SqlType getSqlType() {
-		return sqlType;
-	}
-
-
-	public void setSqlType(SqlType sqlType) {
-		this.sqlType = sqlType;
-	}
 
 	public DataSource getCurrentDataSource() {
 		return currentDataSource;
@@ -89,11 +60,6 @@ public class SqlContext {
 		this.isPrintSqlLog = isPrintSqlLog;
 	}
 
-
-	public SqlContext setDbHelper(DBHelper dbHelper) {
-		this.dbHelper = dbHelper;
-		return this;
-	}
 
 	public Map<DataSource, Connection> getDataSourceMap() {
 		return dataSourceMap;

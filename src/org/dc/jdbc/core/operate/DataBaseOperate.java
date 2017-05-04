@@ -111,7 +111,7 @@ public class DataBaseOperate{
 	}*/
 
 
-	public ResultData excuteSQL(Connection conn,String sql, Class<?> returnClass, Object[] params) throws Exception {
+	public ResultData excuteSQL(Connection conn,String sql,  Object[] params) throws Exception {
 		return new ResultData(JDBCUtils.preparedAndExcuteSQL(conn, sql, params));
 	}
 

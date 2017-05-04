@@ -21,7 +21,6 @@ import org.apache.commons.logging.LogFactory;
 import org.dc.jdbc.core.CacheCenter;
 import org.dc.jdbc.core.entity.ClassRelation;
 import org.dc.jdbc.core.entity.ColumnBean;
-import org.dc.jdbc.core.entity.SqlType;
 import org.dc.jdbc.core.entity.TableInfoBean;
 import org.dc.jdbc.exceptions.TooManyResultsException;
 
@@ -458,24 +457,6 @@ public class JDBCUtils {
 			CacheCenter.SQL_TABLE_CACHE.put(entityClass, tabInfo);
 			return tabInfo;
 		}
-	}
-	public static SqlType getSqlType(String sql){
-		if(sql.toUpperCase().startsWith("SELECT")){
-			return SqlType.SELECT;
-		}
-		if(sql.toUpperCase().startsWith("INSERT")){
-			return SqlType.INSERT;
-		}
-		if(sql.toUpperCase().startsWith("INSERT")){
-			return SqlType.INSERT;
-		}
-		if(sql.toUpperCase().startsWith("UPDATE")){
-			return SqlType.UPDATE;
-		}
-		if(sql.toUpperCase().startsWith("DELETE")){
-			return SqlType.DELETE;
-		}
-		return SqlType.UNKNOW;
 	}
 	public static String getFinalSql(String sqlOrID){
 		return sqlOrID.startsWith("$") ? CacheCenter.SQL_SOURCE_MAP.get(sqlOrID) : sqlOrID;
