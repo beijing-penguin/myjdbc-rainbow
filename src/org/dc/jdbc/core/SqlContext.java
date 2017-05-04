@@ -7,6 +7,13 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.dc.jdbc.config.JDBCConfig;
+import org.dc.jdbc.core.entity.OperateType;
+import org.dc.jdbc.core.entity.SqlType;
+import org.dc.jdbc.core.sqlhandler.PrintSqlLogHandler;
+
 /**
  * sql上下文
  * 
@@ -14,6 +21,7 @@ import javax.sql.DataSource;
  * @time 2015-8-17
  */
 public class SqlContext {
+	private static final Log LOG = LogFactory.getLog(SqlContext.class);
 	private static final ThreadLocal<SqlContext> sqlContext = new ThreadLocal<SqlContext>();
 
 	private String sql;
@@ -23,23 +31,67 @@ public class SqlContext {
 	private Map<DataSource, Connection> dataSourceMap = new HashMap<DataSource, Connection>();
 
 	private DataSource currentDataSource;
-	private boolean isPrintSqlLog;
+	private boolean isPrintSqlLog = JDBCConfig.isPrintSqlLog;
 
-	public boolean isPrintSqlLog() {
-		return isPrintSqlLog;
+	private SqlType sqlType;
+	private OperateType operateType;
+	private DBHelper dbHelper;
+	
+	
+	public SqlContext printSqlLog(){
+		if(isPrintSqlLog){
+			try {
+				PrintSqlLogHandler.getInstance().handleRequest(sql, paramList.toArray());
+			} catch (Exception e) {
+				LOG.error("",e);
+			}
+		}
+		return this;
+	}
+	
+	public OperateType getOperateType() {
+		return operateType;
 	}
 
-	public SqlContext setPrintSqlLog(boolean isPrintSqlLog) {
-		this.isPrintSqlLog = isPrintSqlLog;
-		return this;
+
+	public void setOperateType(OperateType operateType) {
+		this.operateType = operateType;
+	}
+
+
+	public DBHelper getDbHelper() {
+		return dbHelper;
+	}
+
+	
+	public SqlType getSqlType() {
+		return sqlType;
+	}
+
+
+	public void setSqlType(SqlType sqlType) {
+		this.sqlType = sqlType;
 	}
 
 	public DataSource getCurrentDataSource() {
 		return currentDataSource;
 	}
 
-	public SqlContext setCurrentDataSource(DataSource currentDataSource) {
+
+	public void setCurrentDataSource(DataSource currentDataSource) {
 		this.currentDataSource = currentDataSource;
+	}
+
+	public boolean isPrintSqlLog() {
+		return isPrintSqlLog;
+	}
+	public void setPrintSqlLog(boolean isPrintSqlLog) {
+		this.isPrintSqlLog = isPrintSqlLog;
+	}
+
+
+	public SqlContext setDbHelper(DBHelper dbHelper) {
+		this.dbHelper = dbHelper;
 		return this;
 	}
 

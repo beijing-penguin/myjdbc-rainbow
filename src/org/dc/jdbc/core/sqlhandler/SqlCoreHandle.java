@@ -193,6 +193,7 @@ public class SqlCoreHandle {
 		SqlContext sqlContext = SqlContext.getContext();
 		sqlContext.setSql(sql.toString());
 		sqlContext.setParamList(returnList);
+		
 		return sqlContext;
 	}
 
@@ -287,7 +288,7 @@ public class SqlCoreHandle {
 		return sqlContext;
 	}
 
-	public static void handleDeleteRequest(Object entity) throws Exception {
+	public static SqlContext handleDeleteRequest(Object entity) throws Exception {
 		Class<?> entityClass = entity.getClass();
 		SqlContext sqlContext = SqlContext.getContext();
 		TableInfoBean tabInfo = JDBCUtils.getTableInfoByClass(entityClass, sqlContext.getCurrentDataSource());
@@ -320,6 +321,7 @@ public class SqlCoreHandle {
 		sqlContext.setSql("DELETE FROM " + tabInfo.getTableName() + wheresql);
 		sqlContext.setParamList(paramList);
 
+		return sqlContext;
 	}
 
 	public static SqlContext handleSelectRequest(Object entity, Object whereSql, Object params) throws Exception {

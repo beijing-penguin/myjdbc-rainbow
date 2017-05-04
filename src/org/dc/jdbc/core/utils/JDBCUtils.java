@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.dc.jdbc.core.CacheCenter;
 import org.dc.jdbc.core.entity.ClassRelation;
 import org.dc.jdbc.core.entity.ColumnBean;
+import org.dc.jdbc.core.entity.SqlType;
 import org.dc.jdbc.core.entity.TableInfoBean;
 import org.dc.jdbc.exceptions.TooManyResultsException;
 
@@ -141,7 +142,7 @@ public class JDBCUtils {
 		ResultSetMetaData metaData = rs.getMetaData();
 		int cols_len = metaData.getColumnCount();
 		if (cols_len > 1) {
-			throw new TooManyResultsException(cols_len);
+			throw new TooManyResultsException();
 		}
 		while (rs.next()) {
 			Object cols_value = getValueByObjectType(metaData, rs, 0);
@@ -183,7 +184,7 @@ public class JDBCUtils {
 		}
 	}
 
-	private static Object getObject(ResultSet rs, ResultSetMetaData metaData, Class<?> cls, int cols_len)
+	public static Object getObject(ResultSet rs, ResultSetMetaData metaData, Class<?> cls, int cols_len)
 			throws Exception {
 		// TableInfoBean tabInfo =
 		// JDBCUtils.getTableInfo(cls,SqlContext.getContext().getCurrentDataSource());
@@ -220,7 +221,7 @@ public class JDBCUtils {
 		return obj_newInsten;
 	}
 
-	private static Map<String, Object> getMap(ResultSet rs, ResultSetMetaData metaData, int cols_len) throws Exception {
+	public static Map<String, Object> getMap(ResultSet rs, ResultSetMetaData metaData, int cols_len) throws Exception {
 		Map<String, Object> map = new LinkedHashMap<String, Object>();
 
 		for (int i = 0; i < cols_len; i++) {
@@ -457,5 +458,26 @@ public class JDBCUtils {
 			CacheCenter.SQL_TABLE_CACHE.put(entityClass, tabInfo);
 			return tabInfo;
 		}
+	}
+	public static SqlType getSqlType(String sql){
+		if(sql.toUpperCase().startsWith("SELECT")){
+			return SqlType.SELECT;
+		}
+		if(sql.toUpperCase().startsWith("INSERT")){
+			return SqlType.INSERT;
+		}
+		if(sql.toUpperCase().startsWith("INSERT")){
+			return SqlType.INSERT;
+		}
+		if(sql.toUpperCase().startsWith("UPDATE")){
+			return SqlType.UPDATE;
+		}
+		if(sql.toUpperCase().startsWith("DELETE")){
+			return SqlType.DELETE;
+		}
+		return SqlType.UNKNOW;
+	}
+	public static String getFinalSql(String sqlOrID){
+		return sqlOrID.startsWith("$") ? CacheCenter.SQL_SOURCE_MAP.get(sqlOrID) : sqlOrID;
 	}
 }
