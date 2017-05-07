@@ -65,7 +65,7 @@ public class App {
 ## Myjdbc是一个轻量级orm持久层操作api，只依赖commons-logging日志架包<br />
 ## 支持0配置0注解对实体对象的增删改查，也支持直接传入sql操作数据库
 ## 主要支持MYSQL，兼容其他以jdbc为驱动的数据库<br />
-## 本框架采用低耦合分层软件架构（共2层）：第一层DBHelper---经过DataBaseOperateProxy代理---第二层DataBaseDaoImp。每层总共享SqlContext上下文中的数据<br />
+## 本框架采用低耦合分层软件设计（共2层）：第一层DBHelper--第二层DataBaseOperate。每层总共享SqlContext上下文中的数据<br />
 ## 支持完整的sql日志打印与日志是否输出动态控制
 ## 支持业务上常见的跨库操作+自带弱事务支持
 ## 支持无缝对接当当开源的分库分表sharding-jdbc
