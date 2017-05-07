@@ -119,7 +119,7 @@ public class JDBCUtils {
 		ResultSetMetaData metaData = rs.getMetaData();
 		int cols_len = metaData.getColumnCount();
 		while (rs.next()) {
-			list.add(getObject(rs, metaData, cls, cols_len));
+			list.add(getBeanObject(rs, metaData, cls, cols_len));
 		}
 		if (list.size() == 0) {
 			return null;
@@ -182,8 +182,20 @@ public class JDBCUtils {
 			}
 		}
 	}
-
-	public static Object getObject(ResultSet rs, ResultSetMetaData metaData, Class<?> cls, int cols_len)
+	public static Object getBeanObjectByClassType(ResultSet rs, Class<?> cls) throws Exception{
+		ResultSetMetaData metaData = rs.getMetaData();
+		int cols_len = metaData.getColumnCount();
+		if (cls == null || Map.class.isAssignableFrom(cls)) {// 封装成Map
+			return JDBCUtils.getMap(rs, metaData, cols_len);
+		}else {
+			if (cls.getClassLoader() == null) {// 封装成基本类型
+				return JDBCUtils.getValueByObjectType(metaData, rs, 0);
+			} else {// 对象
+				return JDBCUtils.getBeanObject(rs, metaData, cls, cols_len);
+			}
+		}
+	}
+	public static Object getBeanObject(ResultSet rs, ResultSetMetaData metaData, Class<?> cls, int cols_len)
 			throws Exception {
 		// TableInfoBean tabInfo =
 		// JDBCUtils.getTableInfo(cls,SqlContext.getContext().getCurrentDataSource());

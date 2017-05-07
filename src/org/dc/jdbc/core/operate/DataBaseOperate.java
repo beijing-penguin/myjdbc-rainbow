@@ -7,7 +7,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.dc.jdbc.core.entity.ResultData;
 import org.dc.jdbc.core.utils.JDBCUtils;
@@ -23,6 +22,13 @@ public class DataBaseOperate{
 		return INSTANCE;
 	}
 
+	public ResultData selectResult(Connection conn,String sql, Class<?> cls, Object[] params) throws Exception {
+		PreparedStatement ps = conn.prepareStatement(sql,ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+		ps.setFetchSize(Integer.MIN_VALUE);
+		ResultSet rs = JDBCUtils.setParamsReturnRS(ps, params);
+		return  new ResultData(cls,rs,ps);
+	}
+
 	public ResultData selectOne(Connection conn,String sql, Class<?> cls, Object[] params) throws Exception {
 		ResultSet rs = null;
 		PreparedStatement ps = null;
@@ -31,25 +37,13 @@ public class DataBaseOperate{
 			ps = conn.prepareStatement(sql,ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ps.setFetchSize(Integer.MIN_VALUE);
 			rs = JDBCUtils.setParamsReturnRS(ps, params);
-			ResultSetMetaData metaData = rs.getMetaData();
-			int cols_len = metaData.getColumnCount();
 			int row_num = 0;
-
 			while (rs.next()) {
 				row_num++;
 				if(row_num>1){
 					throw new TooManyResultsException();
 				}
-				if (cls == null || Map.class.isAssignableFrom(cls)) {// 封装成Map
-					rt = JDBCUtils.getMap(rs, metaData, cols_len);
-				}else {
-					if (cls.getClassLoader() == null) {// 封装成基本类型
-						rt = JDBCUtils.getValueByObjectType(metaData, rs, 0);
-					} else {// 对象
-						rt = JDBCUtils.getObject(rs, metaData, cls, cols_len);
-					}
-				}
-
+				rt = JDBCUtils.getBeanObjectByClassType(rs, cls);
 			}
 			return  new ResultData(rt);
 		} catch (Exception e) {
@@ -74,14 +68,6 @@ public class DataBaseOperate{
 		}
 	}
 
-	/*	public int update(Connection conn,String sql, Class<?> returnClass, Object[] params) throws Exception {
-		return JDBCUtils.preparedAndExcuteSQL(conn, sql, params);
-	}
-
-	public int insert(Connection conn,String sql, Class<?> returnClass, Object[] params) throws Exception {
-		return JDBCUtils.preparedAndExcuteSQL(conn, sql, params);
-	}
-	 */
 	public ResultData insertReturnPK(Connection conn,String sql, Class<?> returnClass, Object[] params) throws Exception {
 		PreparedStatement ps = null;
 		ResultSet rs = null;
@@ -105,10 +91,6 @@ public class DataBaseOperate{
 			JDBCUtils.close(rs, ps);
 		}
 	}
-
-	/*public int delete(Connection conn,String sql, Class<?> returnClass, Object[] params) throws Exception {
-		return JDBCUtils.preparedAndExcuteSQL(conn, sql, params);
-	}*/
 
 
 	public ResultData excuteSQL(Connection conn,String sql,  Object[] params) throws Exception {
