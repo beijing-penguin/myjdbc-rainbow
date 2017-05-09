@@ -7,11 +7,9 @@ import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.sql.DataSource;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.dc.jdbc.core.entity.DataSourceBean;
 import org.dc.jdbc.core.entity.ResultData;
 import org.dc.jdbc.core.utils.JDBCUtils;
 import org.dc.jdbc.exceptions.TooManyResultsException;
@@ -27,16 +25,16 @@ public class DataBaseOperate{
 		return INSTANCE;
 	}
 	
-	public void checkDataSourceActive(List<DataSource> dataSourceList){
-		for (int i = 0; i < dataSourceList.size(); i++) {
+	public void checkDataSourceActive(List<DataSourceBean> dataSourceBeanList){
+		for (int i = 0; i < dataSourceBeanList.size(); i++) {
 			Connection conn = null;
 			try{
-				conn = dataSourceList.get(i).getConnection();
+				conn = dataSourceBeanList.get(i).getDataSource().getConnection();
 				this.selectOne(conn, "SELECT 1", Object.class,null).getData();
 				conn.close();
 			}catch (Exception e) {
 				LOG.error("",e);
-				dataSourceList.remove(i);
+				dataSourceBeanList.remove(i);
 				i--;
 			}finally{
 				try {
