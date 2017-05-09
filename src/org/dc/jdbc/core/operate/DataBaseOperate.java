@@ -8,11 +8,16 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.sql.DataSource;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.dc.jdbc.core.entity.ResultData;
 import org.dc.jdbc.core.utils.JDBCUtils;
 import org.dc.jdbc.exceptions.TooManyResultsException;
 
 public class DataBaseOperate{
+	private static final Log LOG = LogFactory.getLog(DataBaseOperate.class);
 	private DataBaseOperate() {
 	}
 
@@ -20,6 +25,28 @@ public class DataBaseOperate{
 
 	public static DataBaseOperate getInstance() {
 		return INSTANCE;
+	}
+	
+	public void checkDataSourceActive(List<DataSource> dataSourceList){
+		for (int i = 0; i < dataSourceList.size(); i++) {
+			Connection conn = null;
+			try{
+				conn = dataSourceList.get(i).getConnection();
+				this.selectOne(conn, "SELECT 1", Object.class,null).getData();
+				conn.close();
+			}catch (Exception e) {
+				LOG.error("",e);
+				dataSourceList.remove(i);
+				i--;
+			}finally{
+				try {
+					JDBCUtils.close(conn);
+				} catch (Exception e) {
+					LOG.error("",e);
+				}
+			}
+		}
+
 	}
 
 	public ResultData selectResult(Connection conn,String sql, Class<?> cls, Object[] params) throws Exception {

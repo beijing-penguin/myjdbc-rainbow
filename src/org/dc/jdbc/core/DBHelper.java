@@ -1,6 +1,7 @@
 package org.dc.jdbc.core;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -24,8 +25,8 @@ import org.dc.jdbc.core.utils.JDBCUtils;
 public class DBHelper {
 	private volatile AtomicInteger masterIndex = new AtomicInteger(0);
 	private volatile AtomicInteger slaveIndex = new AtomicInteger(0);
-	private volatile DataSource[] masterDataSource;
-	private volatile DataSource[] slaveDataSource;
+	private volatile List<DataSource> masterDataSourceList;
+	private volatile List<DataSource> slaveDataSourceList;
 	private volatile DataSource dataSource;
 
 	private static final Log LOG = LogFactory.getLog(DBHelper.class);
@@ -34,14 +35,28 @@ public class DBHelper {
 	public DBHelper(DataSource dataSource) {
 		this.dataSource = dataSource;
 	}
-	public DBHelper(DataSource[] masterDataSource,DataSource[] slaveDataSource) {
-		this.masterDataSource = masterDataSource;
-		this.slaveDataSource = slaveDataSource;
+	public DBHelper(List<DataSource> masterDataSourceList,List<DataSource> slaveDataSourceList) {
+		this.masterDataSourceList = masterDataSourceList;
+		this.slaveDataSourceList = slaveDataSourceList;
 	}
-	public DBHelper(DataSource[] masterDataSource) {
-		this.masterDataSource = masterDataSource;
+	public DBHelper(List<DataSource> masterDataSourceList) {
+		this.masterDataSourceList = masterDataSourceList;
 	}
-
+	private void checkDataSourceActive(final List<DataSource> masterDataSourceList,final List<DataSource> slaveDataSourceList){
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				while(true){
+					if(masterDataSourceList!=null){
+						baseOperate.checkDataSourceActive(masterDataSourceList);
+					}
+					if(slaveDataSourceList!=null){
+						baseOperate.checkDataSourceActive(slaveDataSourceList);
+					}
+				}
+			}
+		}).start();
+	}
 	public long selectCount(String sqlOrID, Object... params) throws Exception {
 		String dosql = JDBCUtils.getFinalSql(sqlOrID);
 		return this.selectOne("SELECT COUNT(*) FROM (" + dosql + ") t", Long.class, params);
@@ -182,11 +197,11 @@ public class DBHelper {
 		if(dataSource!=null){
 			curDataSource = dataSource;
 		}else{
-			if(slaveDataSource!=null && SqlType.SELECT==sqlType[0]){
-				curDataSource = slaveDataSource[slaveIndex.getAndIncrement()%slaveDataSource.length];
+			if(slaveDataSourceList!=null && SqlType.SELECT==sqlType[0]){
+				curDataSource = slaveDataSourceList.get(slaveIndex.getAndIncrement()%slaveDataSourceList.size());
 			}else{
-				if(masterDataSource!=null) {
-					curDataSource = masterDataSource[masterIndex.getAndIncrement()%masterDataSource.length];
+				if(masterDataSourceList!=null) {
+					curDataSource = masterDataSourceList.get(masterIndex.getAndIncrement()%masterDataSourceList.size());
 				}
 			}
 		}
@@ -250,22 +265,18 @@ public class DBHelper {
 		this.slaveIndex = slaveIndex;
 	}
 
-	public DataSource[] getMasterDataSource() {
-		return masterDataSource;
+	public List<DataSource> getMasterDataSourceList() {
+		return masterDataSourceList;
 	}
-
-	public void setMasterDataSource(DataSource[] masterDataSource) {
-		this.masterDataSource = masterDataSource;
+	public void setMasterDataSourceList(List<DataSource> masterDataSourceList) {
+		this.masterDataSourceList = masterDataSourceList;
 	}
-
-	public DataSource[] getSlaveDataSource() {
-		return slaveDataSource;
+	public List<DataSource> getSlaveDataSourceList() {
+		return slaveDataSourceList;
 	}
-
-	public void setSlaveDataSource(DataSource[] slaveDataSource) {
-		this.slaveDataSource = slaveDataSource;
+	public void setSlaveDataSourceList(List<DataSource> slaveDataSourceList) {
+		this.slaveDataSourceList = slaveDataSourceList;
 	}
-
 	public DataSource getDataSource() {
 		return dataSource;
 	}
