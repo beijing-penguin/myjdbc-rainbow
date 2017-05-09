@@ -25,17 +25,16 @@ public class DataBaseOperate{
 		return INSTANCE;
 	}
 	
-	public void checkDataSourceActive(List<DataSourceBean> dataSourceBeanList){
-		for (int i = 0; i < dataSourceBeanList.size(); i++) {
+	public void checkDataSourceActive(DataSourceBean dataSourceBean){
 			Connection conn = null;
 			try{
-				conn = dataSourceBeanList.get(i).getDataSource().getConnection();
-				this.selectOne(conn, "SELECT 1", Object.class,null).getData();
+				conn = dataSourceBean.getDataSource().getConnection();
+				System.out.println(this.selectOne(conn, "SELECT 1", Object.class,null).getData());
 				conn.close();
+				dataSourceBean.setUsed(true);
 			}catch (Exception e) {
 				LOG.error("",e);
-				dataSourceBeanList.remove(i);
-				i--;
+				dataSourceBean.setUsed(false);
 			}finally{
 				try {
 					JDBCUtils.close(conn);
@@ -43,7 +42,6 @@ public class DataBaseOperate{
 					LOG.error("",e);
 				}
 			}
-		}
 
 	}
 

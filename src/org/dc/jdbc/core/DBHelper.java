@@ -1,7 +1,6 @@
 package org.dc.jdbc.core;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -37,47 +36,66 @@ public class DBHelper {
 	public DBHelper(DataSource dataSource) {
 		this.dataSource = dataSource;
 	}
-	public DBHelper(List<DataSource> masterDataSourceList,List<DataSource> slaveDataSourceList) {
+	public DBHelper(List<? extends DataSource> masterDataSourceList,List<? extends DataSource> slaveDataSourceList) {
 		this.masterDataSourceBeanList = toDataSourceBeanList(masterDataSourceList);
 		this.slaveDataSourceBeanList = toDataSourceBeanList(slaveDataSourceList);
-		
+
 		checkDataSourceActive(masterDataSourceBeanList, slaveDataSourceBeanList);
 	}
-	public DBHelper(List<DataSource> masterDataSourceList) {
+	public DBHelper(List<? extends DataSource> masterDataSourceList) {
 		this.masterDataSourceBeanList = toDataSourceBeanList(masterDataSourceList);
 		checkDataSourceActive(masterDataSourceBeanList, null);
 	}
-	private List<DataSourceBean> toDataSourceBeanList(List<DataSource> dataSourceList){
+	private List<DataSourceBean> toDataSourceBeanList(List<? extends DataSource> dataSourceList){
 		List<DataSourceBean> dataSourceBeanList = new ArrayList<DataSourceBean>();
 		for (int i = 0; i < dataSourceList.size(); i++) {
 			DataSourceBean sourceBean = new DataSourceBean();
 			sourceBean.setDataSource(dataSourceList.get(i));
 			sourceBean.setUsed(true);
-			
+
 			dataSourceBeanList.add(sourceBean);
 		}
-		
+
 		return dataSourceBeanList;
 	}
 	private void checkDataSourceActive(final List<DataSourceBean> masterDataSourceBeanList,final List<DataSourceBean> slaveDataSourceBeanList){
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				while(true){
-					try {
-						Thread.sleep(5000);
-					} catch (InterruptedException e) {
-						LOG.error("",e);
+		if(masterDataSourceBeanList!=null){
+			for (int i = 0; i < masterDataSourceBeanList.size(); i++) {
+				final int index = i;
+				new Thread(new Runnable() {
+					@Override
+					public void run() {
+						while(true){
+							baseOperate.checkDataSourceActive(masterDataSourceBeanList.get(index));
+							try {
+								Thread.sleep(1000*60);
+							} catch (InterruptedException e) {
+								LOG.error("",e);
+							}
+						}
 					}
-					if(masterDataSourceBeanList!=null){
-						baseOperate.checkDataSourceActive(masterDataSourceBeanList);
-					}
-					if(slaveDataSourceBeanList!=null){
-						baseOperate.checkDataSourceActive(slaveDataSourceBeanList);
-					}
-				}
+				}).start();
 			}
-		}).start();
+		}
+
+		if(slaveDataSourceBeanList!=null){
+			for (int i = 0; i < slaveDataSourceBeanList.size(); i++) {
+				final int index = i;
+				new Thread(new Runnable() {
+					@Override
+					public void run() {
+						while(true){
+							baseOperate.checkDataSourceActive(slaveDataSourceBeanList.get(index));
+							try {
+								Thread.sleep(1000*60);
+							} catch (InterruptedException e) {
+								LOG.error("",e);
+							}
+						}
+					}
+				}).start();
+			}
+		}
 	}
 	public long selectCount(String sqlOrID, Object... params) throws Exception {
 		String dosql = JDBCUtils.getFinalSql(sqlOrID);
@@ -88,7 +106,7 @@ public class DBHelper {
 		SqlContext context = SqlCoreHandle.handleRequest(doSql, params).printSqlLog();
 		return baseOperate.selectResult(getFinalConnection(SqlType.SELECT), doSql, returnClass, context.getParamList().toArray()).afterBindEvent();
 	}
-	
+
 	public <T> T selectOne(String sqlOrID, Class<? extends T> returnClass, Object... params) throws Exception {
 		String doSql = JDBCUtils.getFinalSql(sqlOrID);
 		SqlContext context = SqlCoreHandle.handleRequest(doSql, params).printSqlLog();
@@ -211,8 +229,8 @@ public class DBHelper {
 		String doSql = JDBCUtils.getFinalSql(sqlOrID);
 		return baseOperate.excuteSQL(getFinalConnection(), doSql, params).afterBindEvent().getData();
 	}
-	
-	
+
+
 	public Connection getFinalConnection(SqlType... sqlType) throws Exception{
 		SqlContext context = SqlContext.getContext();
 		DataSource curDataSource = null;
@@ -232,23 +250,22 @@ public class DBHelper {
 	}
 	public DataSource getFinalDataSource(AtomicInteger index,List<DataSourceBean> dataSourceBeanList) throws Exception{
 		int sourceIndex = index.getAndIncrement()%dataSourceBeanList.size();
-		DataSourceBean dataSourceBean = dataSourceBeanList.get(sourceIndex);
-		if(dataSourceBean.isUsed()==false){
-			sourceIndex++;
-			int max = 0;
-			while(true){
-				if(max>dataSourceBeanList.size()){
-					throw new Exception("all datasource is not used");
-				}
-				max++;
-				if(sourceIndex>dataSourceBeanList.size()){
-					sourceIndex=0;
-				}
-				dataSourceBean = dataSourceBeanList.get(sourceIndex);
-				if(dataSourceBean.isUsed()){
-					break;
-				}
+		int max = 0;
+		DataSourceBean dataSourceBean = null;
+		while(true){
+			max++;
+			if(max>dataSourceBeanList.size()){
+				throw new Exception("all datasource is not used");
 			}
+			if(sourceIndex>dataSourceBeanList.size()-1){
+				sourceIndex=0;
+			}
+			dataSourceBean = dataSourceBeanList.get(sourceIndex);
+			if(dataSourceBean.isUsed()){
+				break;
+			}
+			
+			sourceIndex++;
 		}
 		return dataSourceBean.getDataSource();
 	}
@@ -308,7 +325,7 @@ public class DBHelper {
 	public void setSlaveIndex(AtomicInteger slaveIndex) {
 		this.slaveIndex = slaveIndex;
 	}
-	
+
 	public List<DataSourceBean> getMasterDataSourceBeanList() {
 		return masterDataSourceBeanList;
 	}

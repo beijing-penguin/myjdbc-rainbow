@@ -2,9 +2,9 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.dc.jdbc</groupId>
-	<artifactId>myJdbc</artifactId>
+	<artifactId>myjdbc</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>myJdbc</name>
+	<name>myjdbc</name>
 	
 	<properties>
 		<!-- 文件拷贝时的编码 -->
