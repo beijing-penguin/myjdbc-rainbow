@@ -29,7 +29,8 @@ public class DBHelper {
 	private volatile List<DataSourceBean> masterDataSourceBeanList;
 	private volatile List<DataSourceBean> slaveDataSourceBeanList;
 	private volatile DataSource dataSource;
-
+	private volatile int maxFailCount = 10000000;//默认1000万次请求后，重新激活一次数据源。
+	
 	private static final Log LOG = LogFactory.getLog(DBHelper.class);
 	private DataBaseOperate baseOperate = DataBaseOperate.getInstance();
 
@@ -39,12 +40,9 @@ public class DBHelper {
 	public DBHelper(List<? extends DataSource> masterDataSourceList,List<? extends DataSource> slaveDataSourceList) {
 		this.masterDataSourceBeanList = toDataSourceBeanList(masterDataSourceList);
 		this.slaveDataSourceBeanList = toDataSourceBeanList(slaveDataSourceList);
-
-		checkDataSourceActive(masterDataSourceBeanList, slaveDataSourceBeanList);
 	}
 	public DBHelper(List<? extends DataSource> masterDataSourceList) {
 		this.masterDataSourceBeanList = toDataSourceBeanList(masterDataSourceList);
-		checkDataSourceActive(masterDataSourceBeanList, null);
 	}
 	private List<DataSourceBean> toDataSourceBeanList(List<? extends DataSource> dataSourceList){
 		List<DataSourceBean> dataSourceBeanList = new ArrayList<DataSourceBean>();
@@ -52,13 +50,12 @@ public class DBHelper {
 			DataSourceBean sourceBean = new DataSourceBean();
 			sourceBean.setDataSource(dataSourceList.get(i));
 			sourceBean.setUsed(true);
-
 			dataSourceBeanList.add(sourceBean);
 		}
 
 		return dataSourceBeanList;
 	}
-	private void checkDataSourceActive(final List<DataSourceBean> masterDataSourceBeanList,final List<DataSourceBean> slaveDataSourceBeanList){
+	/*private void checkDataSourceActive(final List<DataSourceBean> masterDataSourceBeanList,final List<DataSourceBean> slaveDataSourceBeanList){
 		if(masterDataSourceBeanList!=null){
 			for (int i = 0; i < masterDataSourceBeanList.size(); i++) {
 				final int index = i;
@@ -96,7 +93,7 @@ public class DBHelper {
 				}).start();
 			}
 		}
-	}
+	}*/
 	public long selectCount(String sqlOrID, Object... params) throws Exception {
 		String dosql = JDBCUtils.getFinalSql(sqlOrID);
 		return this.selectOne("SELECT COUNT(*) FROM (" + dosql + ") t", Long.class, params);
@@ -232,23 +229,32 @@ public class DBHelper {
 
 
 	public Connection getFinalConnection(SqlType... sqlType) throws Exception{
-		SqlContext context = SqlContext.getContext();
 		DataSource curDataSource = null;
+		DataSourceBean dataSourceBean = null;
 		if(dataSource!=null){
 			curDataSource = dataSource;
 		}else{
 			if(slaveDataSourceBeanList!=null && SqlType.SELECT==sqlType[0]){
-				curDataSource = getFinalDataSource(slaveIndex, slaveDataSourceBeanList);
+				dataSourceBean = getFinalDataSource(slaveIndex, slaveDataSourceBeanList);
+				curDataSource = dataSourceBean.getDataSource();
 			}else{
 				if(masterDataSourceBeanList!=null) {
-					curDataSource = getFinalDataSource(masterIndex, masterDataSourceBeanList);
+					dataSourceBean = getFinalDataSource(masterIndex, masterDataSourceBeanList);
+					curDataSource =  dataSourceBean.getDataSource();
 				}
 			}
 		}
-		context.setCurrentDataSource(curDataSource);
-		return ConnectionManager.getConnection(curDataSource);
+		SqlContext.getContext().setCurrentDataSource(curDataSource);
+		try{
+			return ConnectionManager.getConnection(curDataSource);
+		}catch (Exception e) {
+			if(dataSourceBean!=null){
+				dataSourceBean.setUsed(false);
+			}
+			throw e;
+		}
 	}
-	public DataSource getFinalDataSource(AtomicInteger index,List<DataSourceBean> dataSourceBeanList) throws Exception{
+	public DataSourceBean getFinalDataSource(AtomicInteger index,List<DataSourceBean> dataSourceBeanList) throws Exception{
 		int sourceIndex = index.getAndIncrement()%dataSourceBeanList.size();
 		int max = 0;
 		DataSourceBean dataSourceBean = null;
@@ -263,11 +269,16 @@ public class DBHelper {
 			dataSourceBean = dataSourceBeanList.get(sourceIndex);
 			if(dataSourceBean.isUsed()){
 				break;
+			}else{
+				if(dataSourceBean.getFailCount().incrementAndGet() > maxFailCount){
+					dataSourceBean.setUsed(true);
+					dataSourceBean.getFailCount().set(0);
+				}
 			}
 			
 			sourceIndex++;
 		}
-		return dataSourceBean.getDataSource();
+		return dataSourceBean;
 	}
 	/**
 	 * 仅仅只回滚当前连接
@@ -344,5 +355,11 @@ public class DBHelper {
 
 	public void setDataSource(DataSource dataSource) {
 		this.dataSource = dataSource;
+	}
+	public int getMaxFailCount() {
+		return maxFailCount;
+	}
+	public void setMaxFailCount(int maxFailCount) {
+		this.maxFailCount = maxFailCount;
 	}
 }
