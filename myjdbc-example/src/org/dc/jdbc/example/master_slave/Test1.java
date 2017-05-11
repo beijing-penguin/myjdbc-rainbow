@@ -17,32 +17,32 @@ public class Test1 {
 		dataSource1.setJdbcUrl("jdbc:mysql://localhost:3306/myjdbc_test?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false");
 		dataSource1.setUsername("root");
 		dataSource1.setPassword("123456");
-		
+
 		HikariDataSource dataSource2 = new HikariDataSource();
 		dataSource2.setJdbcUrl("jdbc:mysql://localhost:3306/myjdbc_test?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false");
 		dataSource2.setUsername("root");
 		dataSource2.setPassword("123456");
-		
+
 		HikariDataSource dataSource3 = new HikariDataSource();
 		dataSource3.setJdbcUrl("jdbc:mysql://localhost:3306/myjdbc_test?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false");
 		dataSource3.setUsername("root");
 		dataSource3.setPassword("123456");
-		
+
 		DBHelper testDbHelper = new DBHelper(Lists.newArrayList(dataSource1,dataSource2,dataSource3));
 		ConnectionManager.setTransaction(true);//设置开启事务
-		testDbHelper.getFinalConnection(SqlType.SELECT);
-		testDbHelper.getFinalConnection(SqlType.SELECT);
-		testDbHelper.getFinalConnection(SqlType.SELECT);
-	/*	try {
-			User user = testDbHelper.selectOne("select * from user where id = ? and real_name = ?",User.class,3,"dc");
-			System.out.println(JSON.toJSONString(user));
-			
-			ConnectionManager.commitAll();
-		} catch (Exception e) {
-			e.printStackTrace();
-			ConnectionManager.rollbackAll();
-		}finally {
-			ConnectionManager.closeConnectionAll();
-		}*/
+		while(true){
+			try {
+				User user = testDbHelper.selectOne("select * from user where id = ? and real_name = ?",User.class,3,"dc");
+				System.out.println(JSON.toJSONString(user));
+
+				ConnectionManager.commitAll();
+			} catch (Exception e) {
+				e.printStackTrace();
+				ConnectionManager.rollbackAll();
+			}finally {
+				ConnectionManager.closeConnectionAll();
+			}
+			Thread.sleep(10000);
+		}
 	}
 }

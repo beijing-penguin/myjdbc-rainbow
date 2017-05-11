@@ -222,7 +222,7 @@ public class DBHelper {
 		while(true){
 			max++;
 			if(max>dataSourceBeanList.size()){
-				throw new Exception("all datasource is not used");
+				throw new Exception("all datasource is unusable");
 			}
 			if(sourceIndex>dataSourceBeanList.size()-1){
 				sourceIndex=0;
