@@ -7,7 +7,7 @@ import javax.sql.DataSource;
 public class DataSourceBean {
 	private DataSource dataSource;
 	private boolean isUsed;
-	private AtomicInteger failCount;
+	private AtomicInteger failCount = new AtomicInteger(0);;
 	
 	
 	public AtomicInteger getFailCount() {
