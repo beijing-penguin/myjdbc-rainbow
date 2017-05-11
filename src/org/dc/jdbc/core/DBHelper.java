@@ -55,45 +55,6 @@ public class DBHelper {
 
 		return dataSourceBeanList;
 	}
-	/*private void checkDataSourceActive(final List<DataSourceBean> masterDataSourceBeanList,final List<DataSourceBean> slaveDataSourceBeanList){
-		if(masterDataSourceBeanList!=null){
-			for (int i = 0; i < masterDataSourceBeanList.size(); i++) {
-				final int index = i;
-				new Thread(new Runnable() {
-					@Override
-					public void run() {
-						while(true){
-							baseOperate.checkDataSourceActive(masterDataSourceBeanList.get(index));
-							try {
-								Thread.sleep(1000*60);
-							} catch (InterruptedException e) {
-								LOG.error("",e);
-							}
-						}
-					}
-				}).start();
-			}
-		}
-
-		if(slaveDataSourceBeanList!=null){
-			for (int i = 0; i < slaveDataSourceBeanList.size(); i++) {
-				final int index = i;
-				new Thread(new Runnable() {
-					@Override
-					public void run() {
-						while(true){
-							baseOperate.checkDataSourceActive(slaveDataSourceBeanList.get(index));
-							try {
-								Thread.sleep(1000*60);
-							} catch (InterruptedException e) {
-								LOG.error("",e);
-							}
-						}
-					}
-				}).start();
-			}
-		}
-	}*/
 	public long selectCount(String sqlOrID, Object... params) throws Exception {
 		String dosql = JDBCUtils.getFinalSql(sqlOrID);
 		return this.selectOne("SELECT COUNT(*) FROM (" + dosql + ") t", Long.class, params);
