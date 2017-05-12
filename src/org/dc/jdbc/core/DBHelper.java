@@ -29,7 +29,7 @@ public class DBHelper {
 	private volatile List<DataSourceBean> masterDataSourceBeanList;
 	private volatile List<DataSourceBean> slaveDataSourceBeanList;
 	private volatile DataSource dataSource;
-	private volatile int maxFailCount = 10000000;//默认1000万次请求后，重新激活一次数据源。
+	private volatile int maxFailCount = 5000000;//默认500万次请求后，重新激活一次数据源。
 	
 	private static final Log LOG = LogFactory.getLog(DBHelper.class);
 	private DataBaseOperate baseOperate = DataBaseOperate.getInstance();
