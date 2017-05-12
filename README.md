@@ -1,5 +1,6 @@
 # 快速入门
 ## 入口类DBHelper.java，new出来就能用。
+## 具体测试用例在myjdbc-example项目中，测试sql在sql目录下，导入mysql数据库即可。
 ## ②main方式简单使用，确保引入myjdbc源码jar 包，或者引用了pom.xml，或者直接 copy源代码到src下。引入druid，HikariDataSource，或者你习惯使用的任何一种数据源jar包，main方法查询test数据库中的数据集合如下
 ```java
 public class App {
