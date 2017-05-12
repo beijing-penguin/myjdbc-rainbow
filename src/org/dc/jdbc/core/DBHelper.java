@@ -68,7 +68,7 @@ public class DBHelper {
 	public <T> T selectOne(String sqlOrID, Class<? extends T> returnClass, Object... params) throws Exception {
 		String doSql = JDBCUtils.getFinalSql(sqlOrID);
 		SqlContext context = SqlCoreHandle.handleRequest(doSql, params).printSqlLog();
-		return baseOperate.selectOne(getFinalConnection(SqlType.SELECT), doSql, returnClass, context.getParamList().toArray()).afterBindEvent().getData();
+		return baseOperate.selectOne(getFinalConnection(SqlType.SELECT), context.getSql(), returnClass, context.getParamList().toArray()).afterBindEvent().getData();
 	}
 
 	public Map<String, Object> selectOne(String sqlOrID, Object... params) throws Exception {
@@ -90,7 +90,7 @@ public class DBHelper {
 	public <T> List<T> selectList(String sqlOrID, Class<? extends T> returnClass, Object... params) throws Exception {
 		String doSql = JDBCUtils.getFinalSql(sqlOrID);
 		SqlContext context = SqlCoreHandle.handleRequest(doSql, params).printSqlLog();
-		return baseOperate.selectList(getFinalConnection(SqlType.SELECT), doSql, returnClass, context.getParamList().toArray()).afterBindEvent().getData();
+		return baseOperate.selectList(getFinalConnection(SqlType.SELECT), context.getSql(), returnClass, context.getParamList().toArray()).afterBindEvent().getData();
 	}
 
 	public List<Map<String, Object>> selectList(String sqlOrID, Object... params) throws Exception {
@@ -136,7 +136,7 @@ public class DBHelper {
 	public <T> T insertReturnPK(String sqlOrID, Object... params) throws Exception {
 		String doSql = JDBCUtils.getFinalSql(sqlOrID);
 		SqlContext context = SqlCoreHandle.handleRequest(doSql, params).printSqlLog();
-		return baseOperate.insertReturnPK(getFinalConnection(), doSql, null, context.getParamList().toArray()).afterBindEvent().getData();
+		return baseOperate.insertReturnPK(getFinalConnection(), context.getSql(), null, context.getParamList().toArray()).afterBindEvent().getData();
 	}
 
 	public <T> T insertEntityRtnPK(Object entity) throws Exception {
