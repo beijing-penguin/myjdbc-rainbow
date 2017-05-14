@@ -30,7 +30,7 @@ public class DBHelper {
 	private volatile List<DataSourceBean> slaveDataSourceBeanList;
 	private volatile DataSource dataSource;
 	private volatile int maxFailCount = 5000000;//默认500万次请求后，重新激活一次数据源。
-	
+
 	private static final Log LOG = LogFactory.getLog(DBHelper.class);
 	private DataBaseOperate baseOperate = DataBaseOperate.getInstance();
 
@@ -68,7 +68,7 @@ public class DBHelper {
 	public <T> T selectOne(String sqlOrID, Class<? extends T> returnClass, Object... params) throws Exception {
 		String doSql = JDBCUtils.getFinalSql(sqlOrID);
 		SqlContext context = SqlCoreHandle.handleRequest(doSql, params).printSqlLog();
-		return baseOperate.selectOne(getFinalConnection(SqlType.SELECT), context.getSql(), returnClass, context.getParamList().toArray()).afterBindEvent().getData();
+		return baseOperate.selectOne(getFinalConnection(SqlType.SELECT), doSql, returnClass, context.getParamList().toArray()).afterBindEvent().getData();
 	}
 
 	public Map<String, Object> selectOne(String sqlOrID, Object... params) throws Exception {
@@ -90,7 +90,7 @@ public class DBHelper {
 	public <T> List<T> selectList(String sqlOrID, Class<? extends T> returnClass, Object... params) throws Exception {
 		String doSql = JDBCUtils.getFinalSql(sqlOrID);
 		SqlContext context = SqlCoreHandle.handleRequest(doSql, params).printSqlLog();
-		return baseOperate.selectList(getFinalConnection(SqlType.SELECT), context.getSql(), returnClass, context.getParamList().toArray()).afterBindEvent().getData();
+		return baseOperate.selectList(getFinalConnection(SqlType.SELECT), doSql, returnClass, context.getParamList().toArray()).afterBindEvent().getData();
 	}
 
 	public List<Map<String, Object>> selectList(String sqlOrID, Object... params) throws Exception {
@@ -136,7 +136,7 @@ public class DBHelper {
 	public <T> T insertReturnPK(String sqlOrID, Object... params) throws Exception {
 		String doSql = JDBCUtils.getFinalSql(sqlOrID);
 		SqlContext context = SqlCoreHandle.handleRequest(doSql, params).printSqlLog();
-		return baseOperate.insertReturnPK(getFinalConnection(), context.getSql(), null, context.getParamList().toArray()).afterBindEvent().getData();
+		return baseOperate.insertReturnPK(getFinalConnection(), doSql, null, context.getParamList().toArray()).afterBindEvent().getData();
 	}
 
 	public <T> T insertEntityRtnPK(Object entity) throws Exception {
@@ -197,12 +197,13 @@ public class DBHelper {
 		}else{
 			if(slaveDataSourceBeanList!=null && SqlType.SELECT==sqlType[0]){
 				dataSourceBean = getFinalDataSource(slaveIndex, slaveDataSourceBeanList);
-				curDataSource = dataSourceBean.getDataSource();
-			}else{
-				if(masterDataSourceBeanList!=null) {
-					dataSourceBean = getFinalDataSource(masterIndex, masterDataSourceBeanList);
-					curDataSource =  dataSourceBean.getDataSource();
+				if(dataSourceBean!=null){
+					curDataSource = dataSourceBean.getDataSource();
 				}
+			}
+			if(dataSourceBean == null || masterDataSourceBeanList!=null){
+				dataSourceBean = getFinalDataSource(masterIndex, masterDataSourceBeanList);
+				curDataSource =  dataSourceBean.getDataSource();
 			}
 		}
 		SqlContext.getContext().setCurrentDataSource(curDataSource);
@@ -222,7 +223,8 @@ public class DBHelper {
 		while(true){
 			max++;
 			if(max>dataSourceBeanList.size()){
-				throw new Exception("all datasource is unusable");
+				LOG.warn("all datasource is unusable");
+				return null;
 			}
 			if(sourceIndex>dataSourceBeanList.size()-1){
 				sourceIndex=0;
@@ -236,7 +238,7 @@ public class DBHelper {
 					dataSourceBean.getFailCount().set(0);
 				}
 			}
-			
+
 			sourceIndex++;
 		}
 		return dataSourceBean;
