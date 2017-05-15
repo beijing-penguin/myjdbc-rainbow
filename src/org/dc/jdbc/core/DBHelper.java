@@ -199,9 +199,11 @@ public class DBHelper {
 				dataSourceBean = getFinalDataSource(slaveIndex, slaveDataSourceBeanList);
 				if(dataSourceBean!=null){
 					curDataSource = dataSourceBean.getDataSource();
+				}else{
+					dataSourceBean = getFinalDataSource(masterIndex, masterDataSourceBeanList);
+					curDataSource =  dataSourceBean.getDataSource();
 				}
-			}
-			if(dataSourceBean == null || masterDataSourceBeanList!=null){
+			}else if(masterDataSourceBeanList!=null){
 				dataSourceBean = getFinalDataSource(masterIndex, masterDataSourceBeanList);
 				curDataSource =  dataSourceBean.getDataSource();
 			}
