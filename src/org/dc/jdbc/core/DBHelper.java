@@ -1,7 +1,9 @@
 package org.dc.jdbc.core;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -24,12 +26,12 @@ import org.dc.jdbc.core.utils.JDBCUtils;
  * @time 2015-8-17
  */
 public class DBHelper {
+	private static Map<DataSource,DataSourceBean> dataSourceMap = null;
 	private volatile AtomicInteger masterIndex = new AtomicInteger(0);
 	private volatile AtomicInteger slaveIndex = new AtomicInteger(0);
 	private volatile List<DataSourceBean> masterDataSourceBeanList;
 	private volatile List<DataSourceBean> slaveDataSourceBeanList;
 	private volatile DataSource dataSource;
-	private volatile int maxFailCount = 5000000;//默认500万次请求后，重新激活一次数据源。
 
 	private static final Log LOG = LogFactory.getLog(DBHelper.class);
 	private DataBaseOperate baseOperate = DataBaseOperate.getInstance();
@@ -45,15 +47,56 @@ public class DBHelper {
 		this.masterDataSourceBeanList = toDataSourceBeanList(masterDataSourceList);
 	}
 	private List<DataSourceBean> toDataSourceBeanList(List<? extends DataSource> dataSourceList){
-		List<DataSourceBean> dataSourceBeanList = new ArrayList<DataSourceBean>();
-		for (int i = 0; i < dataSourceList.size(); i++) {
-			DataSourceBean sourceBean = new DataSourceBean();
-			sourceBean.setDataSource(dataSourceList.get(i));
-			sourceBean.setUsed(true);
-			dataSourceBeanList.add(sourceBean);
-		}
+		synchronized (Object.class) {
+			if(dataSourceMap==null){
+				dataSourceMap = new HashMap<>();
+			}
+			List<DataSourceBean> dataSourceBeanList = new ArrayList<DataSourceBean>();
+			for (final DataSource dataSource : dataSourceList) {
+				if(!dataSourceMap.containsKey(dataSource)){
+					final DataSourceBean sourceBean = new DataSourceBean();
+					sourceBean.setDataSource(dataSource);
+					sourceBean.setUsed(true);
+					dataSourceBeanList.add(sourceBean);
 
-		return dataSourceBeanList;
+					new Thread(new Runnable() {
+						@Override
+						public void run() {
+							while(true){
+								Connection conn = null;
+								try {
+									conn = dataSource.getConnection();
+									baseOperate.selectOne(conn, "SELECT 1", Object.class, null);
+									sourceBean.setUsed(true);
+								} catch (Exception e) {
+									LOG.error("",e);
+									sourceBean.setUsed(false);
+								}finally{
+									if(conn!=null){
+										try {
+											conn.close();
+										} catch (SQLException e) {
+											LOG.error("",e);
+											sourceBean.setUsed(false);
+										}
+									}
+								}
+								try {
+									Thread.sleep(60000);
+								} catch (InterruptedException e) {
+									LOG.error("",e);
+									break;
+								}
+							}
+						}
+					}).start();
+					dataSourceMap.put(dataSource,sourceBean);
+				}else{
+					dataSourceBeanList.add(dataSourceMap.get(dataSource));
+				}
+			}
+			return dataSourceBeanList;
+		}
 	}
 	public long selectCount(String sqlOrID, Object... params) throws Exception {
 		String dosql = JDBCUtils.getFinalSql(sqlOrID);
@@ -197,20 +240,25 @@ public class DBHelper {
 		}else{
 			if(slaveDataSourceBeanList!=null && SqlType.SELECT==sqlType[0]){
 				dataSourceBean = getFinalDataSource(slaveIndex, slaveDataSourceBeanList);
-				if(dataSourceBean!=null){
-					curDataSource = dataSourceBean.getDataSource();
-				}else{
+				if(dataSourceBean==null){
 					dataSourceBean = getFinalDataSource(masterIndex, masterDataSourceBeanList);
-					curDataSource =  dataSourceBean.getDataSource();
+				}
+				if(dataSourceBean==null){
+					dataSourceBean = slaveDataSourceBeanList.get(slaveIndex.get()%slaveDataSourceBeanList.size());
 				}
 			}else if(masterDataSourceBeanList!=null){
 				dataSourceBean = getFinalDataSource(masterIndex, masterDataSourceBeanList);
-				curDataSource =  dataSourceBean.getDataSource();
+				if(dataSourceBean==null){
+					dataSourceBean = masterDataSourceBeanList.get(masterIndex.get()%masterDataSourceBeanList.size());
+				}
 			}
+			curDataSource = dataSourceBean.getDataSource();
 		}
 		SqlContext.getContext().setCurrentDataSource(curDataSource);
 		try{
-			return ConnectionManager.getConnection(curDataSource);
+			Connection conn = ConnectionManager.getConnection(curDataSource);
+			dataSourceBean.setUsed(true);
+			return conn;
 		}catch (Exception e) {
 			if(dataSourceBean!=null){
 				dataSourceBean.setUsed(false);
@@ -234,13 +282,7 @@ public class DBHelper {
 			dataSourceBean = dataSourceBeanList.get(sourceIndex);
 			if(dataSourceBean.isUsed()){
 				break;
-			}else{
-				if(dataSourceBean.getFailCount().incrementAndGet() > maxFailCount){
-					dataSourceBean.setUsed(true);
-					dataSourceBean.getFailCount().set(0);
-				}
 			}
-
 			sourceIndex++;
 		}
 		return dataSourceBean;
@@ -320,11 +362,5 @@ public class DBHelper {
 
 	public void setDataSource(DataSource dataSource) {
 		this.dataSource = dataSource;
-	}
-	public int getMaxFailCount() {
-		return maxFailCount;
-	}
-	public void setMaxFailCount(int maxFailCount) {
-		this.maxFailCount = maxFailCount;
 	}
 }
