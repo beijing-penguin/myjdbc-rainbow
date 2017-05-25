@@ -110,7 +110,7 @@ public class SqlContext {
 		return context;
 	}
 
-	public static void closeSqlContext() {
+	public void destroySqlContext() {
 		sqlContext.remove();
 	}
 }

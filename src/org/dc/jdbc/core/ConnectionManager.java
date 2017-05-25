@@ -55,7 +55,8 @@ public class ConnectionManager {
 				LOG.error("closeConnectionAll fail", e);
 			}
 		}
-		SqlContext.closeSqlContext();
+		//销毁
+		SqlContext.getContext().destroySqlContext();
 	}
 
 	/**
