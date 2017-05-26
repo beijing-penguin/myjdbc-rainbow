@@ -21,7 +21,7 @@ import org.dc.jdbc.core.sqlhandler.PrintSqlLogHandler;
 public class SqlContext {
 	private static final Log LOG = LogFactory.getLog(SqlContext.class);
 	private static final ThreadLocal<SqlContext> sqlContext = new ThreadLocal<SqlContext>();
-
+	
 	private String sql;
 	private List<Object> paramList;
 	private boolean transaction = false;

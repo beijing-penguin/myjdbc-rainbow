@@ -257,7 +257,9 @@ public class DBHelper {
 		SqlContext.getContext().setCurrentDataSource(curDataSource);
 		try{
 			Connection conn = ConnectionManager.getConnection(curDataSource);
-			dataSourceBean.setUsed(true);
+			if(dataSourceBean!=null){
+				dataSourceBean.setUsed(true);
+			}
 			return conn;
 		}catch (Exception e) {
 			if(dataSourceBean!=null){

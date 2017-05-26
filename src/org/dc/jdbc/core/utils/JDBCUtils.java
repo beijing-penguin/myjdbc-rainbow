@@ -218,7 +218,7 @@ public class JDBCUtils {
 				field = obj_newInsten.getClass().getDeclaredField(col_name);
 			} catch (Exception e) {
 				try {
-					field = obj_newInsten.getClass().getDeclaredField(JDBCUtils.getBeanName(col_name.toLowerCase()));
+					field = obj_newInsten.getClass().getDeclaredField(JDBCUtils.separatorToJavaBean(col_name.toLowerCase()));
 				} catch (Exception e1) {
 				}
 			}
@@ -285,7 +285,27 @@ public class JDBCUtils {
 				tabList = new ArrayList<TableInfoBean>();
 				conn = dataSource.getConnection();
 				DatabaseMetaData meta = conn.getMetaData();
-				ResultSet tablesResultSet = meta.getTables(conn.getCatalog(), null, "%", new String[] { "TABLE" });
+
+				String jdbcurl = null;
+				String username = null;
+				Field[] fields = dataSource.getClass().getSuperclass().getDeclaredFields();
+				for(Field field:fields){
+					if (!Modifier.isStatic(field.getModifiers())) {// 去除静态类型字段
+						if(field.getName().toLowerCase().contains("url")){
+							field.setAccessible(true);
+							jdbcurl = field.get(dataSource)==null?null:field.get(dataSource).toString();
+						}
+						if(field.getName().toLowerCase().contains("username")){
+							field.setAccessible(true);
+							username = field.get(dataSource)==null?null:field.get(dataSource).toString();
+						}
+					}
+				}
+				String schema = null;
+				if(jdbcurl!=null && jdbcurl.startsWith("jdbc:oracle:")){
+					schema = username;
+				}
+				ResultSet tablesResultSet = meta.getTables(conn.getCatalog(), schema==null?null:schema.toUpperCase(), "%", new String[] { "TABLE" });
 				while (tablesResultSet.next()) {
 					TableInfoBean tableBean = new TableInfoBean();
 					String tableName = tablesResultSet.getString("TABLE_NAME");
@@ -356,13 +376,13 @@ public class JDBCUtils {
 	 * @param str
 	 * @return
 	 */
-	public static String getBeanName(String str) {
+	public static String separatorToJavaBean(String str) {
 		int markIndex = str.lastIndexOf("_");
 		if (markIndex != -1) {
 			String startStr = str.substring(0, markIndex);
 			String endStr = str.substring(markIndex, str.length());
 			String newStr = startStr + endStr.substring(1, 2).toUpperCase() + endStr.substring(2);
-			return getBeanName(newStr);
+			return separatorToJavaBean(newStr);
 		} else {
 			return str.substring(0, 1).toLowerCase() + str.substring(1);
 		}
@@ -423,7 +443,7 @@ public class JDBCUtils {
 					if (cr == null) {
 						for (int j = 0, lenn = colList.size(); j < lenn; j++) {
 							ColumnBean colbean = colList.get(j);
-							if (fdName.equalsIgnoreCase(JDBCUtils.getBeanName(colbean.getColumnName()))) {
+							if (fdName.equalsIgnoreCase(JDBCUtils.separatorToJavaBean(colbean.getColumnName()))) {
 								cr = new ClassRelation();
 								cr.setColumnBean(colbean);
 								cr.setField(field);
@@ -460,11 +480,14 @@ public class JDBCUtils {
 			if (tabInfo == null) {
 				for (int i = 0, len = tableList.size(); i < len; i++) {
 					TableInfoBean tableBean = tableList.get(i);
-					if (entityName.equalsIgnoreCase(JDBCUtils.getBeanName(tableBean.getTableName()))) {
+					if (entityName.equalsIgnoreCase(JDBCUtils.separatorToJavaBean(tableBean.getTableName()))) {
 						tabInfo = tableBean;
 						break;
 					}
 				}
+			}
+			if(tabInfo==null){
+				return null;
 			}
 			CacheCenter.SQL_TABLE_CACHE.put(entityClass, tabInfo);
 			return tabInfo;
