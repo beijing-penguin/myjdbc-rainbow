@@ -381,7 +381,7 @@ public class JDBCUtils {
 		if (markIndex != -1) {
 			String startStr = str.substring(0, markIndex);
 			String endStr = str.substring(markIndex, str.length());
-			String newStr = startStr + endStr.substring(1, 2).toUpperCase() + endStr.substring(2);
+			String newStr = startStr.toLowerCase() + endStr.substring(1, 2).toUpperCase() + endStr.substring(2);
 			return separatorToJavaBean(newStr);
 		} else {
 			return str.substring(0, 1).toLowerCase() + str.substring(1);
@@ -415,8 +415,7 @@ public class JDBCUtils {
 		return sb.toString().toLowerCase();
 	}
 
-	public static List<ClassRelation> getClassRelationList(Class<?> entityClass, TableInfoBean tabInfo)
-			throws Exception {
+	public static List<ClassRelation> getClassRelationList(Class<?> entityClass, TableInfoBean tabInfo) throws Exception {
 		List<ClassRelation> classRelationsList = CacheCenter.CLASS_REL_FIELD_CACHE.get(entityClass);
 		if (CacheCenter.CLASS_REL_FIELD_CACHE.containsKey(entityClass)) {
 			return CacheCenter.CLASS_REL_FIELD_CACHE.get(entityClass);
