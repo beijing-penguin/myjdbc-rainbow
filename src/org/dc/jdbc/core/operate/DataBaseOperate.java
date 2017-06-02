@@ -7,15 +7,13 @@ import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.dc.jdbc.core.entity.DataSourceBean;
+
+import org.dc.jdbc.core.entity.DataBaseType;
 import org.dc.jdbc.core.entity.ResultData;
 import org.dc.jdbc.core.utils.JDBCUtils;
 import org.dc.jdbc.exceptions.TooManyResultsException;
 
 public class DataBaseOperate{
-	private static final Log LOG = LogFactory.getLog(DataBaseOperate.class);
 	private DataBaseOperate() {
 	}
 
@@ -25,29 +23,13 @@ public class DataBaseOperate{
 		return INSTANCE;
 	}
 	
-	public void checkDataSourceActive(DataSourceBean dataSourceBean){
-			Connection conn = null;
-			try{
-				conn = dataSourceBean.getDataSource().getConnection();
-				System.out.println(this.selectOne(conn, "SELECT 1", Object.class,null).getData());
-				conn.close();
-				dataSourceBean.setUsed(true);
-			}catch (Exception e) {
-				LOG.error("",e);
-				dataSourceBean.setUsed(false);
-			}finally{
-				try {
-					JDBCUtils.close(conn);
-				} catch (Exception e) {
-					LOG.error("",e);
-				}
-			}
-
-	}
-
-	public ResultData selectResult(Connection conn,String sql, Class<?> cls, Object[] params) throws Exception {
+	public ResultData selectResult(Connection conn,String sql, Class<?> cls, Object[] params,DataBaseType dataBaseType) throws Exception {
 		PreparedStatement ps = conn.prepareStatement(sql,ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-		ps.setFetchSize(Integer.MIN_VALUE);
+		if(dataBaseType!=null){
+			if(dataBaseType==DataBaseType.MYSQL){
+				ps.setFetchSize(Integer.MIN_VALUE);
+			}
+		}
 		ResultSet rs = JDBCUtils.setParamsReturnRS(ps, params);
 		return  new ResultData(cls,rs,ps);
 	}
@@ -57,8 +39,7 @@ public class DataBaseOperate{
 		PreparedStatement ps = null;
 		Object rt = null;
 		try {
-			ps = conn.prepareStatement(sql,ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			ps.setFetchSize(Integer.MIN_VALUE);
+			ps = conn.prepareStatement(sql);
 			rs = JDBCUtils.setParamsReturnRS(ps, params);
 			int row_num = 0;
 			while (rs.next()) {
@@ -82,7 +63,6 @@ public class DataBaseOperate{
 		try {
 			ps = conn.prepareStatement(sql);
 			rs = JDBCUtils.setParamsReturnRS(ps, params);
-
 			return new ResultData(JDBCUtils.parseSqlResultList(rs, cls));
 		} catch (Exception e) {
 			throw e;

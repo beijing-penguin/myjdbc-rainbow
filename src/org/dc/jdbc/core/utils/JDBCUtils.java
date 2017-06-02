@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.dc.jdbc.core.CacheCenter;
 import org.dc.jdbc.core.entity.ClassRelation;
 import org.dc.jdbc.core.entity.ColumnBean;
+import org.dc.jdbc.core.entity.DataBaseType;
 import org.dc.jdbc.core.entity.TableInfoBean;
 import org.dc.jdbc.exceptions.TooManyResultsException;
 
@@ -485,14 +486,34 @@ public class JDBCUtils {
 					}
 				}
 			}
-			if(tabInfo==null){
-				return null;
-			}
 			CacheCenter.SQL_TABLE_CACHE.put(entityClass, tabInfo);
 			return tabInfo;
 		}
 	}
 	public static String getFinalSql(String sqlOrID){
 		return sqlOrID.startsWith("$") ? CacheCenter.SQL_SOURCE_MAP.get(sqlOrID) : sqlOrID;
+	}
+	
+	public static DataBaseType getDataBaseType(DataSource dataSource) throws Exception{
+		String jdbcurl = null;
+		Field[] fields = dataSource.getClass().getSuperclass().getDeclaredFields();
+		for(Field field:fields){
+			if (!Modifier.isStatic(field.getModifiers())) {// 去除静态类型字段
+				if(field.getName().toLowerCase().contains("url")){
+					field.setAccessible(true);
+					jdbcurl = field.get(dataSource)==null?null:field.get(dataSource).toString();
+				}
+			}
+		}
+		if(jdbcurl==null){
+			return null;
+		}
+		if(jdbcurl.startsWith("jdbc:mysql:")){
+			return DataBaseType.MYSQL;
+		}
+		if(jdbcurl.startsWith("jdbc:oracle:")){
+			return DataBaseType.ORACLE;
+		}
+		return DataBaseType.MYSQL;
 	}
 }

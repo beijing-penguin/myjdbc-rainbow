@@ -105,7 +105,8 @@ public class DBHelper {
 	public ResultData selectResult(String sqlOrID, Class<?> returnClass, Object... params) throws Exception {
 		String doSql = JDBCUtils.getFinalSql(sqlOrID);
 		SqlContext context = SqlCoreHandle.handleRequest(doSql, params).printSqlLog();
-		return baseOperate.selectResult(getFinalConnection(SqlType.SELECT), doSql, returnClass, context.getParamList().toArray()).afterBindEvent();
+		Connection conn = getFinalConnection(SqlType.SELECT);
+		return baseOperate.selectResult(conn, doSql, returnClass, context.getParamList().toArray(),JDBCUtils.getDataBaseType(context.getCurrentDataSource())).afterBindEvent();
 	}
 
 	public <T> T selectOne(String sqlOrID, Class<? extends T> returnClass, Object... params) throws Exception {
