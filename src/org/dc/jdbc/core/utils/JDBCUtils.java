@@ -21,7 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.dc.jdbc.core.CacheCenter;
 import org.dc.jdbc.core.entity.ClassRelation;
 import org.dc.jdbc.core.entity.ColumnBean;
-import org.dc.jdbc.core.entity.DataBaseType;
+import org.dc.jdbc.core.entity.DBType;
 import org.dc.jdbc.core.entity.TableInfoBean;
 import org.dc.jdbc.exceptions.TooManyResultsException;
 
@@ -494,7 +494,7 @@ public class JDBCUtils {
 		return sqlOrID.startsWith("$") ? CacheCenter.SQL_SOURCE_MAP.get(sqlOrID) : sqlOrID;
 	}
 	
-	public static DataBaseType getDataBaseType(DataSource dataSource) throws Exception{
+	public static DBType getDataBaseType(DataSource dataSource) throws Exception{
 		String jdbcurl = null;
 		Field[] fields = dataSource.getClass().getSuperclass().getDeclaredFields();
 		for(Field field:fields){
@@ -506,14 +506,14 @@ public class JDBCUtils {
 			}
 		}
 		if(jdbcurl==null){
-			return null;
+			return DBType.OTHER;
 		}
 		if(jdbcurl.startsWith("jdbc:mysql:")){
-			return DataBaseType.MYSQL;
+			return DBType.MYSQL;
 		}
 		if(jdbcurl.startsWith("jdbc:oracle:")){
-			return DataBaseType.ORACLE;
+			return DBType.ORACLE;
 		}
-		return DataBaseType.MYSQL;
+		return DBType.OTHER;
 	}
 }

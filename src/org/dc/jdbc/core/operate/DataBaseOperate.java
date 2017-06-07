@@ -8,7 +8,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.dc.jdbc.core.entity.DataBaseType;
+import org.dc.jdbc.core.entity.DBType;
 import org.dc.jdbc.core.entity.ResultData;
 import org.dc.jdbc.core.utils.JDBCUtils;
 import org.dc.jdbc.exceptions.TooManyResultsException;
@@ -23,12 +23,10 @@ public class DataBaseOperate{
 		return INSTANCE;
 	}
 	
-	public ResultData selectResult(Connection conn,String sql, Class<?> cls, Object[] params,DataBaseType dataBaseType) throws Exception {
+	public ResultData selectResult(Connection conn,String sql, Class<?> cls, Object[] params,DBType dataBaseType) throws Exception {
 		PreparedStatement ps = conn.prepareStatement(sql,ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-		if(dataBaseType!=null){
-			if(dataBaseType==DataBaseType.MYSQL){
-				ps.setFetchSize(Integer.MIN_VALUE);
-			}
+		if(dataBaseType==DBType.MYSQL){
+			ps.setFetchSize(Integer.MIN_VALUE);
 		}
 		ResultSet rs = JDBCUtils.setParamsReturnRS(ps, params);
 		return  new ResultData(cls,rs,ps);

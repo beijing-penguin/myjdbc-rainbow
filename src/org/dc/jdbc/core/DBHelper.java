@@ -105,14 +105,14 @@ public class DBHelper {
 	public ResultData selectResult(String sqlOrID, Class<?> returnClass, Object... params) throws Exception {
 		String doSql = JDBCUtils.getFinalSql(sqlOrID);
 		SqlContext context = SqlCoreHandle.handleRequest(doSql, params).printSqlLog();
-		Connection conn = getFinalConnection(SqlType.SELECT);
+		Connection conn = this.getFinalConnection(SqlType.SELECT);
 		return baseOperate.selectResult(conn, doSql, returnClass, context.getParamList().toArray(),JDBCUtils.getDataBaseType(context.getCurrentDataSource())).afterBindEvent();
 	}
 
 	public <T> T selectOne(String sqlOrID, Class<? extends T> returnClass, Object... params) throws Exception {
 		String doSql = JDBCUtils.getFinalSql(sqlOrID);
 		SqlContext context = SqlCoreHandle.handleRequest(doSql, params).printSqlLog();
-		return baseOperate.selectOne(getFinalConnection(SqlType.SELECT), doSql, returnClass, context.getParamList().toArray()).afterBindEvent().getData();
+		return baseOperate.selectOne(this.getFinalConnection(SqlType.SELECT), doSql, returnClass, context.getParamList().toArray()).afterBindEvent().getData();
 	}
 
 	public Map<String, Object> selectOne(String sqlOrID, Object... params) throws Exception {
@@ -134,7 +134,7 @@ public class DBHelper {
 	public <T> List<T> selectList(String sqlOrID, Class<? extends T> returnClass, Object... params) throws Exception {
 		String doSql = JDBCUtils.getFinalSql(sqlOrID);
 		SqlContext context = SqlCoreHandle.handleRequest(doSql, params).printSqlLog();
-		return baseOperate.selectList(getFinalConnection(SqlType.SELECT), doSql, returnClass, context.getParamList().toArray()).afterBindEvent().getData();
+		return baseOperate.selectList(this.getFinalConnection(SqlType.SELECT), doSql, returnClass, context.getParamList().toArray()).afterBindEvent().getData();
 	}
 
 	public List<Map<String, Object>> selectList(String sqlOrID, Object... params) throws Exception {
@@ -152,7 +152,7 @@ public class DBHelper {
 	public int insert(String sqlOrID, Object... params) throws Exception {
 		String doSql = JDBCUtils.getFinalSql(sqlOrID);
 		SqlContext context = SqlCoreHandle.handleRequest(doSql,params).printSqlLog();
-		return baseOperate.excuteSQL(getFinalConnection(), context.getSql(), context.getParamList().toArray()).afterBindEvent().getData();
+		return baseOperate.excuteSQL(this.getFinalConnection(), context.getSql(), context.getParamList().toArray()).afterBindEvent().getData();
 	}
 
 	/**
@@ -163,7 +163,7 @@ public class DBHelper {
 	 * @throws Exception
 	 */
 	public int insertEntity(Object entity) throws Exception {
-		Connection conn = getFinalConnection();
+		Connection conn = this.getFinalConnection();
 		SqlContext context = SqlCoreHandle.handleInsertRequest(entity).printSqlLog();
 		return  baseOperate.excuteSQL(conn, context.getSql(), context.getParamList().toArray()).afterBindEvent().getData();
 	}
@@ -180,11 +180,11 @@ public class DBHelper {
 	public <T> T insertReturnPK(String sqlOrID, Object... params) throws Exception {
 		String doSql = JDBCUtils.getFinalSql(sqlOrID);
 		SqlContext context = SqlCoreHandle.handleRequest(doSql, params).printSqlLog();
-		return baseOperate.insertReturnPK(getFinalConnection(), doSql, null, context.getParamList().toArray()).afterBindEvent().getData();
+		return baseOperate.insertReturnPK(this.getFinalConnection(), doSql, null, context.getParamList().toArray()).afterBindEvent().getData();
 	}
 
 	public <T> T insertEntityRtnPK(Object entity) throws Exception {
-		Connection conn = getFinalConnection();
+		Connection conn = this.getFinalConnection();
 		SqlContext context = SqlCoreHandle.handleInsertRequest(entity).printSqlLog();
 		return baseOperate.insertReturnPK(conn, context.getSql(), null, context.getParamList().toArray()).afterBindEvent().getData();
 	}
@@ -200,17 +200,17 @@ public class DBHelper {
 	public List<Integer> insertBatch(String sqlOrID, Object[] params) throws Exception {
 		String doSql = JDBCUtils.getFinalSql(sqlOrID);
 		SqlContext context = SqlCoreHandle.handleBatchRequest(doSql, params).printSqlLog();
-		return baseOperate.insertBatch(getFinalConnection(), context.getSql(), null, context.getParamList().toArray()).afterBindEvent().getData();
+		return baseOperate.insertBatch(this.getFinalConnection(), context.getSql(), null, context.getParamList().toArray()).afterBindEvent().getData();
 	}
 
 	public int update(String sqlOrID, Object... params) throws Exception {
 		String doSql = JDBCUtils.getFinalSql(sqlOrID);
 		SqlContext context = SqlCoreHandle.handleRequest(doSql,params).printSqlLog();
-		return baseOperate.excuteSQL(getFinalConnection(), context.getSql(), context.getParamList().toArray()).afterBindEvent().getData();
+		return baseOperate.excuteSQL(this.getFinalConnection(), context.getSql(), context.getParamList().toArray()).afterBindEvent().getData();
 	}
 
 	public int updateEntity(Object entity) throws Exception {
-		Connection conn = getFinalConnection();
+		Connection conn = this.getFinalConnection();
 		SqlContext context = SqlCoreHandle.handleUpdateRequest(entity).printSqlLog();
 		return baseOperate.excuteSQL(conn, context.getSql(), context.getParamList().toArray()).afterBindEvent().getData();
 	}
@@ -218,18 +218,18 @@ public class DBHelper {
 	public int delete(String sqlOrID, Object... params) throws Exception {
 		String doSql = JDBCUtils.getFinalSql(sqlOrID);
 		SqlContext context = SqlCoreHandle.handleRequest(doSql,params).printSqlLog();
-		return baseOperate.excuteSQL(getFinalConnection(), context.getSql(), context.getParamList().toArray()).afterBindEvent().getData();
+		return baseOperate.excuteSQL(this.getFinalConnection(), context.getSql(), context.getParamList().toArray()).afterBindEvent().getData();
 	}
 
 	public int deleteEntity(Object entity) throws Exception {
-		Connection conn = getFinalConnection();
+		Connection conn = this.getFinalConnection();
 		SqlContext context = SqlCoreHandle.handleDeleteRequest(entity).printSqlLog();
 		return (int) baseOperate.excuteSQL(conn, context.getSql(), context.getParamList().toArray()).afterBindEvent().getData();
 	}
 
 	public int excuteSQL(String sqlOrID, Object... params) throws Exception {
 		String doSql = JDBCUtils.getFinalSql(sqlOrID);
-		return baseOperate.excuteSQL(getFinalConnection(), doSql, params).afterBindEvent().getData();
+		return baseOperate.excuteSQL(this.getFinalConnection(), doSql, params).afterBindEvent().getData();
 	}
 
 
