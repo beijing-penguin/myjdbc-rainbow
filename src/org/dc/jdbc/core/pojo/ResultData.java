@@ -1,4 +1,4 @@
-package org.dc.jdbc.core.entity;
+package org.dc.jdbc.core.pojo;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

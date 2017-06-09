@@ -19,10 +19,10 @@ import javax.sql.DataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dc.jdbc.core.CacheCenter;
-import org.dc.jdbc.core.entity.ClassRelation;
-import org.dc.jdbc.core.entity.ColumnBean;
-import org.dc.jdbc.core.entity.DBType;
-import org.dc.jdbc.core.entity.TableInfoBean;
+import org.dc.jdbc.core.pojo.ClassRelation;
+import org.dc.jdbc.core.pojo.ColumnBean;
+import org.dc.jdbc.core.pojo.DBType;
+import org.dc.jdbc.core.pojo.TableInfoBean;
 import org.dc.jdbc.exceptions.TooManyResultsException;
 
 /**

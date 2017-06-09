@@ -8,8 +8,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.dc.jdbc.core.entity.DBType;
-import org.dc.jdbc.core.entity.ResultData;
+import org.dc.jdbc.core.pojo.DBType;
+import org.dc.jdbc.core.pojo.ResultData;
 import org.dc.jdbc.core.utils.JDBCUtils;
 import org.dc.jdbc.exceptions.TooManyResultsException;
 

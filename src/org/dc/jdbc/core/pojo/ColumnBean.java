@@ -1,4 +1,4 @@
-package org.dc.jdbc.core.entity;
+package org.dc.jdbc.core.pojo;
 
 public class ColumnBean {
 	private String columnName;

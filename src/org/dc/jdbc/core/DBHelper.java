@@ -12,10 +12,10 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.dc.jdbc.core.entity.DataSourceBean;
-import org.dc.jdbc.core.entity.ResultData;
-import org.dc.jdbc.core.entity.SqlType;
 import org.dc.jdbc.core.operate.DataBaseOperate;
+import org.dc.jdbc.core.pojo.DataSourceBean;
+import org.dc.jdbc.core.pojo.ResultData;
+import org.dc.jdbc.core.pojo.SqlType;
 import org.dc.jdbc.core.sqlhandler.SqlCoreHandle;
 import org.dc.jdbc.core.utils.JDBCUtils;
 

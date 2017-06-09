@@ -1,4 +1,4 @@
-package org.dc.jdbc.core.entity;
+package org.dc.jdbc.core.pojo;
 
 import java.util.ArrayList;
 import java.util.List;

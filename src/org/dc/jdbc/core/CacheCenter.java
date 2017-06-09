@@ -7,8 +7,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.dc.jdbc.core.entity.ClassRelation;
-import org.dc.jdbc.core.entity.TableInfoBean;
+import org.dc.jdbc.core.pojo.ClassRelation;
+import org.dc.jdbc.core.pojo.TableInfoBean;
 
 public class CacheCenter {
 	public static final Map<String, String> SQL_SOURCE_MAP = new HashMap<String, String>();

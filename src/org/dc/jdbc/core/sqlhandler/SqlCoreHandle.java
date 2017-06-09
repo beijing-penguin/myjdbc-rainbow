@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.dc.jdbc.core.SqlContext;
-import org.dc.jdbc.core.entity.ClassRelation;
-import org.dc.jdbc.core.entity.ColumnBean;
-import org.dc.jdbc.core.entity.TableInfoBean;
+import org.dc.jdbc.core.pojo.ClassRelation;
+import org.dc.jdbc.core.pojo.ColumnBean;
+import org.dc.jdbc.core.pojo.TableInfoBean;
 import org.dc.jdbc.core.utils.JDBCUtils;
 import org.dc.jdbc.sqlparse.Lexer;
 import org.dc.jdbc.sqlparse.Token;
