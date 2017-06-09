@@ -11,6 +11,7 @@ import java.util.Map;
 import org.dc.jdbc.core.SqlContext;
 import org.dc.jdbc.core.pojo.ClassRelation;
 import org.dc.jdbc.core.pojo.ColumnBean;
+import org.dc.jdbc.core.pojo.FieldValue;
 import org.dc.jdbc.core.pojo.TableInfoBean;
 import org.dc.jdbc.core.utils.JDBCUtils;
 import org.dc.jdbc.sqlparse.Lexer;
@@ -208,6 +209,9 @@ public class SqlCoreHandle {
 		SqlContext sqlContext = SqlContext.getContext();
 		Class<?> entityClass = entity.getClass();
 		TableInfoBean tabInfo = JDBCUtils.getTableInfoByClass(entityClass, sqlContext.getCurrentDataSource());
+		if(tabInfo==null){
+			throw new Exception("table is not exist");
+		}
 		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(entityClass, tabInfo);
 
 		String sql = "UPDATE " + tabInfo.getTableName() + " SET ";
@@ -264,6 +268,9 @@ public class SqlCoreHandle {
 		SqlContext sqlContext = SqlContext.getContext();
 		List<Object> paramsList = new ArrayList<Object>();
 		TableInfoBean tabInfo = JDBCUtils.getTableInfoByClass(entityClass, sqlContext.getCurrentDataSource());
+		if(tabInfo==null){
+			throw new Exception("table is not exist");
+		}
 		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(entityClass, tabInfo);
 		String insertSql = "INSERT INTO " + tabInfo.getTableName() + " (";
 		String sql_values = " VALUES(";
@@ -275,13 +282,21 @@ public class SqlCoreHandle {
 				insertSql = insertSql + classRelationsList.get(i).getColumnBean().getColumnName() + ",";
 				sql_values = sql_values + "?,";
 				paramsList.add(obj_value);
+			}else{
+				FieldValue fieldvalue = field.getAnnotation(FieldValue.class);
+				if(fieldvalue!=null){
+					obj_value = fieldvalue.value();
+					if(obj_value!=null){
+						insertSql = insertSql + classRelationsList.get(i).getColumnBean().getColumnName() + ",";
+						sql_values = sql_values + obj_value+",";
+					}
+				}
 			}
 		}
-		if (paramsList.size() == 0) {
+		/*if (paramsList.size() == 0) {
 			throw new Exception("insert condition is empty");
-		}
-		insertSql = insertSql.substring(0, insertSql.length() - 1) + ")"
-				+ sql_values.substring(0, sql_values.length() - 1) + ")";
+		}*/
+		insertSql = insertSql.substring(0, insertSql.length() - 1) + ")"+ sql_values.substring(0, sql_values.length() - 1) + ")";
 
 		sqlContext.setParamList(paramsList);
 		sqlContext.setSql(insertSql);
@@ -292,6 +307,9 @@ public class SqlCoreHandle {
 		Class<?> entityClass = entity.getClass();
 		SqlContext sqlContext = SqlContext.getContext();
 		TableInfoBean tabInfo = JDBCUtils.getTableInfoByClass(entityClass, sqlContext.getCurrentDataSource());
+		if(tabInfo==null){
+			throw new Exception("table is not exist");
+		}
 		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(entityClass, tabInfo);
 
 		String wheresql = null;
@@ -328,7 +346,9 @@ public class SqlCoreHandle {
 		Class<?> entityClass = entity.getClass();
 		SqlContext sqlContext = SqlContext.getContext();
 		TableInfoBean tabInfo = JDBCUtils.getTableInfoByClass(entityClass, sqlContext.getCurrentDataSource());
-
+		if(tabInfo==null){
+			throw new Exception("table is not exist");
+		}
 		List<ClassRelation> classRelationsList = JDBCUtils.getClassRelationList(entityClass, tabInfo);
 		String sql = "SELECT * FROM " + tabInfo.getTableName() + " WHERE 1=1 ";
 		if (whereSql != null) {

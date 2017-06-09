@@ -22,6 +22,7 @@ import org.dc.jdbc.core.CacheCenter;
 import org.dc.jdbc.core.pojo.ClassRelation;
 import org.dc.jdbc.core.pojo.ColumnBean;
 import org.dc.jdbc.core.pojo.DBType;
+import org.dc.jdbc.core.pojo.Table;
 import org.dc.jdbc.core.pojo.TableInfoBean;
 import org.dc.jdbc.exceptions.TooManyResultsException;
 
@@ -470,6 +471,10 @@ public class JDBCUtils {
 			List<TableInfoBean> tableList = getDataBaseInfo(dataSource);
 
 			String entityName = entityClass.getSimpleName();
+			Table table = entityClass.getAnnotation(Table.class);
+			if(table!=null){
+				entityName = table.name();
+			}
 			for (int i = 0, len = tableList.size(); i < len; i++) {
 				TableInfoBean tableBean = tableList.get(i);
 				if (entityName.equalsIgnoreCase(tableBean.getTableName())) {
@@ -486,7 +491,9 @@ public class JDBCUtils {
 					}
 				}
 			}
-			CacheCenter.SQL_TABLE_CACHE.put(entityClass, tabInfo);
+			if(tabInfo!=null){
+				CacheCenter.SQL_TABLE_CACHE.put(entityClass, tabInfo);
+			}
 			return tabInfo;
 		}
 	}
