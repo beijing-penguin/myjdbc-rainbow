@@ -12,6 +12,7 @@ import org.dc.jdbc.core.SqlContext;
 import org.dc.jdbc.core.pojo.ClassRelation;
 import org.dc.jdbc.core.pojo.ColumnBean;
 import org.dc.jdbc.core.pojo.FieldValue;
+import org.dc.jdbc.core.pojo.SqlType;
 import org.dc.jdbc.core.pojo.TableInfoBean;
 import org.dc.jdbc.core.utils.JDBCUtils;
 import org.dc.jdbc.sqlparse.Lexer;
@@ -284,7 +285,7 @@ public class SqlCoreHandle {
 				paramsList.add(obj_value);
 			}else{
 				FieldValue fieldvalue = field.getAnnotation(FieldValue.class);
-				if(fieldvalue!=null){
+				if(fieldvalue!=null && fieldvalue.sqlType()==SqlType.INSERT && fieldvalue.dbType()==JDBCUtils.getDataBaseType(sqlContext.getCurrentDataSource())){
 					obj_value = fieldvalue.value();
 					if(obj_value!=null){
 						insertSql = insertSql + classRelationsList.get(i).getColumnBean().getColumnName() + ",";

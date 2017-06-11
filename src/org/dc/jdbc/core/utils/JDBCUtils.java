@@ -513,7 +513,7 @@ public class JDBCUtils {
 			}
 		}
 		if(jdbcurl==null){
-			return DBType.OTHER;
+			return DBType.UNKNOW;
 		}
 		if(jdbcurl.startsWith("jdbc:mysql:")){
 			return DBType.MYSQL;
@@ -521,6 +521,6 @@ public class JDBCUtils {
 		if(jdbcurl.startsWith("jdbc:oracle:")){
 			return DBType.ORACLE;
 		}
-		return DBType.OTHER;
+		return DBType.UNKNOW;
 	}
 }
