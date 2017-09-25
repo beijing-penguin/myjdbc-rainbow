@@ -13,4 +13,5 @@ public @interface FieldValue {
 	String value();
 	DBType dbType() default DBType.UNKNOW;
 	SqlType sqlType() default SqlType.UNKNOW;
+	boolean sqlScript() default false;
 }

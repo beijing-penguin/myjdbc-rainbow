@@ -470,10 +470,12 @@ public class JDBCUtils {
 			TableInfoBean tabInfo = null;
 			List<TableInfoBean> tableList = getDataBaseInfo(dataSource);
 
-			String entityName = entityClass.getSimpleName();
+			String entityName = null;
 			Table table = entityClass.getAnnotation(Table.class);
 			if(table!=null){
 				entityName = table.name();
+			}else{
+				entityName = entityClass.getSimpleName();
 			}
 			for (int i = 0, len = tableList.size(); i < len; i++) {
 				TableInfoBean tableBean = tableList.get(i);

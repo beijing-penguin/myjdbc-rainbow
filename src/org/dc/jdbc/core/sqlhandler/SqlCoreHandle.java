@@ -15,6 +15,7 @@ import org.dc.jdbc.core.pojo.FieldValue;
 import org.dc.jdbc.core.pojo.SqlType;
 import org.dc.jdbc.core.pojo.TableInfoBean;
 import org.dc.jdbc.core.utils.JDBCUtils;
+import org.dc.jdbc.core.utils.ObjectUtils;
 import org.dc.jdbc.sqlparse.Lexer;
 import org.dc.jdbc.sqlparse.Token;
 
@@ -195,7 +196,7 @@ public class SqlCoreHandle {
 		SqlContext sqlContext = SqlContext.getContext();
 		sqlContext.setSql(sql.toString());
 		sqlContext.setParamList(returnList);
-		
+
 		return sqlContext;
 	}
 
@@ -219,27 +220,22 @@ public class SqlCoreHandle {
 		List<Object> paramsList = new ArrayList<Object>();
 		List<Object> paramsPKList = new ArrayList<Object>(3);
 		String wheresql = null;
-		int set_param = 0;
 		for (int i = 0, len = classRelationsList.size(); i < len; i++) {
 			ColumnBean colBean = classRelationsList.get(i).getColumnBean();
 			Field field = classRelationsList.get(i).getField();
 			field.setAccessible(true);
 			Object value = field.get(entity);
 
-			if (!colBean.isPrimaryKey()) {
-				if (value != null) {
-					set_param++;
+			if(value!=null){
+				if (!colBean.isPrimaryKey()) {
 					sql = sql + colBean.getColumnName() + "=" + "?,";
 					paramsList.add(value);
-				}
-
-			} else {
-				if (wheresql == null) {
-					wheresql = new String(" WHERE " + colBean.getColumnName() + "=?");
 				} else {
-					wheresql = wheresql + " AND " + colBean.getColumnName() + "=?";
-				}
-				if (value != null) {
+					if (wheresql == null) {
+						wheresql = new String(" WHERE " + colBean.getColumnName() + "=?");
+					} else {
+						wheresql = wheresql + " AND " + colBean.getColumnName() + "=?";
+					}
 					paramsPKList.add(value);
 				}
 			}
@@ -247,8 +243,8 @@ public class SqlCoreHandle {
 		if (paramsPKList.size() == 0) {
 			throw new Exception("primary key is not exist");
 		}
-		if (set_param == 0) {
-			throw new Exception("param is not exist");
+		if (paramsList.size() == 0) {
+			throw new Exception("No update parameters");
 		}
 		sqlContext.setSql(sql.substring(0, sql.length() - 1) + wheresql);
 		paramsList.addAll(paramsPKList);
@@ -279,18 +275,20 @@ public class SqlCoreHandle {
 			Field field = classRelationsList.get(i).getField();
 			field.setAccessible(true);
 			Object obj_value = field.get(entity);
+			FieldValue fieldvalue = null;
+			if(obj_value==null){
+				fieldvalue = field.getAnnotation(FieldValue.class);
+				if(fieldvalue!=null && fieldvalue.sqlType()==SqlType.INSERT && fieldvalue.dbType()==JDBCUtils.getDataBaseType(sqlContext.getCurrentDataSource())){
+					obj_value = ObjectUtils.getValueByFieldType(fieldvalue.value(), field.getType());
+				}
+			}
 			if (obj_value != null) {
 				insertSql = insertSql + classRelationsList.get(i).getColumnBean().getColumnName() + ",";
-				sql_values = sql_values + "?,";
-				paramsList.add(obj_value);
-			}else{
-				FieldValue fieldvalue = field.getAnnotation(FieldValue.class);
-				if(fieldvalue!=null && fieldvalue.sqlType()==SqlType.INSERT && fieldvalue.dbType()==JDBCUtils.getDataBaseType(sqlContext.getCurrentDataSource())){
-					obj_value = fieldvalue.value();
-					if(obj_value!=null){
-						insertSql = insertSql + classRelationsList.get(i).getColumnBean().getColumnName() + ",";
-						sql_values = sql_values + obj_value+",";
-					}
+				if(fieldvalue!=null  && fieldvalue.sqlScript()){
+					sql_values = sql_values + obj_value+",";
+				}else{
+					sql_values = sql_values + "?,";
+					paramsList.add(obj_value);
 				}
 			}
 		}
@@ -303,7 +301,6 @@ public class SqlCoreHandle {
 		sqlContext.setSql(insertSql);
 		return sqlContext;
 	}
-
 	public static SqlContext handleDeleteRequest(Object entity) throws Exception {
 		Class<?> entityClass = entity.getClass();
 		SqlContext sqlContext = SqlContext.getContext();

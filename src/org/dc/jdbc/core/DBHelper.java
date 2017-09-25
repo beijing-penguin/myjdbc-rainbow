@@ -241,10 +241,10 @@ public class DBHelper {
 		}else{
 			if(slaveDataSourceBeanList!=null && SqlType.SELECT==sqlType[0]){
 				dataSourceBean = getFinalDataSource(slaveIndex, slaveDataSourceBeanList);
-				if(dataSourceBean==null){
+				if(dataSourceBean==null){//如果从服务器无可用数据源，则从住数据库数据源中获取可用数据源
 					dataSourceBean = getFinalDataSource(masterIndex, masterDataSourceBeanList);
 				}
-				if(dataSourceBean==null){
+				if(dataSourceBean==null){//如果连主数据源都不可用，则默认获取任意一个从数据源
 					dataSourceBean = slaveDataSourceBeanList.get(slaveIndex.get()%slaveDataSourceBeanList.size());
 				}
 			}else if(masterDataSourceBeanList!=null){

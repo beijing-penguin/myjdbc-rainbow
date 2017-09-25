@@ -8,6 +8,11 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.zaxxer.hikari.HikariDataSource;
 
+/**
+ * 主从数据库操作example
+ * @author dc
+ *
+ */
 public class Test1 {
 	public static void main(String[] args) throws Exception {
 		HikariDataSource dataSource1 = new HikariDataSource();
