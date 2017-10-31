@@ -2,7 +2,6 @@ package org.dc.jdbc.core.pojo;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-
 import org.dc.jdbc.core.ConnectionManager;
 import org.dc.jdbc.core.SqlContext;
 import org.dc.jdbc.core.utils.JDBCUtils;
@@ -16,6 +15,7 @@ public class ResultData {
 	
 	/**
 	 * sql执行完了之后    执行的事件
+	 * @throws Exception 
 	 */
 	public ResultData afterBindEvent(){
 		if (SqlContext.getContext().getReadOnly()) {

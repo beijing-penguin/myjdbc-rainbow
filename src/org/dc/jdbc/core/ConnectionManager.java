@@ -41,7 +41,8 @@ public class ConnectionManager {
 	}
 
 	/**
-	 * 关闭当前操作中的所有连接对象，如果关闭失败，则继续关闭其他conn对象，直到关闭所有连接，改方法属于最后一步的操作，除非线程挂掉或者被kill掉，否则最后一定会被执行。
+	 * 关闭当前操作中的所有连接对象，如果关闭失败，则继续关闭其他conn对象，直到关闭所有连接，改方法属于最后一步的操作，除非线程挂掉或者被kill掉，否则最后一定要被执行。
+	 * 异常conn选择捕获，而不选择抛出去，原因：保证当前线程所有的conn能尽可能快速的被放回连接池。异常处理主要由close方法实现类中的代码去处理失败的conn，本方法不做处理，所以默认直接成功
 	 */
 	public static void closeConnectionAll() {
 		Map<DataSource, Connection> connMap = SqlContext.getContext().getDataSourceMap();
