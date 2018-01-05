@@ -165,7 +165,7 @@ public class DBHelper {
 	public int insertEntity(Object entity) throws Exception {
 		Connection conn = this.getFinalConnection();
 		SqlContext context = SqlCoreHandle.handleInsertRequest(entity).printSqlLog();
-		return  baseOperate.excuteSQL(conn, context.getSql(), context.getParamList().toArray()).afterBindEvent().getData();
+		return baseOperate.excuteSQL(conn, context.getSql(), context.getParamList().toArray()).afterBindEvent().getData();
 	}
 
 

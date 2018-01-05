@@ -17,7 +17,7 @@ import org.apache.commons.logging.LogFactory;
 public class ConnectionManager {
 	private static final Log LOG = LogFactory.getLog(ConnectionManager.class);
 
-	// 设置事物
+	// 设置事务
 	public static void setTransaction(boolean startTransaction) {
 		SqlContext.getContext().setTransaction(startTransaction);
 	}

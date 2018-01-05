@@ -17,8 +17,9 @@ public class ResultData {
 	 * sql执行完了之后    执行的事件
 	 * @throws Exception 
 	 */
-	public ResultData afterBindEvent(){
+	public ResultData afterBindEvent() throws Exception{
 		if (SqlContext.getContext().getReadOnly()) {
+			ConnectionManager.commitAll();
 			ConnectionManager.closeConnectionAll();
 		}
 		return this;

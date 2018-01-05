@@ -272,6 +272,9 @@ public class JDBCUtils {
 			case Types.LONGVARBINARY:
 				return_obj = rs.getBytes(columnIndex);
 				break;
+			case Types.BLOB:
+				return_obj = rs.getBytes(columnIndex);
+				break;
 			default:
 				return_obj = rs.getObject(columnIndex);
 			}
