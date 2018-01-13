@@ -30,14 +30,7 @@ public class App {
 			//同理删除对象，也只能根据主键删除，如果主键没有，或者为空，则报错
 			System.out.println(dbHelper.deleteEntity(user));
 			
-			//查询操作
-			//默认这里返回结果为null，因为上一步已经吧那个对象已经删除了
-			User my_user = dbHelper.selectOneEntity(user);//---->根据User实体中的字段值，如果字段值为空，则不参与构造查询条件，此处对应sql语句请自行查看系统打印的完整sql日志。
-			List<User> userList = dbHelper.selectEntity(user);//---->返回null
 			
-			//条件查询
-			User u1 = dbHelper.selectOneEntity(user," and sex > 20 and name like ? order by id desc","%张%");//-->请自行查看sql日志，依然是根据实体和wheresql构造最终sql
-			//end 对象操作
 			
 			//纯sql操作,改操方法api最多有3个参数，第一个entity（Object类型） 第二个wheresql(String主要是where条件),第三个sql语句对应的参数(对象，list，map，数组)
 			//目前只支持?和#匹配符，如果有朋友建议或需要的可以加上:或者其他通配符
