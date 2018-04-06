@@ -37,6 +37,7 @@ public class ConnectionManager {
 		// 设置事务
 		conn.setAutoCommit(!sqlContext.getTransaction());
 		conn.setReadOnly(sqlContext.getReadOnly());
+		
 		return conn;
 	}
 

@@ -19,7 +19,7 @@ public class ResultData {
 	 */
 	public ResultData afterBindEvent() throws Exception{
 		if (SqlContext.getContext().getReadOnly()) {
-			ConnectionManager.commitAll();
+			//ConnectionManager.commitAll();
 			ConnectionManager.closeConnectionAll();
 		}
 		return this;

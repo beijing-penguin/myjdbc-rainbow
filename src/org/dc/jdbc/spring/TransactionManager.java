@@ -18,19 +18,12 @@ public class TransactionManager {
 
 		Transactional transactional = method.getAnnotation(Transactional.class);
 		if (transactional == null) {
-			// 方法无注解，查找类上注解，并判断当前调用方法是否为当前类定义的（防止父类方法触发事务边界）
 			transactional = method.getDeclaringClass().getAnnotation(Transactional.class);
 		}
 
 		if (transactional != null) {// 如果不为空，则开启事务
-			if (transactional.readOnly() == false) {
-				ConnectionManager.setTransaction(true);
-			} else {
-				ConnectionManager.setReadOnly(true);
-			}
-		} else {
-			ConnectionManager.setTransaction(false);
-			ConnectionManager.setReadOnly(false);
+			ConnectionManager.setTransaction(true);
+			ConnectionManager.setReadOnly(transactional.readOnly());
 		}
 		Object invokeObj = null;
 		try {
