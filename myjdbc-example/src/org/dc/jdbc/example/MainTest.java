@@ -16,7 +16,10 @@ public class MainTest {
 		
 		DBHelper testDbHelper = new DBHelper(dataSource);
 		ConnectionManager.setTransaction(true);//设置开启事务
+		ConnectionManager.setReadOnly(true);
 		try {
+			testDbHelper.delete("delete from user where id =?",1);
+			
 			User user = testDbHelper.selectOne("select * from user where id = ? and real_name = ?",User.class,3,"dc");
 			System.out.println(JSON.toJSONString(user));
 			
