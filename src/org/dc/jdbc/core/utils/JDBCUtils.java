@@ -382,7 +382,7 @@ public class JDBCUtils {
 	 * @return
 	 */
 	public static String separatorToJavaBean(String str) {
-		int markIndex = str.lastIndexOf("_");
+		/*int markIndex = str.lastIndexOf("_");
 		if (markIndex != -1) {
 			String startStr = str.substring(0, markIndex);
 			String endStr = str.substring(markIndex, str.length());
@@ -390,7 +390,15 @@ public class JDBCUtils {
 			return separatorToJavaBean(newStr);
 		} else {
 			return str.substring(0, 1).toLowerCase() + str.substring(1);
-		}
+		}*/
+		String[] fields = str.toLowerCase().split("_");
+        StringBuilder sbuilder = new StringBuilder(fields[0]);
+        for (int i = 1; i < fields.length; i++) {
+            char[] cs = fields[i].toCharArray();
+            cs[0] -= 32;
+            sbuilder.append(String.valueOf(cs));
+        }
+        return sbuilder.toString();
 	}
 
 	/**
@@ -407,17 +415,19 @@ public class JDBCUtils {
 			separatorChar = '_';
 		}
 		StringBuilder sb = new StringBuilder(str);
+		if(Character.isUpperCase(str.charAt(0))) {
+			sb.replace(0 , 1, String.valueOf((char)(str.charAt(0)+32)));
+		}
 		int index = 0;
 		for (int i = 1; i < str.length(); i++) {
 			char c = str.charAt(i);
 			if (Character.isUpperCase(c)) {
-
-				sb.replace(i + index, i + 1 + index, String.valueOf(c).toLowerCase());
-				sb.insert(i + index, separatorChar);
+				c += 32;
+				sb.replace(i+index , i+1+index , separatorChar+String.valueOf(c));
 				index++;
 			}
 		}
-		return sb.toString().toLowerCase();
+		return sb.toString();
 	}
 
 	public static List<ClassRelation> getClassRelationList(Class<?> entityClass, TableInfoBean tabInfo) throws Exception {

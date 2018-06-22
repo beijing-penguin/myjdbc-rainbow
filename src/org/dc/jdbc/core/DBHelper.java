@@ -26,7 +26,7 @@ import org.dc.jdbc.core.utils.JDBCUtils;
  * @time 2015-8-17
  */
 public class DBHelper {
-	private static Map<DataSource,DataSourceBean> dataSourceMap = null;
+	private static volatile Map<DataSource,DataSourceBean> dataSourceMap = null;
 	private volatile AtomicInteger masterIndex = new AtomicInteger(0);
 	private volatile AtomicInteger slaveIndex = new AtomicInteger(0);
 	private volatile List<DataSourceBean> masterDataSourceBeanList;
