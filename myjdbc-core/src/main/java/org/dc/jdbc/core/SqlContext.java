@@ -19,98 +19,98 @@ import org.dc.jdbc.core.sqlhandler.PrintSqlLogHandler;
  * @time 2015-8-17
  */
 public class SqlContext {
-	private static final Log LOG = LogFactory.getLog(SqlContext.class);
-	private static final ThreadLocal<SqlContext> sqlContext = new ThreadLocal<SqlContext>();
-	
-	private String sql;
-	private List<Object> paramList;
-	private boolean transaction = false;
-	private boolean readOnly = true;
-	private Map<DataSource, Connection> dataSourceMap = new HashMap<DataSource, Connection>(8);
+    private static final Log LOG = LogFactory.getLog(SqlContext.class);
+    private static final ThreadLocal<SqlContext> sqlContext = new ThreadLocal<SqlContext>();
 
-	private DataSource currentDataSource;
-	private boolean isPrintSqlLog = JDBCConfig.isPrintSqlLog;
+    private String sql;
+    private List<Object> paramList;
+    private boolean transaction = false;
+    private boolean readOnly = true;
+    private Map<DataSource, Connection> dataSourceMap = new HashMap<DataSource, Connection>(8);
 
-	
-	public SqlContext printSqlLog(){
-		if(isPrintSqlLog){
-			try {
-				PrintSqlLogHandler.getInstance().handleRequest(sql, paramList.toArray());
-			} catch (Exception e) {
-				LOG.error("",e);
-			}
-		}
-		return this;
-	}
-	
-
-	public DataSource getCurrentDataSource() {
-		return currentDataSource;
-	}
+    private DataSource currentDataSource;
+    private boolean isPrintSqlLog = JDBCConfig.isPrintSqlLog;
 
 
-	public void setCurrentDataSource(DataSource currentDataSource) {
-		this.currentDataSource = currentDataSource;
-	}
+    public SqlContext printSqlLog(){
+        if(isPrintSqlLog){
+            try {
+                PrintSqlLogHandler.getInstance().handleRequest(sql, paramList.toArray());
+            } catch (Exception e) {
+                LOG.error("",e);
+            }
+        }
+        return this;
+    }
 
-	public boolean isPrintSqlLog() {
-		return isPrintSqlLog;
-	}
-	public void setPrintSqlLog(boolean isPrintSqlLog) {
-		this.isPrintSqlLog = isPrintSqlLog;
-	}
+
+    public DataSource getCurrentDataSource() {
+        return currentDataSource;
+    }
 
 
-	public Map<DataSource, Connection> getDataSourceMap() {
-		return dataSourceMap;
-	}
+    public void setCurrentDataSource(DataSource currentDataSource) {
+        this.currentDataSource = currentDataSource;
+    }
 
-	public void setDataSourceMap(Map<DataSource, Connection> dataSourceMap) {
-		this.dataSourceMap = dataSourceMap;
-	}
+    public boolean isPrintSqlLog() {
+        return isPrintSqlLog;
+    }
+    public void setPrintSqlLog(boolean isPrintSqlLog) {
+        this.isPrintSqlLog = isPrintSqlLog;
+    }
 
-	public boolean getTransaction() {
-		return transaction;
-	}
 
-	public void setTransaction(boolean transaction) {
-		this.transaction = transaction;
-	}
+    public Map<DataSource, Connection> getDataSourceMap() {
+        return dataSourceMap;
+    }
 
-	public String getSql() {
-		return sql;
-	}
+    public void setDataSourceMap(Map<DataSource, Connection> dataSourceMap) {
+        this.dataSourceMap = dataSourceMap;
+    }
 
-	public void setSql(String sql) {
-		this.sql = sql;
-	}
+    public boolean getTransaction() {
+        return transaction;
+    }
 
-	public List<Object> getParamList() {
-		return paramList;
-	}
+    public void setTransaction(boolean transaction) {
+        this.transaction = transaction;
+    }
 
-	public void setParamList(List<Object> paramList) {
-		this.paramList = paramList;
-	}
+    public String getSql() {
+        return sql;
+    }
 
-	public boolean getReadOnly() {
-		return readOnly;
-	}
+    public void setSql(String sql) {
+        this.sql = sql;
+    }
 
-	public void setReadOnly(boolean readOnly) {
-		this.readOnly = readOnly;
-	}
+    public List<Object> getParamList() {
+        return paramList;
+    }
 
-	public static SqlContext getContext() {
-		SqlContext context = sqlContext.get();
-		if (context == null) {
-			context = new SqlContext();
-			sqlContext.set(context);
-		}
-		return context;
-	}
+    public void setParamList(List<Object> paramList) {
+        this.paramList = paramList;
+    }
 
-	public void destroySqlContext() {
-		sqlContext.remove();
-	}
+    public boolean getReadOnly() {
+        return readOnly;
+    }
+
+    public void setReadOnly(boolean readOnly) {
+        this.readOnly = readOnly;
+    }
+
+    public static SqlContext getContext() {
+        SqlContext context = sqlContext.get();
+        if (context == null) {
+            context = new SqlContext();
+            sqlContext.set(context);
+        }
+        return context;
+    }
+
+    public void destroySqlContext() {
+        sqlContext.remove();
+    }
 }

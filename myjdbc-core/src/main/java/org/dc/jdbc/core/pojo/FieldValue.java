@@ -10,8 +10,8 @@ import java.lang.annotation.Target;
 @Target({METHOD, FIELD})
 @Retention(RUNTIME)
 public @interface FieldValue {
-	String value();
-	DBType dbType() default DBType.UNKNOW;
-	SqlType sqlType() default SqlType.UNKNOW;
-	boolean sqlScript() default false;
+    String value();
+    DBType dbType() default DBType.UNKNOW;
+    SqlType sqlType() default SqlType.UNKNOW;
+    boolean sqlScript() default false;
 }
