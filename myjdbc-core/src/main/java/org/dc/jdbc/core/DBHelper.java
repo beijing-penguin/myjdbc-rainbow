@@ -18,12 +18,11 @@ import org.dc.jdbc.core.pojo.ResultData;
 import org.dc.jdbc.core.pojo.SqlType;
 import org.dc.jdbc.core.sqlhandler.SqlCoreHandle;
 import org.dc.jdbc.core.utils.JDBCUtils;
-
 /**
- * 数据持久化操作类 sql执行步骤：1，sql解析，2，获得数据库连接，3，执行核心jdbc操作。
  * 
+ * @Description: 数据持久化操作类 sql执行步骤：1，sql解析，2，获得数据库连接，3，执行核心jdbc操作。
  * @author dc
- * @time 2015-8-17
+ * @date: 2015年8月17日
  */
 public class DBHelper {
     private static volatile Map<DataSource,DataSourceBean> dataSourceMap = null;
@@ -120,16 +119,13 @@ public class DBHelper {
     }
 
     /**
-     * 查询
      * 
-     * @param sqlOrID
-     *            直接传入sql脚本或者是以$符号开头的引用key，具体位置保存在CacheCenter.SQL_SOURCE_MAP中
-     * @param returnClass
-     *            返回值类型
-     * @param params
-     *            传入参数，如果sql以?匹配参数，则可以传入数组或者list集合，如果是以#{key}匹配，则传入map或者一个实体对象（传入对象，程序会自动根据字段名匹配#{key}）
-     * @return
+     * @param sqlOrID 直接传入sql脚本或者是以$符号开头的引用key，具体位置保存在CacheCenter.SQL_SOURCE_MAP中
+     * @param returnClass 返回值类型
+     * @param params 传入参数，如果sql以?匹配参数，则可以传入数组或者list集合，如果是以#{key}匹配，则传入map或者一个实体对象（传入对象，程序会自动根据字段名匹配#{key}）
+     * @return List<T>
      * @throws Exception
+     * @author dc
      */
     public <T> List<T> selectList(String sqlOrID, Class<? extends T> returnClass, Object... params) throws Exception {
         String doSql = JDBCUtils.getFinalSql(sqlOrID);
