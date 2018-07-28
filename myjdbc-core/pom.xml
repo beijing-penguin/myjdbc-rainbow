@@ -3,19 +3,12 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>org.dc.myjdbc.motee</groupId>
-		<artifactId>myjdbc-motee</artifactId>
+		<groupId>org.dc.myjdbc.rainbow</groupId>
+		<artifactId>myjdbc-rainbow</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 	<groupId>org.dc.myjdbc.core</groupId>
 	<artifactId>myjdbc-core</artifactId>
-	<sourceDirectory>src/main/java</sourceDirectory>
-	<testSourceDirectory> src/test/java</testSourceDirectory>
-	<resources>
-		<resource>
-			<directory>src/main/resources</directory>
-		</resource>
-	</resources>
 	<properties>
 		<!-- 文件拷贝时的编码 -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -35,6 +28,13 @@
 
 
 	<build>
+		<sourceDirectory>src/main/java</sourceDirectory>
+		<testSourceDirectory> src/test/java</testSourceDirectory>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
