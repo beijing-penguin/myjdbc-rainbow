@@ -256,28 +256,26 @@ public class JDBCUtils {
      */
     public static Object getValueByObjectType(ResultSetMetaData metaData, ResultSet rs, int index) throws Exception {
         int columnIndex = index + 1;
-        Object return_obj = rs.getObject(columnIndex);
-        if (return_obj != null) {
-            int type = metaData.getColumnType(columnIndex);
-            switch (type) {
-            case Types.BIT:
-                return_obj = rs.getByte(columnIndex);
-                break;
-            case Types.TINYINT:
-                return_obj = rs.getByte(columnIndex);
-                break;
-            case Types.SMALLINT:
-                return_obj = rs.getShort(columnIndex);
-                break;
-            case Types.LONGVARBINARY:
-                return_obj = rs.getBytes(columnIndex);
-                break;
-            case Types.BLOB:
-                return_obj = rs.getBytes(columnIndex);
-                break;
-            default:
-                return_obj = rs.getObject(columnIndex);
-            }
+        Object return_obj = null;
+        int type = metaData.getColumnType(columnIndex);
+        switch (type) {
+        case Types.BIT:
+            return_obj = rs.getByte(columnIndex);
+            break;
+        case Types.TINYINT:
+            return_obj = rs.getByte(columnIndex);
+            break;
+        case Types.SMALLINT:
+            return_obj = rs.getShort(columnIndex);
+            break;
+        case Types.LONGVARBINARY:
+            return_obj = rs.getBytes(columnIndex);
+            break;
+        case Types.BLOB:
+            return_obj = rs.getBytes(columnIndex);
+            break;
+        default:
+            return_obj = rs.getObject(columnIndex);
         }
         return return_obj;
     }
