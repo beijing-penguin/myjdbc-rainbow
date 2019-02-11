@@ -10,8 +10,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.dc.jdbc.core.operate.DataBaseOperate;
 import org.dc.jdbc.core.pojo.DataSourceBean;
 import org.dc.jdbc.core.pojo.ResultData;
@@ -24,7 +22,7 @@ import org.dc.jdbc.core.utils.JDBCUtils;
  * @author dc
  * @date: 2015年8月17日
  */
-public class DBHelper {
+public class DataBaseStream {
     private static volatile Map<DataSource,DataSourceBean> dataSourceMap = null;
     private volatile AtomicInteger masterIndex = new AtomicInteger(0);
     private volatile AtomicInteger slaveIndex = new AtomicInteger(0);
@@ -32,17 +30,16 @@ public class DBHelper {
     private volatile List<DataSourceBean> slaveDataSourceBeanList;
     private volatile DataSource dataSource;
 
-    private static final Log LOG = LogFactory.getLog(DBHelper.class);
     private DataBaseOperate baseOperate = DataBaseOperate.getInstance();
 
-    public DBHelper(DataSource dataSource) {
+    public DataBaseStream(DataSource dataSource) {
         this.dataSource = dataSource;
     }
-    public DBHelper(List<? extends DataSource> masterDataSourceList,List<? extends DataSource> slaveDataSourceList) {
+    public DataBaseStream(List<? extends DataSource> masterDataSourceList,List<? extends DataSource> slaveDataSourceList) {
         this.masterDataSourceBeanList = toDataSourceBeanList(masterDataSourceList);
         this.slaveDataSourceBeanList = toDataSourceBeanList(slaveDataSourceList);
     }
-    public DBHelper(List<? extends DataSource> masterDataSourceList) {
+    public DataBaseStream(List<? extends DataSource> masterDataSourceList) {
         this.masterDataSourceBeanList = toDataSourceBeanList(masterDataSourceList);
     }
     private List<DataSourceBean> toDataSourceBeanList(List<? extends DataSource> dataSourceList){
@@ -68,14 +65,14 @@ public class DBHelper {
                                     baseOperate.selectOne(conn, "SELECT 1", Object.class, null);
                                     sourceBean.setUsed(true);
                                 } catch (Exception e) {
-                                    LOG.error("",e);
+                                    //LOG.error("",e);
                                     sourceBean.setUsed(false);
                                 }finally{
                                     if(conn!=null){
                                         try {
                                             conn.close();
                                         } catch (SQLException e) {
-                                            LOG.error("",e);
+                                            //LOG.error("",e);
                                             sourceBean.setUsed(false);
                                         }
                                     }
@@ -83,7 +80,7 @@ public class DBHelper {
                                 try {
                                     Thread.sleep(60000);
                                 } catch (InterruptedException e) {
-                                    LOG.error("",e);
+                                    //LOG.error("",e);
                                     break;
                                 }
                             }
@@ -272,7 +269,7 @@ public class DBHelper {
         while(true){
             max++;
             if(max>dataSourceBeanList.size()){
-                LOG.warn("all datasource is unusable");
+                //LOG.warn("all datasource is unusable");
                 return null;
             }
             if(sourceIndex>dataSourceBeanList.size()-1){
@@ -297,7 +294,7 @@ public class DBHelper {
             Connection conn = connMap.get(SqlContext.getContext().getCurrentDataSource());
             conn.rollback();
         } catch (Exception e) {
-            LOG.error("", e);
+            //LOG.error("", e);
         }
     }
 
@@ -314,17 +311,14 @@ public class DBHelper {
 
     /**
      * 仅仅只关闭当前连接
+     * @throws Exception 
      * 
      * @throws Exception
      */
-    public void close() {
-        try {
+    public void close() throws Exception {
             Map<DataSource, Connection> connMap = SqlContext.getContext().getDataSourceMap();
             Connection conn = connMap.get(SqlContext.getContext().getCurrentDataSource());
             conn.close();
-        } catch (Exception e) {
-            LOG.error("", e);
-        }
     }
 
     public AtomicInteger getMasterIndex() {

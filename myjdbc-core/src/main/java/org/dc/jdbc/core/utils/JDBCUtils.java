@@ -16,8 +16,6 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.dc.jdbc.core.CacheCenter;
 import org.dc.jdbc.core.pojo.ClassRelation;
 import org.dc.jdbc.core.pojo.ColumnBean;
@@ -33,17 +31,12 @@ import org.dc.jdbc.exceptions.TooManyResultsException;
  *
  */
 public class JDBCUtils {
-    private static final Log LOG = LogFactory.getLog(JDBCUtils.class);
 
     public static void close(AutoCloseable... ac) throws Exception {
         for (int i = 0; i < ac.length; i++) {
             AutoCloseable autoClose = ac[i];
             if(autoClose!=null){
-                try{
-                    autoClose.close();
-                }catch (Exception e) {
-                    LOG.error("",e);
-                }
+                autoClose.close();
             }
         }
     }
@@ -280,95 +273,62 @@ public class JDBCUtils {
         return return_obj;
     }
 
-    public static List<TableInfoBean> getDataBaseInfo(final DataSource dataSource) {
+    public static List<TableInfoBean> getDataBaseInfo(final DataSource dataSource) throws Exception {
         List<TableInfoBean> tabList = CacheCenter.DATABASE_INFO_CACHE.get(dataSource);
         if (tabList == null) {
             Connection conn = null;
-            try {
-                tabList = new ArrayList<TableInfoBean>();
-                conn = dataSource.getConnection();
-                DatabaseMetaData meta = conn.getMetaData();
+            tabList = new ArrayList<TableInfoBean>();
+            conn = dataSource.getConnection();
+            DatabaseMetaData meta = conn.getMetaData();
 
-                String jdbcurl = null;
-                String username = null;
-                Field[] fields = dataSource.getClass().getSuperclass().getDeclaredFields();
-                for(Field field:fields){
-                    if (!Modifier.isStatic(field.getModifiers())) {// 去除静态类型字段
-                        if(field.getName().toLowerCase().contains("url")){
-                            field.setAccessible(true);
-                            jdbcurl = field.get(dataSource)==null?null:field.get(dataSource).toString();
-                        }
-                        if(field.getName().toLowerCase().contains("username")){
-                            field.setAccessible(true);
-                            username = field.get(dataSource)==null?null:field.get(dataSource).toString();
-                        }
+            String jdbcurl = null;
+            String username = null;
+            Field[] fields = dataSource.getClass().getSuperclass().getDeclaredFields();
+            for(Field field:fields){
+                if (!Modifier.isStatic(field.getModifiers())) {// 去除静态类型字段
+                    if(field.getName().toLowerCase().contains("url")){
+                        field.setAccessible(true);
+                        jdbcurl = field.get(dataSource)==null?null:field.get(dataSource).toString();
                     }
-                }
-                String schema = null;
-                if(jdbcurl!=null && jdbcurl.startsWith("jdbc:oracle:")){
-                    schema = username;
-                }
-                ResultSet tablesResultSet = meta.getTables(conn.getCatalog(), schema==null?null:schema.toUpperCase(), "%", new String[] { "TABLE" });
-                while (tablesResultSet.next()) {
-                    TableInfoBean tableBean = new TableInfoBean();
-                    String tableName = tablesResultSet.getString("TABLE_NAME");
-                    ResultSet colRS = meta.getColumns(conn.getCatalog(), "%", tableName, "%");
-                    tableBean.setTableName(tableName);
-                    while (colRS.next()) {
-                        ColumnBean colbean = new ColumnBean();
-                        String colName = colRS.getString("COLUMN_NAME");
-                        colbean.setColumnType(colRS.getInt("DATA_TYPE"));
-                        colbean.setColumnName(colName);
-                        tableBean.getColumnList().add(colbean);
+                    if(field.getName().toLowerCase().contains("username")){
+                        field.setAccessible(true);
+                        username = field.get(dataSource)==null?null:field.get(dataSource).toString();
                     }
-                    // 设置主键
-                    ResultSet primaryKeyResultSet = meta.getPrimaryKeys(conn.getCatalog(), null, tableName);
-                    while (primaryKeyResultSet.next()) {
-                        String primaryKeyColumnName = primaryKeyResultSet.getString("COLUMN_NAME");
-                        for (int i = 0; i < tableBean.getColumnList().size(); i++) {
-                            ColumnBean colbean = tableBean.getColumnList().get(i);
-                            if (colbean.getColumnName().equals(primaryKeyColumnName)) {
-                                colbean.setPrimaryKey(true);
-                                break;
-                            }
-                        }
-                    }
-                    // 检查字段名规范
-                    /*
-                     * List<ColumnBean> colList = tableBean.getColumnList(); for
-                     * (int i = 0; i < colList.size(); i++) { String col_name =
-                     * colList.get(i).getColumnName(); for (int j = i+1; j <
-                     * colList.size(); j++) {
-                     * if(getBeanName(colList.get(j).getColumnName()).
-                     * equalsIgnoreCase(getBeanName(col_name))){ try{ throw new
-                     * Exception("field name='"+tableName+"."+
-                     * col_name+"' is not standard"); }catch(Exception e ){
-                     * LOG.error("",e); } } } }
-                     */
-                    // 检查表明规范
-                    /*
-                     * for (int i = 0; i < tabList.size(); i++) {
-                     * if(getBeanName(tabList.get(i).getTableName()).
-                     * equalsIgnoreCase(getBeanName(tableName))){ try{ throw new
-                     * Exception("table name= '"+tabList.get(i).getTableName()
-                     * +"' is not standard"); }catch(Exception e ){
-                     * LOG.error("",e); } } }
-                     */
-
-                    tabList.add(tableBean);
-                }
-                CacheCenter.DATABASE_INFO_CACHE.put(dataSource, tabList);
-            } catch (Exception e) {
-                LOG.info("", e);
-            } finally {
-                try {
-                    if (conn != null && !conn.isClosed()) {
-                        conn.close();
-                    }
-                } catch (SQLException e) {
-                    LOG.info("", e);
                 }
             }
+            String schema = null;
+            if(getDataBaseType(dataSource)==DBType.ORACLE){
+                schema = username;
+            }
+            ResultSet tablesResultSet = meta.getTables(conn.getCatalog(), schema==null?null:schema.toUpperCase(), "%", new String[] { "TABLE" });
+            while (tablesResultSet.next()) {
+                TableInfoBean tableBean = new TableInfoBean();
+                String tableName = tablesResultSet.getString("TABLE_NAME");
+                ResultSet colRS = meta.getColumns(conn.getCatalog(), "%", tableName, "%");
+                tableBean.setTableName(tableName);
+                while (colRS.next()) {
+                    ColumnBean colbean = new ColumnBean();
+                    String colName = colRS.getString("COLUMN_NAME");
+                    colbean.setColumnType(colRS.getInt("DATA_TYPE"));
+                    colbean.setColumnName(colName);
+                    tableBean.getColumnList().add(colbean);
+                }
+                // 设置主键
+                ResultSet primaryKeyResultSet = meta.getPrimaryKeys(conn.getCatalog(), null, tableName);
+                while (primaryKeyResultSet.next()) {
+                    String primaryKeyColumnName = primaryKeyResultSet.getString("COLUMN_NAME");
+                    for (int i = 0; i < tableBean.getColumnList().size(); i++) {
+                        ColumnBean colbean = tableBean.getColumnList().get(i);
+                        if (colbean.getColumnName().equals(primaryKeyColumnName)) {
+                            colbean.setPrimaryKey(true);
+                            break;
+                        }
+                    }
+                }
+                tabList.add(tableBean);
+            }
+            CacheCenter.DATABASE_INFO_CACHE.put(dataSource, tabList);
+            conn.close();
         }
         return tabList;
     }
@@ -474,7 +434,7 @@ public class JDBCUtils {
         }
     }
 
-    public static TableInfoBean getTableInfoByClass(Class<?> entityClass, DataSource dataSource) {
+    public static TableInfoBean getTableInfoByClass(Class<?> entityClass, DataSource dataSource) throws Exception {
         if (CacheCenter.SQL_TABLE_CACHE.containsKey(entityClass)) {
             return CacheCenter.SQL_TABLE_CACHE.get(entityClass);
         } else {
@@ -525,15 +485,14 @@ public class JDBCUtils {
                 }
             }
         }
-        if(jdbcurl==null){
-            return DBType.UNKNOW;
+        if(jdbcurl!=null){
         }
-        if(jdbcurl.startsWith("jdbc:mysql:")){
+        if(jdbcurl!=null && jdbcurl.toLowerCase().startsWith("jdbc:mysql:")){
             return DBType.MYSQL;
-        }
-        if(jdbcurl.startsWith("jdbc:oracle:")){
+        }else if(jdbcurl!=null && jdbcurl.toLowerCase().startsWith("jdbc:oracle:")){
             return DBType.ORACLE;
+        }else {
+            throw new Exception("databaseType is not support!");
         }
-        return DBType.UNKNOW;
     }
 }

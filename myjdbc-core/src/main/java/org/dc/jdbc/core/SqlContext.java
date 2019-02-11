@@ -7,8 +7,6 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.dc.jdbc.config.JDBCConfig;
 import org.dc.jdbc.core.sqlhandler.PrintSqlLogHandler;
 
@@ -19,7 +17,7 @@ import org.dc.jdbc.core.sqlhandler.PrintSqlLogHandler;
  * @time 2015-8-17
  */
 public class SqlContext {
-    private static final Log LOG = LogFactory.getLog(SqlContext.class);
+    //private static final Log LOG = LogFactory.getLog(SqlContext.class);
     private static final ThreadLocal<SqlContext> sqlContext = new ThreadLocal<SqlContext>();
 
     private String sql;
@@ -32,13 +30,9 @@ public class SqlContext {
     private boolean isPrintSqlLog = JDBCConfig.isPrintSqlLog;
 
 
-    public SqlContext printSqlLog(){
+    public SqlContext printSqlLog() throws Exception{
         if(isPrintSqlLog){
-            try {
-                PrintSqlLogHandler.getInstance().handleRequest(sql, paramList.toArray());
-            } catch (Exception e) {
-                LOG.error("",e);
-            }
+            PrintSqlLogHandler.handleRequest(sql, paramList.toArray());
         }
         return this;
     }

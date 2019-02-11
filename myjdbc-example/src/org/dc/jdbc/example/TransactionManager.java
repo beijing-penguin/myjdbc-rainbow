@@ -1,17 +1,8 @@
-package org.dc.jdbc.spring;
-
-import java.lang.reflect.Method;
-
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.Signature;
-import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.transaction.annotation.Transactional;
-
-import org.dc.jdbc.core.ConnectionManager;
+package org.dc.jdbc.example;
 
 public class TransactionManager {
     // 用来做环绕通知的方法可以第一个参数定义为org.aspectj.lang.ProceedingJoinPoint类型
-    public Object doAround(ProceedingJoinPoint call) throws Throwable {
+    /*public Object doAround(ProceedingJoinPoint call) throws Throwable {
         Signature sig = call.getSignature();
         MethodSignature ms = (MethodSignature) sig;
         Method method = call.getTarget().getClass().getDeclaredMethod(ms.getName(), ms.getParameterTypes());
@@ -38,5 +29,5 @@ public class TransactionManager {
             ConnectionManager.closeConnectionAll();
         }
         return invokeObj;
-    }
+    }*/
 }

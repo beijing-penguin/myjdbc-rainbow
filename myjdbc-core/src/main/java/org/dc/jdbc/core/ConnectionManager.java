@@ -1,12 +1,12 @@
 package org.dc.jdbc.core;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.sql.DataSource;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * 连接管理
@@ -15,8 +15,7 @@ import org.apache.commons.logging.LogFactory;
  * @time 2015-8-17
  */
 public class ConnectionManager {
-    private static final Log LOG = LogFactory.getLog(ConnectionManager.class);
-
+    private static Logger LOG = Logger.getLogger(ConnectionManager.class.getName());
     // 设置事务
     public static void setTransaction(boolean startTransaction) {
         SqlContext.getContext().setTransaction(startTransaction);
@@ -54,7 +53,7 @@ public class ConnectionManager {
                     conn = null;
                 }
             } catch (Exception e) {
-                LOG.error("closeConnectionAll fail", e);
+                LOG.log(Level.ALL, "closeConnectionAll fail", e);
             }
         }
         //销毁
@@ -63,16 +62,13 @@ public class ConnectionManager {
 
     /**
      * 回滚所有数据源的操作，正常的数据库能够回滚，回滚异常也不用管，继续回滚下一个数据库，直到回滚操作结束
+     * @throws Exception 
      */
-    public static void rollbackAll() {
+    public static void rollbackAll() throws Exception {
         Map<DataSource, Connection> connMap = SqlContext.getContext().getDataSourceMap();
         for (Connection conn : connMap.values()) {
-            try {
-                if (conn != null && !conn.isClosed() && conn.getAutoCommit() == false) {
-                    conn.rollback();
-                }
-            } catch (Exception e) {
-                LOG.error("rollbackAll fail", e);
+            if (conn != null && !conn.isClosed() && conn.getAutoCommit() == false) {
+                conn.rollback();
             }
         }
     }

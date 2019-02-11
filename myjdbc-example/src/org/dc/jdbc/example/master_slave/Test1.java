@@ -1,7 +1,7 @@
 package org.dc.jdbc.example.master_slave;
 
 import org.dc.jdbc.core.ConnectionManager;
-import org.dc.jdbc.core.DBHelper;
+import org.dc.jdbc.core.DataBaseStream;
 import org.dc.jdbc.example.entity.User;
 
 import com.alibaba.fastjson.JSON;
@@ -32,8 +32,8 @@ public class Test1 {
 		dataSource3.setPassword("123456");
 		dataSource3.setConnectionTimeout(1000);
 
-		DBHelper testDbHelper = new DBHelper(Lists.newArrayList(dataSource1,dataSource2,dataSource3));
-		DBHelper testDbHelper2 = new DBHelper(Lists.newArrayList(dataSource1),Lists.newArrayList(dataSource1,dataSource2,dataSource3));
+		DataBaseStream testDbHelper = new DataBaseStream(Lists.newArrayList(dataSource1,dataSource2,dataSource3));
+		DataBaseStream testDbHelper2 = new DataBaseStream(Lists.newArrayList(dataSource1),Lists.newArrayList(dataSource1,dataSource2,dataSource3));
 		ConnectionManager.setTransaction(true);//设置开启事务
 		while(true){
 			try {

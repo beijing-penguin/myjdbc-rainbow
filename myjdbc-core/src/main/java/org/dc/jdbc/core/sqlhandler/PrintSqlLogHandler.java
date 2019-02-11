@@ -1,24 +1,13 @@
 package org.dc.jdbc.core.sqlhandler;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.dc.jdbc.sqlparse.Lexer;
 import org.dc.jdbc.sqlparse.Token;
 
 public class PrintSqlLogHandler {
-    private static final Log LOG = LogFactory.getLog(PrintSqlLogHandler.class);
-
-    private static final PrintSqlLogHandler oper = new PrintSqlLogHandler();
-
-    public static PrintSqlLogHandler getInstance() {
-        return oper;
-    }
-
     /**
      * 处理方法，调用此方法处理请求
      */
-    public void handleRequest(String doSql, Object[] params) throws Exception {
-        try {
+    public static void handleRequest(String doSql, Object[] params) throws Exception {
             StringBuilder sbsql = new StringBuilder(doSql);
             if (params.length > 0) {
                 Lexer lexer = new Lexer(sbsql.toString());
@@ -46,9 +35,6 @@ public class PrintSqlLogHandler {
                     }
                 }
             }
-            LOG.info(sbsql.toString());
-        } catch (Exception e) {
-            LOG.error("print sql error!", e);
-        }
+            //LOG.info(sbsql.toString());
     }
 }
