@@ -1,7 +1,8 @@
 package org.dc.jdbc.example;
 
-import org.dc.jdbc.core.ConnectionManager;
-import org.dc.jdbc.core.DataBaseStream;
+import java.sql.Connection;
+
+import org.dc.jdbc.core.DbHelper;
 import org.dc.jdbc.example.entity.User;
 
 import com.alibaba.fastjson.JSON;
@@ -10,22 +11,19 @@ import com.zaxxer.hikari.HikariDataSource;
 public class MainTest {
 	public static void main(String[] args) throws Exception {
 		HikariDataSource dataSource = new HikariDataSource();
-		dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/myjdbc_test?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false");
+		dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false");
 		dataSource.setUsername("root");
 		dataSource.setPassword("123456");
-		
-		DataBaseStream db = new DataBaseStream(dataSource);
-		ConnectionManager.setTransaction(true);//设置开启事务
-		ConnectionManager.setReadOnly(true);
+		Connection conn = dataSource.getConnection();
 		try {
-		    db.delete("delete from user where id =?",1);
-			User user = db.selectOne("select * from user where id = ? and real_name = ?",User.class,3,"dc");
+			DbHelper.excuteSql(conn, "delete from user where id =?", new Object[] {1});
+			User user = DbHelper.selectOne(conn, "select * from user where id = ? and real_name = ?",User.class,new Object[] {3,"dc"});
 			System.out.println(JSON.toJSONString(user));
-			db.commit();
 		} catch (Exception e) {
-		    db.rollback();
+			e.printStackTrace();
 		}finally {
-		    db.close();
+			conn.close();
 		}
+		dataSource.close();
 	}
 }
