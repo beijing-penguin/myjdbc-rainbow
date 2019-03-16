@@ -20,9 +20,10 @@ import org.dc.jdbc.exceptions.TooManyResultsException;
 public class DbHelper {
 	
 	
-    public static long selectCount(Connection conn ,String sql, Object... params) throws Exception {
+    public static long selectCount(Connection conn,String sql, Object... params) throws Exception {
         return selectOne(conn,"SELECT COUNT(*) FROM (" + sql + ") t", Long.class, params);
     }
+    
     public static ResultData selectResult(Connection conn, String sql, Class<?> returnClass, Object[] params) throws Exception {
     	PreparedStatement ps = conn.prepareStatement(sql,ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         if(conn.toString().equalsIgnoreCase("mysql")){
