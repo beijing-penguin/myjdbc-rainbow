@@ -11,6 +11,7 @@ import java.util.Map;
 import org.dc.jdbc.core.SqlContext;
 import org.dc.jdbc.core.pojo.ClassRelation;
 import org.dc.jdbc.core.pojo.ColumnBean;
+import org.dc.jdbc.core.pojo.DoSql;
 import org.dc.jdbc.core.pojo.FieldValue;
 import org.dc.jdbc.core.pojo.SqlType;
 import org.dc.jdbc.core.pojo.TableInfoBean;
@@ -32,7 +33,7 @@ public class SqlCoreHandle {
     /**
      * 批量处理方法，调用此方法处理请求
      */
-    public static SqlContext handleBatchRequest(String doSql, Object[] params) throws Exception {
+    public static DoSql handleBatchRequest(String doSql, Object[] params) throws Exception {
         StringBuilder sql = new StringBuilder(doSql);
         LinkedList<String> keyList = new LinkedList<String>();
         Lexer lexer = new Lexer(sql.toString());
@@ -113,10 +114,11 @@ public class SqlCoreHandle {
                 break;
             }
         }
-        SqlContext sqlContext = SqlContext.getContext();
-        sqlContext.setSql(sql.toString());
-        sqlContext.setParamList(returnList);
-        return sqlContext;
+        DoSql doSqlObj = new DoSql();
+        doSqlObj.setSql(sql.toString());
+        doSqlObj.setParamList(returnList);
+        doSqlObj.setSqlType(doSql.toLowerCase().startsWith("select")?SqlType.SELECT:SqlType.UNKNOW);
+        return doSqlObj;
     }
 
     /**
