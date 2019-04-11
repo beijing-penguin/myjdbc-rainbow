@@ -19,12 +19,11 @@ import org.dc.jdbc.exceptions.TooManyResultsException;
  */
 public class DbHelper {
 	
-	
-    public static long selectCount(Connection conn,String sql, Object... params) throws Exception {
+    public long selectCount(Connection conn,String sql, Object[] params) throws Exception {
         return selectOne(conn,"SELECT COUNT(*) FROM (" + sql + ") t", Long.class, params);
     }
     
-    public static ResultData selectResult(Connection conn, String sql, Class<?> returnClass, Object[] params) throws Exception {
+    public ResultData selectResult(Connection conn, String sql, Class<?> returnClass, Object[] params) throws Exception {
     	PreparedStatement ps = conn.prepareStatement(sql,ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         if(conn.toString().equalsIgnoreCase("mysql")){
             ps.setFetchSize(Integer.MIN_VALUE);
@@ -34,7 +33,7 @@ public class DbHelper {
     }
 
     @SuppressWarnings("unchecked")
-	public static <T> T selectOne(Connection conn,String sql, Class<? extends T> returnClass, Object[] params) throws Exception {
+	public <T> T selectOne(Connection conn,String sql, Class<? extends T> returnClass, Object[] params) throws Exception {
     	ResultSet rs = null;
         PreparedStatement ps = null;
         Object rt = null;
@@ -60,7 +59,7 @@ public class DbHelper {
         }
     }
 
-    public static Map<String, Object> selectOne(Connection conn,String sqlOrID, Object[] params) throws Exception {
+    public Map<String, Object> selectOne(Connection conn,String sqlOrID, Object[] params) throws Exception {
         return selectOne(conn,sqlOrID, null, params);
     }
     public static <T> List<T> selectList(Connection conn,String sql, Class<? extends T> returnClass, Object[] params) throws Exception {
@@ -77,16 +76,16 @@ public class DbHelper {
         }
     }
 
-    public static List<Map<String, Object>> selectList(Connection conn,String sqlOrID, Object[] params) throws Exception {
+    public List<Map<String, Object>> selectList(Connection conn,String sqlOrID, Object[] params) throws Exception {
         return selectList(conn,sqlOrID, null, params);
     }
 
-    public static int excuteSql(Connection conn,String sql, Object[] params) throws Exception {
+    public int excuteSql(Connection conn,String sql, Object[] params) throws Exception {
     	return JDBCUtils.preparedAndExcuteSQL(conn, sql, params);
     }
 
     @SuppressWarnings("unchecked")
-	public static <T> T excuteSqlReturnPK(Connection conn,String sql, Object[] params) throws Exception {
+	public <T> T excuteSqlReturnPK(Connection conn,String sql, Object[] params) throws Exception {
     	PreparedStatement ps = null;
         ResultSet rs = null;
         try {

@@ -3,6 +3,7 @@ package org.dc.jdbc.core.pojo;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import org.dc.jdbc.core.ConnectionManager;
+import org.dc.jdbc.core.DbHelper;
 import org.dc.jdbc.core.SqlContext;
 import org.dc.jdbc.core.utils.JDBCUtils;
 

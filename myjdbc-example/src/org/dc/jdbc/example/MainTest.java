@@ -16,8 +16,8 @@ public class MainTest {
 		dataSource.setPassword("123456");
 		Connection conn = dataSource.getConnection();
 		try {
-			DbHelper.excuteSql(conn, "delete from user where id =?", new Object[] {1});
-			User user = DbHelper.selectOne(conn, "select * from user where id = ? and real_name = ?",User.class,new Object[] {3,"dc"});
+		    DbHelper dbHelper = new DbHelper();
+			User user = dbHelper.selectOne(conn, "select * from user where id = ? and real_name = ?",User.class,new Object[] {3,"dc"});
 			System.out.println(JSON.toJSONString(user));
 		} catch (Exception e) {
 			e.printStackTrace();

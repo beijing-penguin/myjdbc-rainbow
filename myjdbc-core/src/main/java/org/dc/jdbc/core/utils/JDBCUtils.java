@@ -16,6 +16,7 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import org.dc.jdbc.core.CacheCenter;
+import org.dc.jdbc.core.DbHelper;
 import org.dc.jdbc.core.pojo.ClassRelation;
 import org.dc.jdbc.core.pojo.ColumnBean;
 import org.dc.jdbc.core.pojo.DBType;
