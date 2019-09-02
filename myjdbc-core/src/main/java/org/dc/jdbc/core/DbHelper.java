@@ -19,11 +19,11 @@ import org.dc.jdbc.exceptions.TooManyResultsException;
  */
 public class DbHelper {
 	
-    public long selectCount(Connection conn,String sql, Object[] params) throws Exception {
+    public long selectCount(Connection conn,String sql, Object[] params) throws Throwable {
         return selectOne(conn,"SELECT COUNT(*) FROM (" + sql + ") t", Long.class, params);
     }
     
-    public ResultData selectResult(Connection conn, String sql, Class<?> returnClass, Object[] params) throws Exception {
+    public ResultData selectResult(Connection conn, String sql, Class<?> returnClass, Object[] params) throws Throwable {
     	PreparedStatement ps = conn.prepareStatement(sql,ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         if(conn.toString().equalsIgnoreCase("mysql")){
             ps.setFetchSize(Integer.MIN_VALUE);
@@ -33,7 +33,7 @@ public class DbHelper {
     }
 
     @SuppressWarnings("unchecked")
-	public <T> T selectOne(Connection conn,String sql, Class<? extends T> returnClass, Object[] params) throws Exception {
+	public <T> T selectOne(Connection conn,String sql, Class<? extends T> returnClass, Object[] params) throws Throwable {
     	ResultSet rs = null;
         PreparedStatement ps = null;
         Object rt = null;
@@ -52,40 +52,40 @@ public class DbHelper {
             	return null;
             }
             return  (T) rt;
-        } catch (Exception e) {
+        } catch (Throwable e) {
             throw e;
         } finally {
             JDBCUtils.close(rs, ps);
         }
     }
 
-    public Map<String, Object> selectOne(Connection conn,String sqlOrID, Object[] params) throws Exception {
+    public Map<String, Object> selectOne(Connection conn,String sqlOrID, Object[] params) throws Throwable {
         return selectOne(conn,sqlOrID, null, params);
     }
-    public static <T> List<T> selectList(Connection conn,String sql, Class<? extends T> returnClass, Object[] params) throws Exception {
+    public static <T> List<T> selectList(Connection conn,String sql, Class<? extends T> returnClass, Object[] params) throws Throwable {
     	ResultSet rs = null;
         PreparedStatement ps = null;
         try {
             ps = conn.prepareStatement(sql);
             rs = JDBCUtils.setParamsReturnRS(ps, params);
             return JDBCUtils.parseSqlResultList(rs, returnClass);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             throw e;
         } finally {
             JDBCUtils.close(rs, ps);
         }
     }
 
-    public List<Map<String, Object>> selectList(Connection conn,String sqlOrID, Object[] params) throws Exception {
+    public List<Map<String, Object>> selectList(Connection conn,String sqlOrID, Object[] params) throws Throwable {
         return selectList(conn,sqlOrID, null, params);
     }
 
-    public int excuteSql(Connection conn,String sql, Object[] params) throws Exception {
+    public int excuteSql(Connection conn,String sql, Object[] params) throws Throwable {
     	return JDBCUtils.preparedAndExcuteSQL(conn, sql, params);
     }
 
     @SuppressWarnings("unchecked")
-	public <T> T excuteSqlReturnPK(Connection conn,String sql, Object[] params) throws Exception {
+	public <T> T excuteSqlReturnPK(Connection conn,String sql, Object[] params) throws Throwable {
     	PreparedStatement ps = null;
         ResultSet rs = null;
         try {
@@ -93,7 +93,7 @@ public class DbHelper {
             JDBCUtils.setParams(ps, params);
             int rowNum = ps.executeUpdate();
             if (rowNum > 1) {
-                throw new Exception("the insert too many");
+                throw new Throwable("the insert too many");
             }
             rs = ps.getGeneratedKeys();
             ResultSetMetaData metaData = rs.getMetaData();
@@ -101,7 +101,7 @@ public class DbHelper {
                 return (T) JDBCUtils.getValueByObjectType(metaData, rs, 0);
             }
             
-        } catch (Exception e) {
+        } catch (Throwable e) {
             throw e;
         } finally {
             JDBCUtils.close(rs, ps);
@@ -110,7 +110,7 @@ public class DbHelper {
     }
 
 
-    public List<Integer> insertBatch(Connection conn,String sql, Object[] params) throws Exception {
+    public List<Integer> insertBatch(Connection conn,String sql, Object[] params) throws Throwable {
     	PreparedStatement ps = null;
         try {
             ps = conn.prepareStatement(sql);
@@ -136,7 +136,7 @@ public class DbHelper {
                 rtnList.add(batchArr[i]);
             }
             return rtnList;
-        } catch (Exception e) {
+        } catch (Throwable e) {
             throw e;
         } finally {
             JDBCUtils.close(ps);
