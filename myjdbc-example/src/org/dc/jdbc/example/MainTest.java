@@ -19,7 +19,7 @@ public class MainTest {
 		    DbHelper dbHelper = new DbHelper();
 			User user = dbHelper.selectOne(conn, "select * from user where id = ? and real_name = ?",User.class,new Object[] {3,"dc"});
 			System.out.println(JSON.toJSONString(user));
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			e.printStackTrace();
 		}finally {
 			conn.close();
