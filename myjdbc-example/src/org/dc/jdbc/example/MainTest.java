@@ -2,6 +2,8 @@ package org.dc.jdbc.example;
 
 import java.sql.Connection;
 
+import org.dc.jdbc.config.JDBCConfig;
+import org.dc.jdbc.core.ConnectionManager;
 import org.dc.jdbc.core.DbHelper;
 import org.dc.jdbc.example.entity.User;
 
@@ -11,18 +13,22 @@ import com.zaxxer.hikari.HikariDataSource;
 public class MainTest {
 	public static void main(String[] args) throws Exception {
 		HikariDataSource dataSource = new HikariDataSource();
-		dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false");
+		dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false&serverTimezone=GMT");
 		dataSource.setUsername("root");
 		dataSource.setPassword("123456");
-		Connection conn = dataSource.getConnection();
+		JDBCConfig.isPrintSqlLog = true;
 		try {
-		    DbHelper dbHelper = new DbHelper();
-			User user = dbHelper.selectOne(conn, "select * from user where id = ? and real_name = ?",User.class,new Object[] {3,"dc"});
+		    DbHelper dbHelper = new DbHelper(dataSource);
+			User user = dbHelper.selectOne("select * from pp_0 where id = ? and name = ?",User.class,3,"dc");
 			System.out.println(JSON.toJSONString(user));
 		} catch (Throwable e) {
 			e.printStackTrace();
 		}finally {
-			conn.close();
+			try {
+				ConnectionManager.closeConnectionAll();
+			} catch (Throwable e) {
+				e.printStackTrace();
+			}
 		}
 		dataSource.close();
 	}

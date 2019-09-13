@@ -9,7 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.dc.jdbc.core.pojo.ResultData;
+import javax.sql.DataSource;
+
+import org.dc.jdbc.core.pojo.ResultSetData;
+import org.dc.jdbc.core.sqlhandler.SqlCoreHandle;
 import org.dc.jdbc.core.utils.JDBCUtils;
 import org.dc.jdbc.exceptions.TooManyResultsException;
 /**
@@ -19,27 +22,38 @@ import org.dc.jdbc.exceptions.TooManyResultsException;
  */
 public class DbHelper {
 	
-    public long selectCount(Connection conn,String sql, Object[] params) throws Throwable {
-        return selectOne(conn,"SELECT COUNT(*) FROM (" + sql + ") t", Long.class, params);
+	private DataSource dataSource;
+	public DbHelper(DataSource dataSource) {
+		this.dataSource = dataSource;
+	}
+    public long selectCount(String sqlOrID, Object...params) throws Throwable {
+    	String dosql = JDBCUtils.getFinalSql(sqlOrID);
+		return this.selectOne("SELECT COUNT(*) FROM (" + dosql + ") t", Long.class, params);
     }
-    
-    public ResultData selectResult(Connection conn, String sql, Class<?> returnClass, Object[] params) throws Throwable {
-    	PreparedStatement ps = conn.prepareStatement(sql,ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+    public ResultSetData selectResultSet(String sqlOrID, Class<?> returnClass, Object[] params) throws Throwable {
+    	String doSql = JDBCUtils.getFinalSql(sqlOrID);
+    	SqlContext context = SqlCoreHandle.handleRequest(doSql, params).printSqlLog();
+    	Connection conn = ConnectionManager.getConnection(dataSource);
+    	PreparedStatement ps = conn.prepareStatement(context.getSql(),ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         if(conn.toString().equalsIgnoreCase("mysql")){
             ps.setFetchSize(Integer.MIN_VALUE);
         }
-        ResultSet rs = JDBCUtils.setParamsReturnRS(ps, params);
-        return  new ResultData(returnClass,rs,ps);
+        ResultSet rs = JDBCUtils.setParamsReturnRS(ps, context.getParamList().toArray());
+        return  new ResultSetData(returnClass,rs,ps);
     }
 
     @SuppressWarnings("unchecked")
-	public <T> T selectOne(Connection conn,String sql, Class<? extends T> returnClass, Object[] params) throws Throwable {
+	public <T> T selectOne(String sqlOrID, Class<? extends T> returnClass, Object...params) throws Throwable {
+    	String doSql = JDBCUtils.getFinalSql(sqlOrID);
+		SqlContext context = SqlCoreHandle.handleRequest(doSql, params).printSqlLog();
+		
+    	Connection conn = ConnectionManager.getConnection(dataSource);
     	ResultSet rs = null;
         PreparedStatement ps = null;
         Object rt = null;
         try {
-            ps = conn.prepareStatement(sql);
-            rs = JDBCUtils.setParamsReturnRS(ps, params);
+            ps = conn.prepareStatement(context.getSql());
+            rs = JDBCUtils.setParamsReturnRS(ps, context.getParamList().toArray());
             int row_num = 0;
             while (rs.next()) {
                 row_num++;
@@ -59,15 +73,19 @@ public class DbHelper {
         }
     }
 
-    public Map<String, Object> selectOne(Connection conn,String sqlOrID, Object[] params) throws Throwable {
-        return selectOne(conn,sqlOrID, null, params);
+    public Map<String, Object> selectOne(String sqlOrID, Object...params) throws Throwable {
+        return selectOne(sqlOrID, null, params);
     }
-    public static <T> List<T> selectList(Connection conn,String sql, Class<? extends T> returnClass, Object[] params) throws Throwable {
+    public <T> List<T> selectList(String sqlOrID, Class<? extends T> returnClass, Object[] params) throws Throwable {
+    	String doSql = JDBCUtils.getFinalSql(sqlOrID);
+		SqlContext context = SqlCoreHandle.handleRequest(doSql, params).printSqlLog();
+    	Connection conn = ConnectionManager.getConnection(dataSource);
+    	
     	ResultSet rs = null;
         PreparedStatement ps = null;
         try {
-            ps = conn.prepareStatement(sql);
-            rs = JDBCUtils.setParamsReturnRS(ps, params);
+            ps = conn.prepareStatement(context.getSql());
+            rs = JDBCUtils.setParamsReturnRS(ps, context.getParamList().toArray());
             return JDBCUtils.parseSqlResultList(rs, returnClass);
         } catch (Throwable e) {
             throw e;
@@ -76,21 +94,28 @@ public class DbHelper {
         }
     }
 
-    public List<Map<String, Object>> selectList(Connection conn,String sqlOrID, Object[] params) throws Throwable {
-        return selectList(conn,sqlOrID, null, params);
+    public List<Map<String, Object>> selectList(String sqlOrID, Object...params) throws Throwable {
+        return selectList(sqlOrID, null, params);
     }
 
-    public int excuteSql(Connection conn,String sql, Object[] params) throws Throwable {
-    	return JDBCUtils.preparedAndExcuteSQL(conn, sql, params);
+    public int excuteSql(String sqlOrID, Object... params) throws Throwable {
+    	String doSql = JDBCUtils.getFinalSql(sqlOrID);
+		SqlContext context = SqlCoreHandle.handleRequest(doSql, params).printSqlLog();
+    	Connection conn = ConnectionManager.getConnection(dataSource);
+    	return JDBCUtils.preparedAndExcuteSQL(conn, context.getSql(), params);
     }
 
     @SuppressWarnings("unchecked")
-	public <T> T excuteSqlReturnPK(Connection conn,String sql, Object[] params) throws Throwable {
+	public <T> T excuteSqlReturnPK(String sqlOrID, Object...params) throws Throwable {
+    	String doSql = JDBCUtils.getFinalSql(sqlOrID);
+		SqlContext context = SqlCoreHandle.handleRequest(doSql, params).printSqlLog();
+    	Connection conn = ConnectionManager.getConnection(dataSource);
+    	
     	PreparedStatement ps = null;
         ResultSet rs = null;
         try {
-            ps = conn.prepareStatement(sql,Statement.RETURN_GENERATED_KEYS);
-            JDBCUtils.setParams(ps, params);
+            ps = conn.prepareStatement(context.getSql(),Statement.RETURN_GENERATED_KEYS);
+            JDBCUtils.setParams(ps, context.getParamList().toArray());
             int rowNum = ps.executeUpdate();
             if (rowNum > 1) {
                 throw new Throwable("the insert too many");
@@ -110,13 +135,17 @@ public class DbHelper {
     }
 
 
-    public List<Integer> insertBatch(Connection conn,String sql, Object[] params) throws Throwable {
+    public List<Integer> insertBatch(String sqlOrID, Object...params) throws Throwable {
+    	String doSql = JDBCUtils.getFinalSql(sqlOrID);
+		SqlContext context = SqlCoreHandle.handleRequest(doSql, params).printSqlLog();
+    	Connection conn = ConnectionManager.getConnection(dataSource);
+    	
     	PreparedStatement ps = null;
         try {
-            ps = conn.prepareStatement(sql);
+            ps = conn.prepareStatement(context.getSql());
             int count = 0;
             List<Integer> rtnList = new ArrayList<>(params.length);
-            for (Object param : params) {
+            for (Object param : context.getParamList()) {
                 Object[] setParamsArr = (Object[]) param;
                 for (int i = 0; i < setParamsArr.length; i++) {
                     ps.setObject(i + 1, setParamsArr[i]);

@@ -2,12 +2,12 @@ package org.dc.jdbc.core.pojo;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+
 import org.dc.jdbc.core.ConnectionManager;
-import org.dc.jdbc.core.DbHelper;
 import org.dc.jdbc.core.SqlContext;
 import org.dc.jdbc.core.utils.JDBCUtils;
 
-public class ResultData {
+public class ResultSetData {
 
     private Object data;
     private ResultSet resultSet;
@@ -18,7 +18,7 @@ public class ResultData {
      * sql执行完了之后    执行的事件
      * @throws Exception 
      */
-    public ResultData afterBindEvent() throws Exception{
+    public ResultSetData afterBindEvent() throws Throwable{
         if (SqlContext.getContext().getReadOnly()) {
             //ConnectionManager.commitAll();
             ConnectionManager.closeConnectionAll();
@@ -26,10 +26,10 @@ public class ResultData {
         return this;
     }
 
-    public ResultData(Object data){
+    public ResultSetData(Object data){
         this.data = data;
     }
-    public ResultData(Class<?> classType,ResultSet resultSet,PreparedStatement preparedStatement){
+    public ResultSetData(Class<?> classType,ResultSet resultSet,PreparedStatement preparedStatement){
         this.classType = classType;
         this.preparedStatement = preparedStatement;
         this.resultSet = resultSet;
@@ -42,7 +42,7 @@ public class ResultData {
         return (T) data;
     }
 
-    public ResultData next() throws Exception {
+    public ResultSetData next() throws Exception {
         try{
             while(resultSet.next()){
                 this.data = JDBCUtils.getBeanObjectByClassType(resultSet, classType);

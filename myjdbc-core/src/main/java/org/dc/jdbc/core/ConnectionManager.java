@@ -2,9 +2,6 @@ package org.dc.jdbc.core;
 
 import java.sql.Connection;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import javax.sql.DataSource;
 
 /**
@@ -14,7 +11,6 @@ import javax.sql.DataSource;
  * @time 2015-8-17
  */
 public class ConnectionManager {
-    private static Logger LOG = Logger.getLogger(ConnectionManager.class.getName());
     // 设置事务
     public static void setTransaction(boolean startTransaction) {
         SqlContext.getContext().setTransaction(startTransaction);
@@ -39,31 +35,33 @@ public class ConnectionManager {
         return conn;
     }
 
-    /**
-     * 关闭当前操作中的所有连接对象，如果关闭失败，则继续关闭其他conn对象，直到关闭所有连接，改方法属于最后一步的操作，除非线程挂掉或者被kill掉，否则最后一定要被执行。
-     * 异常conn选择捕获，而不选择抛出去，原因：保证当前线程所有的conn能尽可能快速的被放回连接池。异常处理主要由close方法实现类中的代码去处理失败的conn，本方法不做处理，所以默认直接成功
-     */
-    public static void closeConnectionAll() {
+    public static void closeConnectionAll() throws Throwable {
         Map<DataSource, Connection> connMap = SqlContext.getContext().getDataSourceMap();
+        Throwable ee = null;
         for (Connection conn : connMap.values()) {
             try {
                 if (conn != null && !conn.isClosed()) {
                     conn.close();
                     conn = null;
                 }
-            } catch (Exception e) {
-                LOG.log(Level.ALL, "closeConnectionAll fail", e);
+            } catch (Throwable e) {
+            	if(ee == null) {
+            		ee = e;
+            	}
             }
         }
         //销毁
         SqlContext.getContext().destroySqlContext();
+        if(ee!=null) {
+        	throw ee;
+        }
     }
 
     /**
      * 回滚所有数据源的操作，正常的数据库能够回滚，回滚异常也不用管，继续回滚下一个数据库，直到回滚操作结束
      * @throws Exception 
      */
-    public static void rollbackAll() throws Exception {
+    public static void rollbackAll() throws Throwable {
         Map<DataSource, Connection> connMap = SqlContext.getContext().getDataSourceMap();
         for (Connection conn : connMap.values()) {
             if (conn != null && !conn.isClosed() && conn.getAutoCommit() == false) {
@@ -77,14 +75,14 @@ public class ConnectionManager {
      * 
      * @throws Exception
      */
-    public static void commitAll() throws Exception {
+    public static void commitAll() throws Throwable {
         Map<DataSource, Connection> connMap = SqlContext.getContext().getDataSourceMap();
         for (Connection conn : connMap.values()) {
             try {
                 if (conn != null && !conn.isClosed() && conn.getAutoCommit() == false) {
                     conn.commit();
                 }
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 throw e;
             }
         }
