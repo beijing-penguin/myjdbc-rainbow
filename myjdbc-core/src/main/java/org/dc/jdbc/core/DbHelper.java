@@ -171,4 +171,12 @@ public class DbHelper {
             JDBCUtils.close(ps);
         }
     }
+	public int insert(String sqlOrID, Object...params) throws Throwable {
+		return excuteSql(sqlOrID, params);
+	}
+	public int insertEntity(Object entity) throws Throwable {
+		SqlContext context = SqlCoreHandle.handleInsertRequest(entity);
+    	Connection conn = ConnectionManager.getConnection(dataSource);
+    	return JDBCUtils.preparedAndExcuteSQL(conn, context.getSql(), context.getParamList().toArray());
+	}
 }

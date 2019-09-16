@@ -124,7 +124,7 @@ public class SqlCoreHandle {
     /**
      * 一般处理方法，调用此方法处理请求
      */
-    public static SqlContext handleRequest(String doSql, Object... params) throws Exception {
+    public static SqlContext handleRequest(String doSql, Object... params) throws Throwable {
         List<Object> returnList = new ArrayList<Object>();
         StringBuilder sql = new StringBuilder(doSql);
 
@@ -262,7 +262,7 @@ public class SqlCoreHandle {
      * @return
      * @throws Exception
      */
-    public static SqlContext handleInsertRequest(Object entity) throws Exception {
+    public static SqlContext handleInsertRequest(Object entity) throws Throwable {
         Class<?> entityClass = entity.getClass();
         SqlContext sqlContext = SqlContext.getContext();
         List<Object> paramsList = new ArrayList<Object>();
@@ -342,7 +342,7 @@ public class SqlCoreHandle {
         return sqlContext;
     }
 
-    public static SqlContext handleSelectRequest(Object entity, Object whereSql, Object params) throws Exception {
+    public static SqlContext handleSelectRequest(Object entity, Object whereSql, Object params) throws Throwable {
         Class<?> entityClass = entity.getClass();
         SqlContext sqlContext = SqlContext.getContext();
         TableInfoBean tabInfo = JDBCUtils.getTableInfoByClass(entityClass, sqlContext.getCurrentDataSource());
