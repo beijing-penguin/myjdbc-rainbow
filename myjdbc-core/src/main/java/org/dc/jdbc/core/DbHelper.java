@@ -175,8 +175,8 @@ public class DbHelper {
 		return excuteSql(sqlOrID, params);
 	}
 	public int insertEntity(Object entity) throws Throwable {
-		SqlContext context = SqlCoreHandle.handleInsertRequest(entity);
-    	Connection conn = ConnectionManager.getConnection(dataSource);
+	    Connection conn = ConnectionManager.getConnection(dataSource);
+		SqlContext context = SqlCoreHandle.handleInsertRequest(entity).printSqlLog();;
     	return JDBCUtils.preparedAndExcuteSQL(conn, context.getSql(), context.getParamList().toArray());
 	}
 }
