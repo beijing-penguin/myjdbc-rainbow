@@ -16,7 +16,6 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import org.dc.jdbc.core.CacheCenter;
-import org.dc.jdbc.core.DbHelper;
 import org.dc.jdbc.core.pojo.ClassRelation;
 import org.dc.jdbc.core.pojo.ColumnBean;
 import org.dc.jdbc.core.pojo.DBType;
@@ -294,10 +293,9 @@ public class JDBCUtils {
             }
             String schema = null;
             if (getDataBaseType(dataSource) == DBType.ORACLE) {
-                schema = username;
+                schema = username.toUpperCase();
             }
-            ResultSet tablesResultSet = meta.getTables(conn.getCatalog(), schema == null ? null : schema.toUpperCase(),
-                    "%", new String[] { "TABLE" });
+            ResultSet tablesResultSet = meta.getTables(conn.getCatalog(), schema,"%", new String[] { "TABLE" });
             while (tablesResultSet.next()) {
                 TableInfoBean tableBean = new TableInfoBean();
                 String tableName = tablesResultSet.getString("TABLE_NAME");
@@ -311,7 +309,7 @@ public class JDBCUtils {
                     tableBean.getColumnList().add(colbean);
                 }
                 // 设置主键
-                ResultSet primaryKeyResultSet = meta.getPrimaryKeys(conn.getCatalog(), null, tableName);
+                ResultSet primaryKeyResultSet = meta.getPrimaryKeys(conn.getCatalog(), schema, tableName);
                 while (primaryKeyResultSet.next()) {
                     String primaryKeyColumnName = primaryKeyResultSet.getString("COLUMN_NAME");
                     for (int i = 0; i < tableBean.getColumnList().size(); i++) {
@@ -473,16 +471,18 @@ public class JDBCUtils {
 
     public static DBType getDataBaseType(DataSource dataSource) throws Exception {
         String jdbcurl = null;
-        Field[] fields = dataSource.getClass().getSuperclass().getDeclaredFields();
-        for (Field field : fields) {
-            if (!Modifier.isStatic(field.getModifiers())) {// 去除静态类型字段
-                if (field.getName().toLowerCase().contains("url")) {
-                    field.setAccessible(true);
-                    jdbcurl = field.get(dataSource) == null ? null : field.get(dataSource).toString();
-                }
-            }
-        }
-        if (jdbcurl != null) {
+//        Field[] fields = dataSource.getClass().getSuperclass().getDeclaredFields();
+//        for (Field field : fields) {
+//            if (!Modifier.isStatic(field.getModifiers())) {// 去除静态类型字段
+//                if (field.getName().toLowerCase().contains("url")) {
+//                    field.setAccessible(true);
+//                    jdbcurl = field.get(dataSource) == null ? null : field.get(dataSource).toString();
+//                }
+//            }
+//        }
+        
+        try (Connection connection = dataSource.getConnection()) {
+            jdbcurl =  connection.getMetaData().getURL();
         }
         if (jdbcurl != null && jdbcurl.toLowerCase().startsWith("jdbc:mysql:")) {
             return DBType.MYSQL;
