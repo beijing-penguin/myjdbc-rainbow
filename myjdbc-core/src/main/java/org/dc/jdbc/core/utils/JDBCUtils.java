@@ -276,14 +276,14 @@ public class JDBCUtils {
             tabList = new ArrayList<TableInfoBean>();
             conn = dataSource.getConnection();
             DatabaseMetaData meta = conn.getMetaData();
-            String jdbcurl = null;
+            //String jdbcurl = null;
             String username = null;
             Field[] fields = dataSource.getClass().getSuperclass().getDeclaredFields();
             for (Field field : fields) {
                 if (!Modifier.isStatic(field.getModifiers())) {// 去除静态类型字段
                     if (field.getName().toLowerCase().contains("url")) {
                         field.setAccessible(true);
-                        jdbcurl = field.get(dataSource) == null ? null : field.get(dataSource).toString();
+                        //jdbcurl = field.get(dataSource) == null ? null : field.get(dataSource).toString();
                     }
                     if (field.getName().toLowerCase().contains("username")) {
                         field.setAccessible(true);
