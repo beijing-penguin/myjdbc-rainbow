@@ -1,6 +1,6 @@
 package org.dc.jdbc.example;
 
-import java.sql.Connection;
+import java.util.List;
 
 import org.dc.jdbc.config.JDBCConfig;
 import org.dc.jdbc.core.ConnectionManager;
@@ -19,8 +19,14 @@ public class MainTest {
 		JDBCConfig.isPrintSqlLog = true;
 		try {
 		    DbHelper dbHelper = new DbHelper(dataSource);
-			User user = dbHelper.selectOne("select * from pp_0 where id = ? and name = ?",User.class,3,"dc");
-			System.out.println(JSON.toJSONString(user));
+		    User user = new User();
+		    user.setId(10L);
+		    
+			List<User> userList1 = dbHelper.selectEntityList(user,User.class);
+	        System.out.println(JSON.toJSONString(userList1));
+	         
+			User user2 = dbHelper.selectOneEntity(user,User.class);
+			System.out.println(JSON.toJSONString(user2));
 		} catch (Throwable e) {
 			e.printStackTrace();
 		}finally {
@@ -30,6 +36,5 @@ public class MainTest {
 				e.printStackTrace();
 			}
 		}
-		dataSource.close();
 	}
 }

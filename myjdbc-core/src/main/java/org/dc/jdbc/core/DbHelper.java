@@ -175,8 +175,63 @@ public class DbHelper {
 		return excuteSql(sqlOrID, params);
 	}
 	public int insertEntity(Object entity) throws Throwable {
+	    SqlContext context = SqlCoreHandle.handleInsertRequest(entity).printSqlLog();
 	    Connection conn = ConnectionManager.getConnection(dataSource);
-		SqlContext context = SqlCoreHandle.handleInsertRequest(entity).printSqlLog();;
     	return JDBCUtils.preparedAndExcuteSQL(conn, context.getSql(), context.getParamList().toArray());
+	}
+	
+	public <T> List<T> selectEntityList(Object entity,String wheresql, Class<? extends T> returnClass, Object...params) throws Throwable {
+	    Connection conn = ConnectionManager.getConnection(dataSource);
+	    SqlContext context = SqlCoreHandle.handleSelectRequest(entity, wheresql, params);
+
+        ResultSet rs = null;
+        PreparedStatement ps = null;
+        try {
+            ps = conn.prepareStatement(context.getSql());
+            rs = JDBCUtils.setParamsReturnRS(ps, context.getParamList().toArray());
+            return JDBCUtils.parseSqlResultList(rs, returnClass);
+        } catch (Throwable e) {
+            throw e;
+        } finally {
+            JDBCUtils.close(rs, ps);
+        }
+    }
+	
+	public <T> List<T> selectEntityList(Object entity, Class<? extends T> returnClass, Object...params) throws Throwable {
+	    return this.selectEntityList(entity, null, returnClass,params);
+	}
+	
+	@SuppressWarnings("unchecked")
+    public <T> T selectOneEntity(Object entity,String wheresql, Class<? extends T> returnClass, Object...params) throws Throwable {
+	    Connection conn = ConnectionManager.getConnection(dataSource);
+        SqlContext context = SqlCoreHandle.handleSelectRequest(entity, wheresql, params);
+        
+        ResultSet rs = null;
+        PreparedStatement ps = null;
+        Object rt = null;
+        try {
+            ps = conn.prepareStatement(context.getSql());
+            rs = JDBCUtils.setParamsReturnRS(ps, context.getParamList().toArray());
+            int row_num = 0;
+            while (rs.next()) {
+                row_num++;
+                if(row_num>1){
+                    throw new TooManyResultsException();
+                }
+                rt = JDBCUtils.getBeanObjectByClassType(rs, returnClass);
+            }
+            if(rt==null) {
+                return null;
+            }
+            return  (T) rt;
+        } catch (Throwable e) {
+            throw e;
+        } finally {
+            JDBCUtils.close(rs, ps);
+        }
+	}
+	
+	public <T> T selectOneEntity(Object entity, Class<? extends T> returnClass, Object...params) throws Throwable {
+	    return selectOneEntity(entity, null, returnClass, params);
 	}
 }
