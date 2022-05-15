@@ -9,6 +9,7 @@
 
 	<modules>
 		<module>myjdbc-core</module>
+		<module>jdbc_utils</module>
 	</modules>
 
 	<properties>
