@@ -24,7 +24,7 @@ public class ObjectUtils {
             return Byte.parseByte(v);
         }else if (type.equals("Boolean") || type.equals("boolean")){
             return Boolean.parseBoolean(v);
-        }else if (type.equals("Bigdecimal") ){
+        }else if (type.equals("BigDecimal") ){
             return new BigDecimal(v);
         }else if (type.equals("BigInteger") ){
             return new BigInteger(v);
