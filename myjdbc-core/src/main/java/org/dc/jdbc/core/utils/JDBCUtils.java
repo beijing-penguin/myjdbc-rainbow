@@ -252,7 +252,10 @@ public class JDBCUtils {
             return_obj = rs.getByte(columnIndex);
             break;
         case Types.TINYINT:
-            return_obj = rs.getByte(columnIndex);
+        	Object obj = rs.getObject(columnIndex);
+            if(obj != null) {
+            	return_obj = Byte.parseByte(obj.toString());
+            }
             break;
         case Types.SMALLINT:
             return_obj = rs.getShort(columnIndex);
